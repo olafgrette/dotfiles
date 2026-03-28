@@ -9,8 +9,8 @@ vimcmd_replace_symbol = "[❮](bold yellow)"
 vimcmd_visual_symbol = "[❮](bold blue)"
 
 [directory]
-truncation_length = 3
-truncate_to_repo = true
+truncation_length = 0
+truncate_to_repo = false
 style = "bold cyan"
 
 [git_branch]
@@ -42,7 +42,7 @@ style = "bold red"
 disabled = false
 
 [username]
-show_always = false
+show_always = true
 format = "[$user]($style)"
 style_user = "dimmed white"
 style_root = "bold red"
