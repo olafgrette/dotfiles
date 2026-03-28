@@ -13,6 +13,8 @@ end
 
 set -x npm_config_prefix ~/.local
 
+alias mux 'tmux new -AD -s main'
+
 if status is-interactive
     printf "\033[5 q"
 end
