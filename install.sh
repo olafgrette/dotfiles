@@ -25,3 +25,14 @@ if ! command -v starship &>/dev/null; then
     echo "Installing starship..."
     curl -sS https://starship.rs/install.sh | sh -s -- -y
 fi
+
+# Download ghostty shaders (gitignored, fetched on install)
+SHADERS_DIR="$HOME/.config/ghostty/shaders"
+SHADERS_BASE="https://raw.githubusercontent.com/KroneCorylus/ghostty-shader-playground/main/public/shaders"
+mkdir -p "$SHADERS_DIR"
+for shader in cursor_frozen.glsl; do
+    if [ ! -f "$SHADERS_DIR/$shader" ]; then
+        echo "Downloading shader: $shader"
+        curl -sL "$SHADERS_BASE/$shader" -o "$SHADERS_DIR/$shader"
+    fi
+done

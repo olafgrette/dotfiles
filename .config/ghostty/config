@@ -2,3 +2,5 @@ font-family = RecMonoCasual Nerd Font
 font-size = 16
 theme = Operator Mono Dark
 
+custom-shader = ~/.config/ghostty/shaders/cursor_frozen.glsl
+
