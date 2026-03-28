@@ -1,0 +1,69 @@
+format = "$os$directory$git_branch$git_status$line_break$character"
+right_format = "$status$cmd_duration$jobs$python$java$ruby$aws$username$hostname$time"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+vimcmd_replace_symbol = "[❮](bold yellow)"
+vimcmd_visual_symbol = "[❮](bold blue)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+format = "[$symbol$branch]($style) "
+style = "bold purple"
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = "bold red"
+
+[cmd_duration]
+min_time = 3000
+format = "[$duration]($style) "
+style = "yellow"
+
+[time]
+disabled = false
+format = "[$time]($style)"
+time_format = "%H:%M"
+style = "dimmed white"
+
+[status]
+disabled = false
+format = "[$status]($style) "
+style = "bold red"
+
+[os]
+disabled = false
+
+[username]
+show_always = false
+format = "[$user]($style)"
+style_user = "dimmed white"
+style_root = "bold red"
+
+[hostname]
+ssh_only = false
+format = "[@$hostname]($style) "
+style = "dimmed white"
+
+[python]
+format = "[$symbol$version]($style) "
+symbol = " "
+
+[java]
+format = "[$symbol$version]($style) "
+symbol = " "
+
+[ruby]
+format = "[$symbol$version]($style) "
+symbol = " "
+
+[aws]
+format = "[$symbol$profile]($style) "
+symbol = " "
