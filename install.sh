@@ -19,6 +19,7 @@ symlink .config/fish
 symlink .config/ghostty
 symlink .config/helix
 symlink .config/starship.toml
+symlink .config/tmux
 
 if ! command -v starship &>/dev/null; then
     echo "Installing starship..."
