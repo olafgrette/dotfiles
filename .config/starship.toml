@@ -1,69 +1,101 @@
-format = "$os$directory$git_branch$git_status$line_break$character"
-right_format = "$status$cmd_duration$jobs$python$java$ruby$aws$username$hostname$time"
+"$schema" = 'https://starship.rs/config-schema.json'
 
-[character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[❯](bold red)"
-vimcmd_symbol = "[❮](bold green)"
-vimcmd_replace_symbol = "[❮](bold yellow)"
-vimcmd_visual_symbol = "[❮](bold blue)"
+format = """
+[](fg:#394260)\
+$os\
+[](fg:#769ff0 bg:#394260)\
+$directory\
+[](fg:#394260 bg:#769ff0)\
+$git_branch\
+$git_status\
+[](fg:#394260)\
+\n$character"""
 
-[directory]
-truncation_length = 0
-truncate_to_repo = false
-style = "bold cyan"
-
-[git_branch]
-symbol = " "
-format = "[$symbol$branch]($style) "
-style = "bold purple"
-
-[git_status]
-format = '([$all_status$ahead_behind]($style) )'
-style = "bold red"
-
-[cmd_duration]
-min_time = 3000
-format = "[$duration]($style) "
-style = "yellow"
-
-[time]
-disabled = false
-format = "[$time]($style)"
-time_format = "%H:%M"
-style = "dimmed white"
-
-[status]
-disabled = false
-format = "[$status]($style) "
-style = "bold red"
+right_format = """$status$cmd_duration$jobs$python$java$ruby$aws\
+[](fg:#394260)\
+$username$hostname\
+[](fg:#1d2230 bg:#394260)\
+$time\
+[▓▒░](fg:#1d2230)"""
 
 [os]
 disabled = false
+style = "fg:#a3aed2 bg:#394260"
+format = "[ $symbol ]($style)"
+
+[os.symbols]
+Macos = ""
+
+[directory]
+style = "fg:#e3e5e5 bg:#769ff0"
+format = "[ $path ]($style)"
+truncation_length = 0
+truncate_to_repo = false
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙"
+"Downloads" = ""
+"Music" = ""
+"Pictures" = ""
+
+[git_branch]
+symbol = ""
+style = "bg:#394260"
+format = '[[ $symbol $branch ](fg:#769ff0 bg:#394260)]($style)'
+
+[git_status]
+style = "bg:#394260"
+format = '[[($all_status$ahead_behind )](fg:#769ff0 bg:#394260)]($style)'
 
 [username]
 show_always = true
-format = "[$user]($style)"
-style_user = "dimmed white"
-style_root = "bold red"
+style_user = "fg:#a3aed2 bg:#394260"
+style_root = "bold fg:#ff0000 bg:#394260"
+format = "[ $user]($style)"
+disabled = false
 
 [hostname]
 ssh_only = false
-format = "[@$hostname]($style) "
-style = "dimmed white"
+style = "fg:#a3aed2 bg:#394260"
+format = "[@$hostname ]($style)"
+disabled = false
+
+[time]
+disabled = false
+time_format = "%H:%M"
+style = "bg:#1d2230"
+format = '[[  $time ](fg:#a0a9cb bg:#1d2230)]($style)'
+
+[status]
+disabled = false
+style = "bold red"
+format = "[$status ]($style)"
+
+[cmd_duration]
+min_time = 3000
+style = "yellow"
+format = "[$duration ]($style)"
+
+[jobs]
+style = "bold blue"
 
 [python]
-format = "[$symbol$version]($style) "
-symbol = " "
+symbol = ""
+style = "fg:#769ff0"
+format = "[$symbol $version ]($style)"
 
 [java]
-format = "[$symbol$version]($style) "
-symbol = " "
+symbol = ""
+style = "fg:#769ff0"
+format = "[$symbol $version ]($style)"
 
 [ruby]
-format = "[$symbol$version]($style) "
-symbol = " "
+symbol = ""
+style = "fg:#769ff0"
+format = "[$symbol $version ]($style)"
 
 [aws]
-format = "[$symbol$profile]($style) "
-symbol = " "
+symbol = ""
+style = "fg:#769ff0"
+format = "[$symbol $profile ]($style)"
