@@ -1,4 +1,4 @@
-fish_add_path ~/.local/bin
+fish_add_path ~/bin ~/.local/bin
 
 if command -q hx
     set -x EDITOR hx
@@ -10,5 +10,7 @@ else if command -q helix
     alias hx helix
 end
 
+
+set -x npm_config_prefix ~/.local
 
 starship init fish | source
