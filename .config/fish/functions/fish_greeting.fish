@@ -33,6 +33,13 @@ function fish_greeting
         "><(((º>  Net positive changes today? Let's see." \
         "><(((º>  Forking around again." \
         "><(((º>  Caught between a reef and a hard place." \
-        "><(((º>  The deep end of the stack trace awaits."
+        "><(((º>  The deep end of the stack trace awaits." \
+        "><(((º>  \$PATH to the sea." \
+        "><(((º>  piping output to /dev/ocean." \
+        "><(((º>  0 0 * * *  release the kraken." \
+        "><(((º>  /dev/null is where dreams go to swim." \
+        "><(((º>  tail -f /var/log/ocean.log" \
+        "><(((º>  curl -L life | grep meaning" \
+        "><(((º>  brew install ambition — already up to date."
     echo $quotes[(random 1 (count $quotes))]
 end
