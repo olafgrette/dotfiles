@@ -33,6 +33,7 @@ symlink .config/helix
 symlink .config/starship.toml
 symlink .config/tmux
 symlink_file .claude/CLAUDE.md
+symlink_file .gemini/GEMINI.md
 
 if ! command -v starship &>/dev/null; then
     echo "Installing starship..."
