@@ -35,6 +35,9 @@ symlink .config/tmux
 symlink_file .claude/CLAUDE.md
 symlink_file .gemini/GEMINI.md
 
+# Sync Claude skills (also run by background-startup on each shell start)
+fish -c claude-skill-sync
+
 if ! command -v starship &>/dev/null; then
     echo "Installing starship..."
     curl -sS https://starship.rs/install.sh | sh -s -- -y
