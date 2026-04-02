@@ -1,4 +1,5 @@
 .DS_Store
+.claude/settings.local.json
 
 # fish
 .config/fish/fish_history

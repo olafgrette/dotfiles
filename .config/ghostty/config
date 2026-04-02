@@ -17,3 +17,5 @@ keybind = alt+seven=goto_tab:7
 keybind = alt+eight=goto_tab:8
 keybind = alt+nine=goto_tab:9
 
+# TERMINFO SSH fixes
+shell-integration-features = ssh-terminfo,ssh-env
