@@ -40,6 +40,23 @@ function fish_greeting
         "><(((º>  /dev/null is where dreams go to swim." \
         "><(((º>  tail -f /var/log/ocean.log" \
         "><(((º>  curl -L life | grep meaning" \
-        "><(((º>  brew install ambition — already up to date."
+        "><(((º>  brew install ambition — already up to date." \
+        "><(((º>  Don't be koi, show me the diff." \
+        "><(((º>  Dockerized or wild-caught?" \
+        "><(((º>  SSH: Secret Shell Harbor." \
+        "><(((º>  YAML: Yet Another Marine Lifeform." \
+        "><(((º>  JSON: Jellyfish Standard Object Notation." \
+        "><(((º>  CI/CD: Constant Inundation / Continuous Drowning." \
+        "><(((º>  Sustainable code: wild-caught from GitHub." \
+        "><(((º>  Sinking into the deep end of the backlog." \
+        "><(((º>  Data lake? More like data swamp." \
+        "><(((º>  The current state of the repo: murky." \
+        "><(((º>  In his house at R'lyeh, dead Cthulhu waits dreaming... of a bug-free build." \
+        "><(((º>  That is not dead which can eternal lie, and with strange eons even legacy code may die." \
+        "><(((º>  The Call of the CLI: madness in every man page." \
+        "><(((º>  The Great Old Ones: COBOL, Fortran, and Lisp." \
+        "><(((º>  Eldritch errors in the logs. Don't look too close." \
+        "><(((º>  Ph'nglui mglw'nafh git commit r'lyeh wgah'nagl fhtagn." \
+        "><(((º>  Your shell is a window into the abyss. And the abyss is piping to stderr."
     echo $quotes[(random 1 (count $quotes))]
 end
