@@ -1,6 +1,7 @@
 theme = "onedarker"
 
 [editor]
+true-color = true
 auto-save = true
 cursorline = true
 gutters = ["diagnostics", "line-numbers"]
