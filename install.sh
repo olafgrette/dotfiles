@@ -34,6 +34,18 @@ symlink .config/starship.toml
 symlink .config/tmux
 symlink_file .claude/CLAUDE.md
 symlink_file .claude/statusline-command.sh
+
+# Add statusline config to ~/.claude/settings.json if not already present
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+if [ ! -f "$CLAUDE_SETTINGS" ]; then
+    echo '{}' > "$CLAUDE_SETTINGS"
+fi
+if ! jq -e '.statusLine' "$CLAUDE_SETTINGS" > /dev/null 2>&1; then
+    tmp=$(mktemp)
+    jq '.statusLine = {"type": "command", "command": "bash ~/.claude/statusline-command.sh"}' "$CLAUDE_SETTINGS" > "$tmp"
+    mv "$tmp" "$CLAUDE_SETTINGS"
+    echo "Added statusLine to $CLAUDE_SETTINGS"
+fi
 symlink_file .gemini/GEMINI.md
 
 # Sync Claude skills (also run by background-startup on each shell start)
