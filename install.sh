@@ -33,6 +33,7 @@ symlink .config/helix
 symlink .config/starship.toml
 symlink .config/tmux
 symlink_file .claude/CLAUDE.md
+symlink_file .claude/statusline-command.sh
 symlink_file .gemini/GEMINI.md
 
 # Sync Claude skills (also run by background-startup on each shell start)
