@@ -4,8 +4,8 @@ end
 
 if not set -q SSH_CONNECTION
     alias open xdg-open
-    alias monitor-desk "cp ~/.config/hypr/monitors.conf.desk ~/.config/hypr/monitors.conf && hyprctl reload"
-    alias monitor-tv "cp ~/.config/hypr/monitors.conf.tv ~/.config/hypr/monitors.conf && hyprctl reload"
+    alias monitor-desk "cp ~/.config/hypr/monitors.lua.desk ~/.config/hypr/monitors.lua && hyprctl reload"
+    alias monitor-tv "cp ~/.config/hypr/monitors.lua.tv ~/.config/hypr/monitors.lua && hyprctl reload"
 
     # Auto-start Hyprland on tty1
     if not set -q DISPLAY; and test "$XDG_VTNR" = 1
