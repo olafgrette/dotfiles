@@ -44,9 +44,10 @@ check cargo cargo
 check chruby chruby chruby-exec
 check bun bun
 
-group "Agents"
+group "Agents / AI Tools"
 check claude claude
 check gemini gemini
+check qmd qmd
 
 group "SSH"
 check ssh ssh
