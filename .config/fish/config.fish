@@ -14,7 +14,6 @@ end
 set -x npm_config_prefix ~/.local
 
 alias mux 'tmux new -AD -s main'
-alias brunnr-init '$HOME/.cache/brunnr/bin/brunnr-init'
 
 if status is-interactive
     printf "\033[5 q"

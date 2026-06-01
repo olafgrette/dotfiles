@@ -45,6 +45,7 @@ check chruby chruby chruby-exec
 check bun bun
 
 group "Agents / AI Tools"
+check brunnr brunnr
 check claude claude
 check gemini gemini
 check qmd qmd
