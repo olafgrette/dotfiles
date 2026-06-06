@@ -19,17 +19,18 @@ if [ $# -gt 0 ]; then
 fi
 
 export LLAMA_CACHE="$HOME/.model-cache"
-MODEL_REPO="unsloth/Qwen3.5-35B-A3B-GGUF"
-MODEL_FILE="Qwen3.5-35B-A3B-UD-Q4_K_L.gguf"
+MODEL_REPO="unsloth/Qwen3.6-35B-A3B-MTP-GGUF"
+MODEL_FILE="Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
 
-# 168k default context (262k max)
-DEFAULT_CTX=168000 # 262144
+DEFAULT_CTX=132768
 CTX="${CTX:-$DEFAULT_CTX}"
 
 TOP_P=0.95
 TOP_K=20
 MIN_P=0.00
 EXTRA_ARGS=()
+
+[[ "$(uname)" != "Darwin" ]] && EXTRA_ARGS+=(--no-mmproj-offload)
 
 case "$MODE" in
     coding)
@@ -45,7 +46,7 @@ case "$MODE" in
         ;;
 esac
 
-echo "Starting Qwen3.5-35B-A3B in '$MODE' mode with ${CTX} context..."
+echo "Starting Qwen3.6-35B-A3B in '$MODE' mode with ${CTX} context..."
 
 SERVER_BIN=$(command -v llama-server-cuda || command -v llama-server)
 if [ -z "$SERVER_BIN" ]; then
@@ -61,6 +62,7 @@ exec $SERVER_BIN \
     --top-p $TOP_P \
     --top-k $TOP_K \
     --min-p $MIN_P \
+    --spec-type draft-mtp --spec-draft-n-max 2 \
     --n-gpu-layers 99 \
     --parallel 1 \
     --flash-attn on \
