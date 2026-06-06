@@ -49,6 +49,7 @@ check brunnr brunnr
 check claude claude
 check gemini gemini
 check qmd qmd
+check opencode opencode
 check "llama-server" llama-server-cuda llama-server
 
 group "SSH"
