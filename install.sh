@@ -32,6 +32,9 @@ symlink .config/ghostty
 symlink .config/helix
 symlink .config/starship.toml
 symlink .config/tmux
+symlink_file .local/bin/gemma-serve
+symlink_file .local/bin/qwen-fast-serve
+symlink_file .local/bin/qwen-precise-serve
 symlink_file .claude/CLAUDE.md
 symlink_file .claude/statusline-command.sh
 

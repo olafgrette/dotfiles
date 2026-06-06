@@ -1,0 +1,77 @@
+#!/bin/bash
+
+MODE="general"
+
+if [ $# -gt 0 ]; then
+    case "$1" in
+        coding|general|no-think)
+            MODE="$1"
+            shift
+            ;;
+        -*)
+            # It's a flag, keep default mode and pass the flag through
+            ;;
+        *)
+            echo "Usage: $0 [coding|general|no-think] [server options...]"
+            exit 1
+            ;;
+    esac
+fi
+
+export LLAMA_CACHE="$HOME/.model-cache"
+# repo:quant shorthand resolves the GGUF file automatically
+MODEL_HF="unsloth/gemma-4-31B-it-qat-GGUF:UD-Q4_K_XL"
+
+# 192k fits in 24GB with q4_0 KV (~816MiB headroom); full 262k OOMs
+DEFAULT_CTX=196608
+CTX="${CTX:-$DEFAULT_CTX}"
+
+TOP_P=0.95
+TOP_K=64
+MIN_P=0.00
+EXTRA_ARGS=()
+
+case "$MODE" in
+    coding)
+        TEMP=0.6
+        EXTRA_ARGS+=(--chat-template-kwargs '{"enable_thinking":true}')
+        ;;
+    general)
+        TEMP=1.0
+        EXTRA_ARGS+=(--chat-template-kwargs '{"enable_thinking":true}')
+        ;;
+    no-think)
+        TEMP=0.7
+        TOP_P=0.8
+        EXTRA_ARGS+=(--chat-template-kwargs '{"enable_thinking":false}')
+        ;;
+esac
+
+# Keeping the mmproj off the GPU only matters when VRAM is scarce; on a Mac's
+# unified Metal backend there's no separate VRAM budget, so let it offload.
+PLATFORM_ARGS=()
+if [ "$(uname)" != "Darwin" ]; then
+    PLATFORM_ARGS+=(--no-mmproj-offload)
+fi
+
+echo "Starting gemma-4-31B-it-qat in '$MODE' mode with ${CTX} context..."
+
+SERVER_BIN=$(command -v llama-server-cuda || echo llama-server)
+exec $SERVER_BIN \
+    -hf "$MODEL_HF" \
+    --ctx-size $CTX \
+    --temp $TEMP \
+    --top-p $TOP_P \
+    --top-k $TOP_K \
+    --min-p $MIN_P \
+    --n-gpu-layers 99 \
+    --parallel 1 \
+    --flash-attn on \
+    --fit off \
+    --cache-type-k q4_0 \
+    --cache-type-v q4_0 \
+    -cram 16384 \
+    --no-mmap \
+    "${PLATFORM_ARGS[@]}" \
+    "${EXTRA_ARGS[@]}" \
+    "$@"

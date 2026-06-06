@@ -1,0 +1,73 @@
+#!/bin/bash
+
+MODE="general"
+
+if [ $# -gt 0 ]; then
+    case "$1" in
+        coding|general|no-think)
+            MODE="$1"
+            shift
+            ;;
+        -*)
+            # It's a flag, keep default mode and pass the flag through
+            ;;
+        *)
+            echo "Usage: $0 [coding|general|no-think] [server options...]"
+            exit 1
+            ;;
+    esac
+fi
+
+export LLAMA_CACHE="$HOME/.model-cache"
+MODEL_REPO="unsloth/Qwen3.5-35B-A3B-GGUF"
+MODEL_FILE="Qwen3.5-35B-A3B-UD-Q4_K_L.gguf"
+
+# 168k default context (262k max)
+DEFAULT_CTX=168000 # 262144
+CTX="${CTX:-$DEFAULT_CTX}"
+
+TOP_P=0.95
+TOP_K=20
+MIN_P=0.00
+EXTRA_ARGS=()
+
+case "$MODE" in
+    coding)
+        TEMP=0.6
+        ;;
+    general)
+        TEMP=1.0
+        ;;
+    no-think)
+        TEMP=0.7
+        TOP_P=0.8
+        EXTRA_ARGS+=(--chat-template-kwargs '{"enable_thinking":false}')
+        ;;
+esac
+
+echo "Starting Qwen3.5-35B-A3B in '$MODE' mode with ${CTX} context..."
+
+SERVER_BIN=$(command -v llama-server-cuda || command -v llama-server)
+if [ -z "$SERVER_BIN" ]; then
+    echo "Error: llama-server-cuda or llama-server not found in PATH"
+    exit 1
+fi
+
+exec $SERVER_BIN \
+    --hf-repo "$MODEL_REPO" \
+    --hf-file "$MODEL_FILE" \
+    --ctx-size $CTX \
+    --temp $TEMP \
+    --top-p $TOP_P \
+    --top-k $TOP_K \
+    --min-p $MIN_P \
+    --n-gpu-layers 99 \
+    --parallel 1 \
+    --flash-attn on \
+    --cache-type-k q8_0 \
+    --cache-type-v q8_0 \
+    --fit off \
+    -cram 16384 \
+    --no-mmap \
+    "${EXTRA_ARGS[@]}" \
+    "$@"
