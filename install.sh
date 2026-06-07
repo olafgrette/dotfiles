@@ -50,6 +50,7 @@ if ! jq -e '.statusLine' "$CLAUDE_SETTINGS" > /dev/null 2>&1; then
     echo "Added statusLine to $CLAUDE_SETTINGS"
 fi
 symlink_file .gemini/GEMINI.md
+symlink_file .opencode/AGENTS.md
 
 # Sync Claude skills (also run by background-startup on each shell start)
 fish -c claude-skill-sync
