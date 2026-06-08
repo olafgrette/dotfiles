@@ -32,6 +32,7 @@ symlink .config/ghostty
 symlink .config/helix
 symlink .config/starship.toml
 symlink .config/tmux
+symlink .config/zellij
 symlink_file .local/bin/gemma-serve
 symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve

@@ -24,7 +24,7 @@ group "Core stack"
 check fish fish
 check starship starship
 check ghostty ghostty
-check tmux tmux
+check "tmux/zellij" tmux zellij
 check "helix (hx)" hx helix
 check git git
 
