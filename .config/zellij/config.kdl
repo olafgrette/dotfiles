@@ -239,3 +239,4 @@ keybinds clear-defaults=true {
 }
 
 default_mode "locked"
+default_shell "fish"
