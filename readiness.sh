@@ -59,9 +59,7 @@ check ssh-add ssh-add
 
 case "$(uname -s)" in
 Linux)
-    group "Linux desktop (Hyprland)"
-    check hyprctl hyprctl
-    check start-hyprland start-hyprland
+    group "Linux"
     check xdg-open xdg-open
     ;;
 Darwin)

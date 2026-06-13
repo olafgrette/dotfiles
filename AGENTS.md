@@ -17,7 +17,7 @@ dotfile manager — the install script is 50 lines of bash and that's the point.
 
 ## Target machines
 - Local macOS (primary)
-- Local Linux desktop (Hyprland)
+- Local Linux desktop
 - Remote headless Linux machines (SSH only)
 
 ## Local overrides
