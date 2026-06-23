@@ -53,6 +53,16 @@ fi
 symlink_file .gemini/GEMINI.md
 symlink_file .opencode/AGENTS.md
 
+# Linux: let user processes (tmux/zellij sessions) survive SSH logout.
+# systemd-logind otherwise reaps them on disconnect. enable-linger is the
+# rootless alternative to KillUserProcesses=no in logind.conf.
+if [ "$(uname -s)" = "Linux" ] && command -v loginctl &>/dev/null; then
+    if [ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != "yes" ]; then
+        echo "Enabling user lingering for $USER"
+        loginctl enable-linger "$USER"
+    fi
+fi
+
 # Sync Claude skills (also run by background-startup on each shell start)
 fish -c claude-skill-sync
 
