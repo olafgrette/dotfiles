@@ -16,6 +16,7 @@ keybind = alt+six=goto_tab:6
 keybind = alt+seven=goto_tab:7
 keybind = alt+eight=goto_tab:8
 keybind = alt+nine=goto_tab:9
+macos-option-as-alt = left
 
 # TERMINFO SSH fixes
 shell-integration-features = ssh-terminfo,ssh-env
