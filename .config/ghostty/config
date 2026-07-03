@@ -20,3 +20,6 @@ macos-option-as-alt = left
 
 # TERMINFO SSH fixes
 shell-integration-features = ssh-terminfo,ssh-env
+
+# Machine-local overrides (gitignored)
+config-file = ?ghostty.local.conf
