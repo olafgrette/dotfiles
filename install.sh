@@ -78,6 +78,6 @@ mkdir -p "$SHADERS_DIR"
 for shader in cursor_frozen.glsl; do
     if [ ! -f "$SHADERS_DIR/$shader" ]; then
         echo "Downloading shader: $shader"
-        curl -sL "$SHADERS_BASE/$shader" -o "$SHADERS_DIR/$shader"
+        curl -sfL "$SHADERS_BASE/$shader" -o "$SHADERS_DIR/$shader"
     fi
 done
