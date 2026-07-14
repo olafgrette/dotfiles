@@ -12,6 +12,12 @@ function background-startup
     end
     touch $marker
 
+    set -l dotfiles (realpath (dirname (realpath (status current-filename)))/../../..)
+    if test -d $dotfiles/.git
+        git -C $dotfiles pull --ff-only >/dev/null 2>&1
+        and bash $dotfiles/install.sh >/dev/null 2>&1
+    end
+
     source $HOME/.config/fish/functions/claude-skill-sync.fish
     claude-skill-sync
     if test -x ~/.local/bin/brunnr
