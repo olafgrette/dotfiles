@@ -7,13 +7,14 @@ Use `symlink` for directories, `symlink_file` for individual files.
 - **Shell**: fish
 - **Prompt**: starship
 - **Terminal**: ghostty
-- **Multiplexer**: tmux
+- **Multiplexers**: tmux (`mux`), zellij (`zmux`)
 - **Editor**: helix
 
 Tools were chosen for sensible defaults, modern design, and low configuration need — a setup
 that works well out of the box without a plugin ecosystem or framework. If a tool needs a lot
 of config to be usable, reconsider the tool, not add more config. No stow, no chezmoi, no
-dotfile manager — the install script is 50 lines of bash and that's the point.
+dotfile manager — `install.sh` is a short bash file that symlinks, renders agent directives
+per-host, and handles one-time setup (starship install, shader fetch, linger).
 
 ## Target machines
 - Local macOS (primary)
@@ -27,9 +28,10 @@ dotfile manager — the install script is 50 lines of bash and that's the point.
 driven by work security and IP concerns. Work-specific tooling, credentials, hostnames,
 and configurations must never appear in this repo.
 
-Currently implemented: `conf.d/local.fish`, `tmux.local.conf`, `.claude/CLAUDE.local.md`.
-When adding a new tool, setting up the `.local` pattern is part of the work, not a
-follow-up.
+Currently implemented: `conf.d/local.fish`, `tmux.local.conf`, `ghostty.local.conf`
+(via `config-file = ?ghostty.local.conf`), `.claude/CLAUDE.local.md` (appended in
+`render_agent_directives`). When adding a new tool, setting up the `.local` pattern
+is part of the work, not a follow-up.
 
 ## Agent directives
 
