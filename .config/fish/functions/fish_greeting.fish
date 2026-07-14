@@ -8,7 +8,7 @@ function fish_greeting --description "Random ocean-themed greeting"
         "Don't flounder — you've got this." \
         "Gill-ty of opening another terminal." \
         "Just keep committing, just keep committing." \
-        "Something smells like a merge conflict." \
+        # "Something smells like a merge conflict." \
         "The upstream is strong today." \
         "Reeling in the dependencies..." \
         "New shell, who dis?" \
@@ -16,11 +16,11 @@ function fish_greeting --description "Random ocean-themed greeting"
         "The porpoise of this terminal is unclear." \
         "Angling for a solution." \
         "Treading water until the tests pass." \
-        "hooks? we got hooks." \
+        # "hooks? we got hooks." \
         "Trawling through Stack Overflow again." \
         "Gone fishing... in the logs." \
-        "Swimming upstream with a hotfix." \
-        "Hooked another dependency." \
+        # "Swimming upstream with a hotfix." \
+        # "Hooked another dependency." \
         "Wading into legacy code again." \
         "Sole survivor of the last deploy." \
         "You can't kelp yourself, can you." \
@@ -36,7 +36,7 @@ function fish_greeting --description "Random ocean-themed greeting"
         "brew install ambition — already up to date." \
         # opus 4.6
         "Don't be koi, show me the diff." \
-        "Dockerized or wild-caught?" \
+        # "Dockerized or wild-caught?" \
         "SSH: Secret Shell Harbor." \
         "YAML: Yet Another Marine Lifeform." \
         "JSON: Jellyfish Standard Object Notation." \
@@ -55,21 +55,21 @@ function fish_greeting --description "Random ocean-themed greeting"
         "Iä! Iä! Sudo fhtagn!" \
         "Whale, whale, whale, look who's root." \
         # muse spark 1.1
-        "Carp-et diem — seize the merge window." \
-        "Seas the day, ship to prod." \
+        # "Carp-et diem — seize the merge window." \
+        # "Seas the day, ship to prod." \
         "Don't be shellfish, share the cache." \
-        "This PR looks a bit fishy — in a good way." \
+        # "This PR looks a bit fishy — in a good way." \
         "Tuna-ing the GC for better latency." \
         "Betta run tests before you merge." \
         "Cod review: LGTM, let's land it." \
-        "Water you waiting for? Commit already." \
+        # "Water you waiting for? Commit already." \
         "Shrimply the best refactor I've seen." \
-        "Off the hook — zero warnings." \
+        # "Off the hook — zero warnings." \
         "Sardine-packed backlog, still shipping." \
-        "Minnow if I told you we fixed it in prod?" \
-        "Tide-ally you should rebase now." \
-        "The abyss also has a fish shell. It's deeper." \
-        "rm -rf /ocean — bold strategy, minnow." \
+        # "Minnow if I told you we fixed it in prod?" \
+        # "Tide-ally you should rebase now." \
+        # "The abyss also has a fish shell. It's deeper." \
+        # "rm -rf /ocean — bold strategy, minnow." \
         # fable 5
         "Holy mackerel, the build passed." \
         "That stack trace is a red herring." \
@@ -84,7 +84,9 @@ function fish_greeting --description "Random ocean-themed greeting"
         "Barnacles on the legacy code. Scrape gently." \
         "Mussel memory: typing git status again." \
         "Sturgeon general's warning: this code may contain side effects." \
-        "Every oyster eventually ships a little Perl."
+        "Every oyster eventually ships a little Perl." \
+        "FTP: Fish Transfer Protocol." \
+        "RFC: Request For Clams."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
