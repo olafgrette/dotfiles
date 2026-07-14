@@ -32,46 +32,65 @@ esac
 host=$(hostname)
 host="${host%%.*}"
 
-# --- Session name ---
-session_name=$(echo "$input" | jq -r '.session_name // empty')
+# --- Single jq extraction (was 8 invocations + bc) ---
+# Use cwd from JSON (.cwd preferred, fallback to .workspace.current_dir), falling
+# back to $PWD only if JSON doesn't provide it. Avoids showing statusline runner's
+# $PWD which may differ from Claude's actual cwd.
+# @sh emits shell-quoted assignments, so eval is safe and preserves empty fields
+# and spaces (TSV + read approach collapses empty fields in bash 3.2).
+if command -v jq >/dev/null 2>&1; then
+  eval "$(echo "$input" | jq -r '
+    @sh "
+      session_name=\(.session_id // .session_name // "")
+      cwd_raw=\(.cwd // .workspace.current_dir // "")
+      model=\(.model.display_name // "")
+      used_pct=\(.context_window.used_percentage // "")
+      cost=\(.cost.total_cost_usd // "")
+      api_ms=\(.cost.total_api_duration_ms // "")
+      rate_pct=\(.rate_limits.five_hour.used_percentage // "")
+      total_in=\(.context_window.total_input_tokens // "")
+      total_out=\(.context_window.total_output_tokens // "")
+    "
+  ' 2>/dev/null)"
+fi
 
 # --- CWD (replace $HOME with ~) ---
-cwd="${PWD/#$HOME/~}"
-
-# --- Model ---
-model=$(echo "$input" | jq -r '.model.display_name // empty')
+if [ -z "$cwd_raw" ]; then
+  cwd_raw="$PWD"
+fi
+cwd="${cwd_raw/#$HOME/~}"
 
 # --- Context used % ---
-used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 ctx_display=""
 if [ -n "$used_pct" ]; then
-  used_int=$(printf '%.0f' "$used_pct")
+  used_int=$(printf '%.0f' "$used_pct" 2>/dev/null || echo "$used_pct")
   ctx_display="ctx:${used_int}%"
 fi
 
 # --- Token formatter: 1234 → 1.2k, 1234567 → 1.2M ---
+# Uses awk instead of bc to drop bc dependency
 fmt_tokens() {
   local n="$1"
   if [ -z "$n" ] || [ "$n" = "null" ]; then echo ""; return; fi
-  if [ "$n" -ge 1000000 ]; then
-    printf "%.1fM" "$(echo "scale=2; $n / 1000000" | bc)"
-  elif [ "$n" -ge 1000 ]; then
-    printf "%.1fk" "$(echo "scale=2; $n / 1000" | bc)"
+  n=${n%%.*}
+  if [ "$n" -ge 1000000 ] 2>/dev/null; then
+    awk -v v="$n" 'BEGIN { printf "%.1fM", v/1000000 }'
+  elif [ "$n" -ge 1000 ] 2>/dev/null; then
+    awk -v v="$n" 'BEGIN { printf "%.1fk", v/1000 }'
   else
-    printf "%d" "$n"
+    printf "%s" "$n"
   fi
 }
 
-cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
 cost_display=""
 if [ -n "$cost" ]; then
-  cost_display=$(printf '$%.2f' "$cost")
+  cost_display=$(printf '$%.2f' "$cost" 2>/dev/null || printf '$%s' "$cost")
 fi
 
-api_ms=$(echo "$input" | jq -r '.cost.total_api_duration_ms // empty')
 api_display=""
 if [ -n "$api_ms" ]; then
-  api_s=$((api_ms / 1000))
+  api_ms_int=${api_ms%%.*}
+  api_s=$((api_ms_int / 1000))
   api_m=$((api_s / 60))
   api_s=$((api_s % 60))
   if [ "$api_m" -gt 0 ]; then
@@ -81,14 +100,11 @@ if [ -n "$api_ms" ]; then
   fi
 fi
 
-rate_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
 rate_display=""
 if [ -n "$rate_pct" ]; then
   rate_display="rl:${rate_pct}%"
 fi
 
-total_in=$(echo "$input" | jq -r '.context_window.total_input_tokens // empty')
-total_out=$(echo "$input" | jq -r '.context_window.total_output_tokens // empty')
 in_fmt=$(fmt_tokens "$total_in")
 out_fmt=$(fmt_tokens "$total_out")
 
