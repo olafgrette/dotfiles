@@ -13,3 +13,7 @@
 
 # zellij: config plugin writes a .bak on every save
 .config/zellij/*.bak*
+
+# opencode: only AGENTS.md symlink is tracked, rest is local state
+.opencode/*
+!.opencode/AGENTS.md
