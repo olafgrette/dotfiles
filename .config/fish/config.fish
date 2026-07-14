@@ -1,4 +1,4 @@
-fish_add_path ~/bin ~/.local/bin ~/.bun/bin ~/.cargo/bin
+fish_add_path ~/bin ~/.local/bin ~/.bun/bin ~/.cargo/bin ~/.opencode/bin
 
 if command -q hx
     set -x EDITOR hx
