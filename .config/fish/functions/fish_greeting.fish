@@ -34,6 +34,17 @@ function fish_greeting --description "Random ocean-themed greeting"
         "/dev/null is where dreams go to swim." \
         "tail -f /var/log/ocean.log" \
         "brew install ambition — already up to date." \
+        # retired in ecc5835 — initial batch (9d8dddb / c1ec3e9)
+        # "Oh shell, you're back." \
+        # "You've got bigger fish to fry." \
+        # "git blame? More like git shame." \
+        # "Current branch: swimming in circles." \
+        # "You're on a reel today." \
+        # "Making waves in production again?" \
+        # "Still waiting on code review. Must be the current." \
+        # "That last commit? Reel questionable." \
+        # "The deep end of the stack trace awaits." \
+        # "curl -L life | grep meaning" \
         # opus 4.6
         "Don't be koi, show me the diff." \
         # "Dockerized or wild-caught?" \
@@ -43,6 +54,9 @@ function fish_greeting --description "Random ocean-themed greeting"
         "CI/CD: Constant Inundation / Continuous Drowning." \
         "Sustainable code: wild-caught from GitHub." \
         "Data lake? More like data swamp." \
+        # retired in ecc5835 — from 5975a26 expansion
+        # "Sinking into the deep end of the backlog." \
+        # "The current state of the repo: murky." \
         "In his house at R'lyeh, dead Cthulhu waits dreaming... of a bug-free build." \
         "That is not dead which can eternal lie, and with strange eons even legacy code may die." \
         "The Call of the CLI: madness in every man page." \
