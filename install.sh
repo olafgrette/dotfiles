@@ -56,10 +56,13 @@ symlink_file .opencode/AGENTS.md
 # Linux: let user processes (tmux/zellij sessions) survive SSH logout.
 # systemd-logind otherwise reaps them on disconnect. enable-linger is the
 # rootless alternative to KillUserProcesses=no in logind.conf.
+# Non-fatal: containers/WSL often have the loginctl binary without a running
+# systemd/dbus, which would otherwise abort the whole install under set -e.
 if [ "$(uname -s)" = "Linux" ] && command -v loginctl &>/dev/null; then
-    if [ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != "yes" ]; then
-        echo "Enabling user lingering for $USER"
-        loginctl enable-linger "$USER"
+    CURRENT_USER="$(id -un)"
+    if [ "$(loginctl show-user "$CURRENT_USER" -p Linger --value 2>/dev/null)" != "yes" ]; then
+        echo "Enabling user lingering for $CURRENT_USER"
+        loginctl enable-linger "$CURRENT_USER" || echo "Warning: could not enable linger (no systemd/dbus?)"
     fi
 fi
 
