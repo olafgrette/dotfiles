@@ -69,7 +69,22 @@ function fish_greeting --description "Random ocean-themed greeting"
         "Minnow if I told you we fixed it in prod?" \
         "Tide-ally you should rebase now." \
         "The abyss also has a fish shell. It's deeper." \
-        "rm -rf /ocean — bold strategy, minnow."
+        "rm -rf /ocean — bold strategy, minnow." \
+        # fable 5
+        "Holy mackerel, the build passed." \
+        "That stack trace is a red herring." \
+        "Orca-strating a pod of containers." \
+        "git merge --strategy=octopus. Yes, that's real." \
+        "Anglerfish: the original phishing attack." \
+        "Puffer overflow at line 42." \
+        "Nautilus: nature's first shell." \
+        "Clam down, it's just a segfault." \
+        "Salmon-tic versioning: major bumps swim upstream." \
+        "Roe, roe, roe your boat, gently down /dev/stream." \
+        "Barnacles on the legacy code. Scrape gently." \
+        "Mussel memory: typing git status again." \
+        "Sturgeon general's warning: this code may contain side effects." \
+        "Every oyster eventually ships a little Perl."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
