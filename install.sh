@@ -27,6 +27,44 @@ symlink_file() {
     echo "Linked $dst"
 }
 
+# Render .claude/CLAUDE.md into the agent directives shared by all three
+# tools, filtering <!-- scope:personal/work --> blocks by hostname and
+# appending the gitignored local override (work-only content that must
+# never enter git history).
+render_agent_directives() {
+    local host="$(uname -n)"
+    local scope="work"
+    if [ -f "$DOTFILES/.claude/personal-hosts" ] && \
+       grep -qxF "$host" "$DOTFILES/.claude/personal-hosts"; then
+        scope="personal"
+    fi
+
+    local rendered
+    rendered="$(awk -v scope="$scope" '
+        /^<!-- scope:[a-z]+ -->$/ {
+            tag = $0; gsub(/<!-- scope:|-->/, "", tag); gsub(/ /, "", tag)
+            skip = (tag != scope); next
+        }
+        /^<!-- \/scope:[a-z]+ -->$/ { skip = 0; next }
+        !skip
+    ' "$DOTFILES/.claude/CLAUDE.md")"
+
+    if [ -f "$DOTFILES/.claude/CLAUDE.local.md" ]; then
+        rendered="$rendered"$'\n\n'"$(cat "$DOTFILES/.claude/CLAUDE.local.md")"
+    fi
+
+    printf '%s\n' "$rendered"
+}
+
+generate_file() {
+    local dst="$HOME/$1"
+    local content="$2"
+    mkdir -p "$(dirname "$dst")"
+    rm -f "$dst"
+    printf '%s\n' "$content" > "$dst"
+    echo "Generated $dst"
+}
+
 symlink .config/fish
 symlink .config/ghostty
 symlink .config/helix
@@ -36,7 +74,6 @@ symlink .config/zellij
 symlink_file .local/bin/gemma-serve
 symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve
-symlink_file .claude/CLAUDE.md
 symlink_file .claude/statusline-command.sh
 
 # Add statusline config to ~/.claude/settings.json if not already present
@@ -50,8 +87,10 @@ if ! jq -e '.statusLine' "$CLAUDE_SETTINGS" > /dev/null 2>&1; then
     mv "$tmp" "$CLAUDE_SETTINGS"
     echo "Added statusLine to $CLAUDE_SETTINGS"
 fi
-symlink_file .gemini/GEMINI.md
-symlink_file .opencode/AGENTS.md
+AGENT_DIRECTIVES="$(render_agent_directives)"
+generate_file .claude/CLAUDE.md "$AGENT_DIRECTIVES"
+generate_file .gemini/GEMINI.md "$AGENT_DIRECTIVES"
+generate_file .opencode/AGENTS.md "$AGENT_DIRECTIVES"
 
 # Linux: let user processes (tmux/zellij sessions) survive SSH logout.
 # systemd-logind otherwise reaps them on disconnect. enable-linger is the

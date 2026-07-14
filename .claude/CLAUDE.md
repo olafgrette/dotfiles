@@ -21,7 +21,9 @@
 ## Code
 
 - When editing existing files, don't reprint unchanged code.
+<!-- scope:personal -->
 - Conventional Commits with scope (`feat(auth):`). Body: why, not what.
+<!-- /scope:personal -->
 - Comments: why only. Never restate what the code does.
 - Docs: why only. Include what didn't work and why.
 - Match the nearest existing style, naming, and architecture.
