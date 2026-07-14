@@ -59,5 +59,23 @@ function fish_greeting
         "><(((º>  Iä! Iä! Sudo fhtagn!" \
         "><(((º>  Whale, whale, whale, look who's root."
 
+    # muse spark 1.1
+    set -a quotes \
+        "><(((º>  Carp-et diem — seize the merge window." \
+        "><(((º>  Seas the day, ship to prod." \
+        "><(((º>  Don't be shellfish, share the cache." \
+        "><(((º>  This PR looks a bit fishy — in a good way." \
+        "><(((º>  Tuna-ing the GC for better latency." \
+        "><(((º>  Betta run tests before you merge." \
+        "><(((º>  Cod review: LGTM, let's land it." \
+        "><(((º>  Water you waiting for? Commit already." \
+        "><(((º>  Shrimply the best refactor I've seen." \
+        "><(((º>  Off the hook — zero warnings." \
+        "><(((º>  Sardine-packed backlog, still shipping." \
+        "><(((º>  Minnow if I told you we fixed it in prod?" \
+        "><(((º>  Tide-ally you should rebase now." \
+        "><(((º>  The abyss also has a fish shell. It's deeper." \
+        "><(((º>  rm -rf /ocean — bold strategy, minnow."
+
     echo $quotes[(random 1 (count $quotes))]
 end
