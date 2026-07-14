@@ -32,7 +32,11 @@ symlink_file() {
 # appending the gitignored local override (work-only content that must
 # never enter git history).
 render_agent_directives() {
-    local host="$(uname -n)"
+    # Strip domain/FQDN — personal-hosts contains short names (olafmbp, lightshow),
+    # but uname -n can return olafmbp.local / FQDN on macOS/DHCP.
+    local host
+    host="$(hostname -s 2>/dev/null || uname -n)"
+    host="${host%%.*}"
     local scope="work"
     if [ -f "$DOTFILES/.claude/personal-hosts" ] && \
        grep -qxF "$host" "$DOTFILES/.claude/personal-hosts"; then
@@ -71,6 +75,7 @@ symlink .config/helix
 symlink .config/starship.toml
 symlink .config/tmux
 symlink .config/zellij
+symlink .local/lib
 symlink_file .local/bin/gemma-serve
 symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve

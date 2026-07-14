@@ -1,28 +1,12 @@
 #!/bin/bash
+# gemma-serve — 31B Gemma with 192k context
+source "$HOME/.local/lib/llama-common.sh"
 
-MODE="general"
+llama_parse_mode "$@"
+if [ "$_llama_mode_consumed" = 1 ]; then shift; fi
 
-if [ $# -gt 0 ]; then
-    case "$1" in
-        coding|general|no-think)
-            MODE="$1"
-            shift
-            ;;
-        -*)
-            # It's a flag, keep default mode and pass the flag through
-            ;;
-        *)
-            echo "Usage: $0 [coding|general|no-think] [server options...]"
-            exit 1
-            ;;
-    esac
-fi
-
-export LLAMA_CACHE="$HOME/.model-cache"
-# repo:quant shorthand resolves the GGUF file automatically
+# Model-specific
 MODEL_HF="unsloth/gemma-4-31B-it-qat-GGUF:UD-Q4_K_XL"
-
-# 192k fits in 24GB with q4_0 KV (~816MiB headroom); full 262k OOMs
 DEFAULT_CTX=196608
 CTX="${CTX:-$DEFAULT_CTX}"
 
@@ -31,6 +15,7 @@ TOP_K=64
 MIN_P=0.00
 EXTRA_ARGS=()
 
+# Mode-specific templating (Gemma enables thinking explicitly)
 case "$MODE" in
     coding)
         TEMP=0.6
@@ -47,23 +32,18 @@ case "$MODE" in
         ;;
 esac
 
-# Keeping the mmproj off the GPU only matters when VRAM is scarce; on a Mac's
-# unified Metal backend there's no separate VRAM budget, so let it offload.
-PLATFORM_ARGS=()
-if [ "$(uname)" != "Darwin" ]; then
-    PLATFORM_ARGS+=(--no-mmproj-offload)
-fi
+llama_init_platform
 
-echo "Starting gemma-4-31B-it-qat in '$MODE' mode with ${CTX} context..."
+echo "Starting gemma-4-31B-it-qat in '$MODE' mode with ${CTX} context${OFFLOAD_NOTE}..."
 
-SERVER_BIN=$(command -v llama-server-cuda || echo llama-server)
-exec $SERVER_BIN \
+SERVER_BIN=$(llama_find_server)
+exec "$SERVER_BIN" \
     -hf "$MODEL_HF" \
-    --ctx-size $CTX \
-    --temp $TEMP \
-    --top-p $TOP_P \
-    --top-k $TOP_K \
-    --min-p $MIN_P \
+    --ctx-size "$CTX" \
+    --temp "$TEMP" \
+    --top-p "$TOP_P" \
+    --top-k "$TOP_K" \
+    --min-p "$MIN_P" \
     --n-gpu-layers 99 \
     --parallel 1 \
     --flash-attn on \

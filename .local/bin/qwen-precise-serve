@@ -1,29 +1,14 @@
 #!/bin/bash
+# qwen-precise-serve — full 262k context, Q4_K_XL, with CPU MoE offload on Linux
+source "$HOME/.local/lib/llama-common.sh"
 
-MODE="general"
+llama_parse_mode "$@"
+if [ "$_llama_mode_consumed" = 1 ]; then shift; fi
 
-if [ $# -gt 0 ]; then
-    case "$1" in
-        coding|general|no-think)
-            MODE="$1"
-            shift
-            ;;
-        -*)
-            # It's a flag, keep default mode and pass the flag through
-            ;;
-        *)
-            echo "Usage: $0 [coding|general|no-think] [server options...]"
-            exit 1
-            ;;
-    esac
-fi
-
-export LLAMA_CACHE="$HOME/.model-cache"
 MODEL_REPO="unsloth/Qwen3.6-35B-A3B-MTP-GGUF"
 MODEL_FILE="Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
 
-# Full 262k context
-DEFAULT_CTX=262144 # 262144
+DEFAULT_CTX=262144
 CTX="${CTX:-$DEFAULT_CTX}"
 
 TOP_P=0.95
@@ -31,49 +16,36 @@ TOP_K=20
 MIN_P=0.00
 EXTRA_ARGS=()
 
-case "$MODE" in
-    coding)
-        TEMP=0.6
-        ;;
-    general)
-        TEMP=1.0
-        ;;
-    no-think)
-        TEMP=0.7
-        TOP_P=0.8
-        EXTRA_ARGS+=(--chat-template-kwargs '{"enable_thinking":false}')
-        ;;
-esac
-
-# CPU MoE offload only helps on a discrete GPU (frees VRAM); on a Mac's unified
-# Metal backend it just forces expert matmuls onto slower CPU cores. Drop it there.
-PLATFORM_ARGS=()
+# CPU MoE offload only helps on discrete GPU (frees VRAM); on unified Metal
+# it forces expert matmuls onto slower CPU. Keep offload note initialized via lib.
+llama_init_platform
 if [ "$(uname)" != "Darwin" ]; then
     PLATFORM_ARGS+=(--n-cpu-moe 8)
-    PLATFORM_ARGS+=(--no-mmproj-offload)
     OFFLOAD_NOTE=" (CPU MoE offload enabled)"
 fi
 
+llama_apply_mode_temps
+
 echo "Starting Qwen3.6-35B-A3B in '$MODE' mode with ${CTX} context${OFFLOAD_NOTE}..."
 
-SERVER_BIN=$(command -v llama-server-cuda || echo llama-server)
-exec $SERVER_BIN \
+SERVER_BIN=$(llama_find_server)
+exec "$SERVER_BIN" \
     --hf-repo "$MODEL_REPO" \
     --hf-file "$MODEL_FILE" \
-    --ctx-size $CTX \
-    --temp $TEMP \
-    --top-p $TOP_P \
-    --top-k $TOP_K \
-    --min-p $MIN_P \
+    --ctx-size "$CTX" \
+    --temp "$TEMP" \
+    --top-p "$TOP_P" \
+    --top-k "$TOP_K" \
+    --min-p "$MIN_P" \
     --spec-type draft-mtp --spec-draft-n-max 2 \
     --n-gpu-layers 99 \
     --parallel 1 \
     --flash-attn on \
-    "${PLATFORM_ARGS[@]}" \
     --fit off \
     --cache-type-k q8_0 \
     --cache-type-v q8_0 \
     -cram 16384 \
     --no-mmap \
+    "${PLATFORM_ARGS[@]}" \
     "${EXTRA_ARGS[@]}" \
     "$@"
