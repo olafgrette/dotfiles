@@ -12,7 +12,28 @@ function background-startup
     end
     touch $marker
 
-    set -l dotfiles (realpath (dirname (realpath (status current-filename)))/../../..)
+    # Portable dotfiles root — fish's `path resolve` works on both macOS and
+    # Linux, unlike `realpath` (BSD vs GNU) and avoids BSD `setsid` issues.
+    # `status current-filename` may be a symlink (installed via install.sh),
+    # so resolve it then walk up 4 levels: .../functions/background-startup.fish
+    # -> functions -> fish -> .config -> dotfiles
+    set -l this_file (status current-filename)
+    if type -q path
+        set -l resolved (path resolve $this_file 2>/dev/null)
+        if test -n "$resolved"
+            set this_file $resolved
+        end
+        set -l dotfiles (path dirname (path dirname (path dirname (path dirname $this_file))))
+    else
+        # Fallback for older fish without `path` builtin
+        if type -q realpath
+            set -l resolved (realpath $this_file 2>/dev/null)
+            if test -n "$resolved"
+                set this_file $resolved
+            end
+        end
+        set -l dotfiles (dirname (dirname (dirname (dirname $this_file))))
+    end
     if test -d $dotfiles/.git
         git -C $dotfiles pull --ff-only >/dev/null 2>&1
         and bash $dotfiles/install.sh >/dev/null 2>&1
