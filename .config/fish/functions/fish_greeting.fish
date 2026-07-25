@@ -104,7 +104,24 @@ function fish_greeting --description "Random ocean-themed greeting"
         "Sturgeon general's warning: this code may contain side effects." \
         "Every oyster eventually ships a little Perl." \
         "FTP: Fish Transfer Protocol." \
-        "RFC: Request For Clams."
+        "RFC: Request For Clams." \
+        # === opus 5 ===
+        # "SQL: Squid Query Language." \
+        # "ACID: All Coral Is Dissolving." \
+        "AWS: Aquatic Web Services." \
+        # "S3: Simple Storage Sea." \
+        # "REPL: Reef Eval Print Loop." \
+        # "LGTM: Looks Good To Manta." \
+        # "IPO: Initial Porpoise Offering." \
+        # "EOF: End Of Fjord." \
+        # "RAID: Redundant Array of Inexpensive Dolphins." \
+        # "TDD: Tide-Driven Development." \
+        "Krill your darlings." \
+        # "Squid pro quo: I'll review yours if you review mine." \
+        # "Coral-ary: the fix broke two other things." \
+        # "kill -9: the harpoon option." \
+        "The kraken sleeps. Cron does not." # \
+    # "Something ancient stirs in node_modules."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
