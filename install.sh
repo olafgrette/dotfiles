@@ -96,6 +96,7 @@ AGENT_DIRECTIVES="$(render_agent_directives)"
 generate_file .claude/CLAUDE.md "$AGENT_DIRECTIVES"
 generate_file .gemini/GEMINI.md "$AGENT_DIRECTIVES"
 generate_file .opencode/AGENTS.md "$AGENT_DIRECTIVES"
+generate_file .codex/AGENTS.md "$AGENT_DIRECTIVES"
 
 # Linux: let user processes (tmux/zellij sessions) survive SSH logout.
 # systemd-logind otherwise reaps them on disconnect. enable-linger is the
