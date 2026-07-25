@@ -1,8 +1,8 @@
 .DS_Store
 .claude/settings.local.json
 
-# claude
-.claude/CLAUDE.local.md
+# agent directives: local override, appended by install.sh
+UNIVERSAL_AGENT_DIRECTIVES.local.md
 
 # fish
 .config/fish/fish_history
@@ -14,6 +14,5 @@
 # zellij: config plugin writes a .bak on every save
 .config/zellij/*.bak*
 
-# opencode: only AGENTS.md symlink is tracked, rest is local state
-.opencode/*
-!.opencode/AGENTS.md
+# opencode: pure local state, AGENTS.md is generated into $HOME by install.sh
+.opencode/

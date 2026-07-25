@@ -27,8 +27,8 @@ symlink_file() {
     echo "Linked $dst"
 }
 
-# Render .claude/CLAUDE.md into the agent directives shared by all three
-# tools, filtering <!-- scope:personal/work --> blocks by hostname and
+# Render UNIVERSAL_AGENT_DIRECTIVES.md into the agent directives shared by all
+# three tools, filtering <!-- scope:personal/work --> blocks by hostname and
 # appending the gitignored local override (work-only content that must
 # never enter git history).
 render_agent_directives() {
@@ -38,8 +38,8 @@ render_agent_directives() {
     host="$(hostname -s 2>/dev/null || uname -n)"
     host="${host%%.*}"
     local scope="work"
-    if [ -f "$DOTFILES/.claude/personal-hosts" ] && \
-       grep -qxF "$host" "$DOTFILES/.claude/personal-hosts"; then
+    if [ -f "$DOTFILES/personal-hosts" ] && \
+       grep -qxF "$host" "$DOTFILES/personal-hosts"; then
         scope="personal"
     fi
 
@@ -51,10 +51,10 @@ render_agent_directives() {
         }
         /^<!-- \/scope:[a-z]+ -->$/ { skip = 0; next }
         !skip
-    ' "$DOTFILES/.claude/CLAUDE.md")"
+    ' "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.md")"
 
-    if [ -f "$DOTFILES/.claude/CLAUDE.local.md" ]; then
-        rendered="$rendered"$'\n\n'"$(cat "$DOTFILES/.claude/CLAUDE.local.md")"
+    if [ -f "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.local.md" ]; then
+        rendered="$rendered"$'\n\n'"$(cat "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.local.md")"
     fi
 
     printf '%s\n' "$rendered"
