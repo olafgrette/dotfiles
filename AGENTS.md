@@ -51,6 +51,20 @@ three per-machine rather than symlinking — the repo holds no copy under a vend
   after the rendered directives. This is where actual proprietary work instructions go —
   they never enter git history.
 
+## Room coordination
+
+Room ID: **`dotfiles`**. Agents use their git branch name as username (`main` for work
+directly on main); the human is `olaf`.
+
+Every `room` command needs `--token`. Register once with `room join <username>` — the
+token lands in `~/.room/state/room-<username>.token` and is global, so read it from there
+rather than passing it around. Then `room subscribe dotfiles --token <token>` to receive
+messages.
+
+Commands only work against a running daemon: `room daemon --persistent --room dotfiles`.
+It is not started at login — start it manually when coordinating, or skip the room
+entirely for solo sessions. Nothing in this repo depends on it.
+
 ## Key decisions
 
 **No fisher/tide**: starship was chosen because it's shell-agnostic — same config on every
