@@ -16,3 +16,7 @@ UNIVERSAL_AGENT_DIRECTIVES.local.md
 
 # opencode: pure local state, AGENTS.md is generated into $HOME by install.sh
 .opencode/
+
+# local npm installs (e.g. @openai/codex) land in symlinked .local/lib
+.local/lib/node_modules/
+.local/bin/codex
