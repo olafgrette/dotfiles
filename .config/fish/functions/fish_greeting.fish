@@ -120,8 +120,31 @@ function fish_greeting --description "Random ocean-themed greeting"
         # "Squid pro quo: I'll review yours if you review mine." \
         # "Coral-ary: the fix broke two other things." \
         # "kill -9: the harpoon option." \
-        "The kraken sleeps. Cron does not." # \
-    # "Something ancient stirs in node_modules."
+        "The kraken sleeps. Cron does not." \
+        # "Something ancient stirs in node_modules." \
+        # === sonnet 5 ===
+        # "Reef-actoring the codebase, one coral at a time." \
+        "Pier review complete — ship it." \
+        "A whale of a memory leak." #\
+    # "Fin-ished the sprint, barely." \
+    # "Eel of a bug to track down." \
+    # "Crustacean-level access required." \
+    # "Squid goals: eight arms, one merge conflict." \
+    # "Cache me if you can, said the herring." \
+    #"Coelacanth: still alive, like this codebase." \
+    #"Trout of order: 500 error." \
+    # "Plankton-sized commit, whale-sized diff." \
+    # "Sushi grade code: raw, but it works." \
+    #   "Carping about tabs vs spaces again?" \
+    #   "Otter chaos in the terminal today." \
+    #   "Seal the deal — tests are green." \
+    #   "Plaice your bets: does this deploy work?" \
+    #   "Bass-ically everything's on fire." \
+    #   "Undertow of technical debt pulling you back." \
+    #   "Halibut you finish that PR first?" \
+    #   "Manta the branches before merging." \
+    #   "Lobster claws deep into legacy code." \
+    # "Snapper decision: merge now, ask later."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
