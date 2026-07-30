@@ -18,6 +18,15 @@ keybind = alt+eight=goto_tab:8
 keybind = alt+nine=goto_tab:9
 macos-option-as-alt = left
 
+# Ghostty's macOS defaults bind alt+left/right to esc:b / esc:f to mimic
+# Terminal.app word-motion, which shadows zellij's Alt+arrow pane focus:
+# zellij reads the esc:f as Alt+f and toggles a floating pane instead.
+# Unbinding lets the real CSI 1;3C/D sequences through. alt+up/down have no
+# such default and need no unbind.
+# https://github.com/ghostty-org/ghostty/discussions/3207
+keybind = alt+left=unbind
+keybind = alt+right=unbind
+
 # TERMINFO SSH fixes
 shell-integration-features = ssh-terminfo,ssh-env
 
