@@ -1,83 +1,157 @@
 ---
 name: agent-commit-planning
-description: Structure a multi-commit implementation plan that agents will execute, without the output ballooning into an overengineered mess. Use this whenever work is being broken into a sequence of commits, whenever one agent is writing a plan or briefs for other agents to implement, and whenever the user is deciding how much detail a plan needs. Trigger on "break this into commits", "plan this out", "write the implementation plan", "how should I sequence this", or any sign the user is worried an agent will generate too much code or over-abstract. Do not wait for the word "plan" — a request to build something substantial in stages is a request for this.
+description: Create and operate human-steered, rolling-wave multi-commit plans for substantial software work executed by agents. Use when work needs a durable overall plan, intentionally designed shared contracts or abstractions, small batches of executable commit briefs, and replanning from observed results. Also use for multi-agent implementation handoffs or when controlling code volume and speculative architecture across a large change. Do not use for ordinary implementation, a single commit, or an informal short plan.
 ---
 
-# Planning commits for agents to execute
+# Run a human-steered rolling implementation plan
 
-An agent handed a substantial build target reliably produces more code than the target requires: interfaces with one implementation, config systems with one caller, layers designed against imagined requirements. Nothing in the objective penalizes the twelfth file, and plans that enumerate more read as more thorough. Every rule here exists to put a cost on volume.
+Keep two planning horizons: a human-reviewed overall design and executable briefs only for the next stable batch. Execute that batch, reconcile the plan with the repository, then brief the next batch. Derive commit count from the work; treat a user-supplied count as a review-size constraint or ceiling, not a target to fill.
 
-Note also that a stated commit count is itself a bloat instruction — an agent told "fifteen to twenty commits" will find twenty things to do. Derive the count from the slice list after the slice list is fixed.
+Use these terms consistently:
 
-## Resolution tracks blast radius
+- **Slice**: one independently coherent, verifiable unit in the overall plan; its intended deliverable is one commit-shaped change.
+- **Brief**: the executable instructions for one near-term slice.
+- **Batch**: one to three briefs prepared and executed before reconciliation.
+- **Learning gate**: the first unresolved decision, risky result, or contract question whose answer can change later slices.
 
-The tension between over- and underspecifying dissolves once the plan stops being one document at one resolution.
+Planner, executor, and human are logical roles; one agent may perform them sequentially. The planner owns planning artifacts. The executor owns source changes for the current brief. The human approves durable boundaries and material amendments, unless that authority was explicitly delegated.
 
-Anything crossing a commit boundary — types, signatures, error shape, module layout, naming — is specified exactly, once, globally. Anything internal to a single commit gets a sentence. A bad decision inside one commit is a cheap revert; a bad decision on a shared contract propagates into everything after it and is what actually produces the mess.
+## Enter at the current state
 
-Note that stacking structural constraints has a measurable cost in functional correctness, so spend the constraint budget only where the blast radius justifies it.
+Inspect the repository and any existing planning artifacts, then take only the next authorized action:
 
-## The first commit is types
+1. **Draft**: if no approved plan exists, inspect the repository and draft only the overall plan and execution constraints. Stop for approval.
+2. **Approve**: record human-approved scope, contracts, constraints, and first learning gate in the plan. Approval discussion is not a commit.
+3. **Brief**: if the relevant plan decisions are approved, write one to three executable briefs through the next learning gate. Stop after three even if more slices are known.
+4. **Execute**: only when implementation was requested, execute the briefed batch sequentially and verify every brief.
+5. **Reconcile**: update the overall plan from actual behavior, diff size, verification, and newly discovered constraints; obtain approval for material amendments; then return to Brief.
+6. **Complete**: when every requirement is satisfied, required verification passes, no slices remain, and actual volume is reconciled, mark the plan complete.
 
-Shared types and signatures land in the repository as the first commit — real, compiling code that everything after builds against. Not prose, and not a document living beside the plan; if it compiles it belongs in the tree.
+Do not invent a target architecture from requirements alone. If the repository or a material human decision is unavailable, record the missing input and stop at a coarse slice sketch; do not fabricate file paths, contracts, line estimates, or executable briefs.
 
-This is where opinions about what the interfaces should look like belong. Expressed as signatures they become the thing agents code against; restated as prose across several briefs they drift, because each restatement differs slightly and the agent reconciles the difference by inventing.
+## Establish the human approval surface
 
-Freezing is enforced by rule, not by where the files sit — see the constraint below about adding fields. An executing agent treats ordinary source files as editable unless told otherwise.
+Inspect the relevant repository structure, current checks, conventions, and existing behavior. Have the human approve, or explicitly delegate decisions about:
 
-Specify what things *are*. Do not specify how their insides work — that is genuine overspecification and it is where the correctness cost starts.
+- requirements and non-goals;
+- the production-code size envelope;
+- shared types, signatures, schemas, and intended abstractions;
+- external interfaces and compatibility requirements;
+- irreversible choices and material scope changes.
 
-## Constraints, with reasons
+Record plan state as `draft`, `approved`, `executing`, or `complete`. Mark cross-commit decisions individually when only part of the plan is approved. Never infer approval from silence or from the existence of a draft.
 
-One `CONSTRAINTS.md` in context for every commit. State why with each rule; bare rules get followed literally and generalize badly to the cases nobody enumerated. Start from:
+Let the executor decide commit-local implementation details. Specify cross-commit decisions precisely and once; do not implement the project in prose.
 
-- No interface with one implementation unless a second is built within these commits. Not planned, not likely — built.
-- No abstraction before the third occurrence of the duplication it removes.
-- No config value with only one caller.
-- No plugin, registry, hook, event bus, or rules engine.
-- One error type until a caller demonstrably needs to branch on the difference.
-- No new fields or methods on the types from the first commit. Stop and ask instead.
-- Per-commit line budget, reported as actual against estimate. Exceeding it by half is a stop-and-review, not a note in the summary.
+After inspection, propose the smallest plausible target file tree with per-file production-line estimates and a total. Treat a user-supplied size range as context or a ceiling, never as a minimum. For every file and abstraction, name the current requirement, repository convention, consumer, or observed pain that justifies it. Delete anything without one.
 
-Adjectives do not constrain. "Clean", "simple", and "pragmatic" are no-ops — the agent already believes it is doing that. Name the specific pattern being banned.
+When a separate context is available, give a fresh reviewer only the requirements, non-goals, proposed tree, estimates, and stated justifications. Ask it to identify every untraceable element and propose the smallest plan that still satisfies the requirements. Do not include the original planner's defense.
 
-Budgets only bite if something checks them. A budget nobody verifies is decoration.
+## Separate planning state by audience
 
-## Slice, don't layer
+Default to conversation-only output. Create planning files only when the user authorizes persistent artifacts. Follow an existing repository convention for their location; otherwise ask where the planning bundle belongs and whether it should be tracked before writing it. Creating or updating planning files never authorizes source changes or git commits.
 
-Layer-ordered commits mean nothing runs until the last one: no feedback, no integration signal, and budget overruns invisible until the end. Worse, designing a layer before its callers exist is the single largest generator of speculative abstraction — the storage layer gets built against imagined queries.
+- Compiling source is authoritative for approved shared contracts.
+- `PLAN.md` is the human and planner view of the whole effort.
+- `CONSTRAINTS.md` is the portable execution contract given to every executor.
+- `commits/SNN.md` is the brief for stable slice identifier `SNN`.
 
-Order by end-to-end path. Each commit changes observable behavior and is verifiable on its own.
+Never renumber a slice identifier. Reordering changes only `PLAN.md`; splitting creates new identifiers; invalidated briefs are marked `superseded`, not silently reused.
 
-The first commit is the deliberate exception: scaffolding, the frozen types, and whatever automated check the later commits will be verified against. It changes no behavior and the only thing proving it is that it compiles. That is fine — its verification is every commit after it. Nothing else gets that exemption.
+### `PLAN.md`
 
-The exception is a component whose contract came from outside — a wire format, a protocol, a third-party API. Those are independently verifiable because someone else defined the shape, so building them standalone is fine. The test is the origin of the contract. If the agent decided what the interface looks like, it needs a real consumer before it is real.
+Include:
 
-Build the second implementation of anything only after the first has a live caller. Two implementations built against each other with no consumer get shaped to fit each other rather than to fit use.
+- plan state, goal, requirements, and explicit non-goals;
+- approved architectural decisions and references to contracts in source;
+- target file tree, per-file estimates, and total production-code budget;
+- an ordered slice list with stable IDs, status, estimate, dependencies, and learning gates;
+- unresolved decisions and the conditions under which the plan must be revisited.
 
-## Two plan resolutions
+Keep each future slice to roughly one line. Do not duplicate source signatures or write full briefs for the entire project.
 
-- `PLAN.md` — ordered slice list. One line and a line budget per slice.
-- `commits/NN.md` — full brief, written only for the next few.
+### Volume accounting
 
-Do not write all briefs up front. Briefing commit twelve before commit two exists anchors the executing agent to a shape the intervening work may already have invalidated. Depth should track how much the plan learns per commit: shallow while contracts are still settling, deeper once the shape has stopped moving and the remaining work is mechanical. The rule is *do not brief past the next thing that could change the plan*.
+Count production volume as added lines in hand-written, non-test source paths. Report deletions separately; they do not offset additions. Report test additions separately and do not cap verification required by the brief. Exclude generated and vendored files. Define project-specific production, test, and generated paths in `CONSTRAINTS.md`.
 
-Cap each brief at roughly fifteen lines: what observable behavior changes, which files, line estimate, what proves it done, what it explicitly does not do. No code except references to already-frozen signatures. An unconstrained planning agent writes half the implementation into the brief, which pays for the code twice and locks in decisions before the executing agent has seen the repository.
+Before execution, record the comparison baseline and any pre-existing modifications; preserve and exclude unrelated work. Use `git diff --numstat` when it represents the brief's delta, but do not require a particular counter when repository tooling provides a better one.
 
-## Make the agent stop rather than invent
+Plan with per-file production additions and a total. Give every brief a production-addition estimate. Stop when likely production additions exceed `1.5x` that estimate. During reconciliation report production additions, production deletions, and test additions against the estimate.
 
-Standing rule for executing agents: **if you need a type, signature, or contract that the first commit did not establish, do not create one — stop and ask.**
+### `CONSTRAINTS.md`
 
-This converts underspecification from silent divergence into a visible question, which means the plan's resolution does not have to be right in advance. It will not be.
+Copy this framework section verbatim, then append project constraints with the reason for each:
 
-The stop rate is the feedback signal on that resolution. Zero stops means overspecification — effort spent on decisions nobody needed. Constant stops means the contracts are too thin. A couple per commit is about right.
+```markdown
+## Execution framework
 
-## Autonomy is bought with verification
+- Work only on the current brief; do not implement future slices.
+- Treat PLAN.md and other briefs as planner-owned and read-only. Do not use future-plan knowledge to shape the current implementation.
+- Edit only the source paths named by the brief. Stop if another path is required.
+- Do not add abstractions, configuration, or extension points for hypothetical future consumers.
+- Do not change an approved shared contract unless the brief is an approved contract-amendment slice.
+- Stop if the brief requires a new or changed shared contract.
+- Stop if production additions are likely to exceed 1.5x the brief estimate.
+- Stop if repository state materially contradicts an assumption in the brief.
+- Stop before unapproved destructive, externally visible, or irreversible work.
+- A brief is incomplete until its required verification passes. Never weaken verification or continue to another brief with a known failure.
+- Report production additions, production deletions, and test additions against the recorded baseline.
+- Do not edit planning artifacts or run git commit unless explicitly authorized.
 
-Long unattended runs are achievable, but front-loaded briefs buy nothing except autonomy on stale information. What actually buys it: an automated check that can run without a human, frozen contracts, a budget check, and the stop-and-ask rule. An agent so equipped runs several commits deep and returns either a stack of green diffs or one specific question.
+## On stop
 
-Do not over-rely on human review as the quality gate either. Reviewing every few commits works only if the diffs are read closely, and at a few hundred lines each that decays fast — three rounds in, skimming and approving is worse than no gate, because it launders the code as reviewed. Mechanical checks do not decay. Spend human attention on the boundaries where judgment is genuinely required: the first commit that consumes a new shared abstraction, the first that performs a real side effect.
+Stop editing. Do not commit, revert, or discard partial work. Report `STOP_REASON`, completed changes, current working-tree state, exact triggering evidence or failed verification, and the smallest amendment likely to unblock execution.
 
-## When converting existing working code
+## Project constraints
 
-The automated check above is the hard part, and existing code solves it — the old implementation is an oracle for correct behavior, and its structure is evidence about where the real seams are. If a working prototype or legacy version exists, get the replay harness standing before planning anything, and treat commits as *extraction* (moving determined content, behavior-preserving) versus *construction* (new code). A conversion plan heavy on construction commits means the agent decided the new version needs things the old one never had.
+- Define production, test, generated, and vendored paths for volume accounting.
+```
+
+Do not use adjectives such as "clean", "simple", or "pragmatic" as constraints. Name the prohibited behavior or required invariant.
+
+### `commits/SNN.md`
+
+Write one to three briefs through the next learning gate. Keep each brief under roughly 200 words and include:
+
+- proposed commit title matching repository convention;
+- observable outcome or explicitly named risk reduced;
+- affected paths;
+- approved contracts it consumes or amends;
+- production-addition estimate and comparison baseline;
+- exact verification;
+- explicit non-goals and dependencies;
+- any commit-specific stop condition.
+
+Reference source contracts rather than restating them. Do not include implementation code. A brief must be executable from current repository state; keep approvals, investigations, and unresolved decisions as gates in `PLAN.md`, not commits. A commit-shaped brief does not authorize running `git commit`.
+
+## Order commits by evidence
+
+Prefer independently coherent, verifiable vertical slices over layers:
+
+1. Establish any missing automated check required to verify later slices and any already-approved external or proven contract needed by several of them.
+2. Build the thinnest end-to-end path that gives the design a real consumer.
+3. Implement the slices with the greatest uncertainty or architectural risk.
+4. Implement remaining behavior in dependency order.
+5. Add a second implementation only after the first has a live consumer and the second is required by current scope.
+6. Perform cutover and remove superseded paths in reversible increments.
+
+Land a standalone contract before its consumer only when its shape is externally imposed, proven by existing code, or required for parallel work. Human approval is necessary for a designed cross-commit contract, but approval alone does not require a separate contract commit; otherwise introduce the approved boundary with its first consumer.
+
+Include tests, error handling, observability, and required operational behavior in the slice they support; do not defer them to a generic hardening phase. Prefer concrete code until an abstraction has a current justification. Require an existing consumer for configuration and a caller that branches before splitting error types. Treat interfaces, wrapper layers, plugin systems, registries, hooks, event buses, and rules engines as non-exhaustive examples requiring a current consumer, externally imposed boundary, or explicit repository convention.
+
+## Execute and replan
+
+Prefer an isolated execution context containing only current repository state, `CONSTRAINTS.md`, and one current brief. Isolation is optional: when executing in the planning context, work solely from the brief and constraints and do not act on future-plan knowledge.
+
+Execute briefs sequentially. A brief completes only when its verification passes. After the batch, the planner:
+
+1. compares actual behavior, files, and volume with estimates;
+2. updates completed slice status and assumptions invalidated by the work;
+3. reorders, splits, combines, or removes future slices using the new evidence;
+4. marks invalidated briefs `superseded` and never reuses their identifiers;
+5. obtains human approval for material changes to scope, architecture, shared contracts, or external effects;
+6. briefs the next batch and repeats.
+
+After an executor stop, inspect the evidence and propose the smallest plan or contract amendment. Update the budget and affected downstream slices. Land an approved contract change explicitly before dependent work; never let it drift into an unrelated implementation slice.
+
+Finish by setting the plan state to `complete`, recording final verification and volume against budget, and leaving no pending or executable briefs.
