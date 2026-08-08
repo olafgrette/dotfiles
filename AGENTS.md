@@ -51,6 +51,13 @@ three per-machine rather than symlinking — the repo holds no copy under a vend
   after the rendered directives. This is where actual proprietary work instructions go —
   they never enter git history.
 
+## Agent skills
+
+`skills/` is the tool-neutral source for user-level agent skills. The `skill-sync` fish
+function links each skill into both `~/.claude/skills/` and `~/.codex/skills/`; linking
+skills individually leaves room for tool-managed or local-only skills in either destination.
+It runs during `install.sh` and periodically through `background-startup`.
+
 ## Room coordination
 
 Room ID: **`dotfiles`**. Agents use their git branch name as username (`main` for work

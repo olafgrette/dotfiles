@@ -68,7 +68,7 @@ check "llama-server" llama-server-cuda llama-server
 group "Remote / persistence (optional)"
 check "et (eternal terminal)" et
 check systemd-run systemd-run
-check "agy (claude skills)" agy
+check "agy (agent skills)" agy
 
 group "SSH"
 check ssh ssh

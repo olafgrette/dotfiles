@@ -39,8 +39,8 @@ function background-startup
         and bash $dotfiles/install.sh >/dev/null 2>&1
     end
 
-    source $HOME/.config/fish/functions/claude-skill-sync.fish
-    claude-skill-sync
+    source $HOME/.config/fish/functions/skill-sync.fish
+    skill-sync
     if test -x ~/.local/bin/brunnr
         ~/.local/bin/brunnr update >/dev/null 2>&1
     end

@@ -111,8 +111,8 @@ if [ "$(uname -s)" = "Linux" ] && command -v loginctl &>/dev/null; then
     fi
 fi
 
-# Sync Claude skills (also run by background-startup on each shell start)
-fish -c claude-skill-sync
+# Sync agent skills (also run by background-startup on each shell start)
+fish -c skill-sync
 
 if ! command -v starship &>/dev/null; then
     echo "Installing starship..."
