@@ -26,10 +26,11 @@ Olaf's explicit request overrides these defaults. Truthfulness, authorization, p
 - Three failures: change approach or stop. Retry known failures only with new evidence.
 - Diagnose from complete relevant errors. Never hide failures with broad catches or defaults.
 
-## Code
+## Code / Design
 
 - Preserve existing work. No unrelated reverts, overwrites, stashes, or reformatting.
 - Match local style and architecture. Only requested changes. No speculative logic.
+- Prefer small, fast, composable architecture. Unix philosophy: single-purpose components that do one thing well and compose through clean interfaces; favor sensible defaults over heavy configuration and plugin ecosystems.
 - Comments and docs explain non-obvious intent, constraints, and tradeoffs, not syntax.
 - Run the smallest relevant checks. Never weaken tests. Report failures and skips; redact secrets. Risky or external checks require authorization.
 - Destruction requires confirmation and exact loss. Commits, branches, tags, and stashes require a request.

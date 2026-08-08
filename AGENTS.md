@@ -36,10 +36,10 @@ is part of the work, not a follow-up.
 ## Agent directives
 
 `UNIVERSAL_AGENT_DIRECTIVES.md` is the single source for the agent directive files
-installed at `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, and `~/.opencode/AGENTS.md`.
-It is tool-neutral on purpose: none of the three destinations is the "real" file that the
+installed at `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`, and `~/.opencode/AGENTS.md`.
+It is tool-neutral on purpose: none of the four destinations is the "real" file that the
 others alias, so the source is not named after any of them. `install.sh` generates all
-three per-machine rather than symlinking — the repo holds no copy under a vendor path:
+four per-machine rather than symlinking — the repo holds no copy under a vendor path:
 
 - **Scope blocks**: wrap lines in `<!-- scope:personal -->` / `<!-- /scope:personal -->`
   or `<!-- scope:work -->` / `<!-- /scope:work -->` to include them only on the matching
