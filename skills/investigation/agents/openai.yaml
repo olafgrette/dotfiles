@@ -1,0 +1,4 @@
+interface:
+  display_name: "Investigation"
+  short_description: "Run evidence-first technical investigations"
+  default_prompt: "Use $investigation to investigate this issue with a durable hypothesis ledger and inspectable evidence."
