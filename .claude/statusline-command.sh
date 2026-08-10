@@ -29,7 +29,7 @@ case "$(uname -s)" in
 esac
 
 # --- Hostname (truncated at first '.') ---
-host=$(hostname)
+host=$(uname -n)
 host="${host%%.*}"
 
 # --- Single jq extraction (was 8 invocations + bc) ---
