@@ -1,0 +1,60 @@
+#!/bin/bash
+
+REASONING_STRENGTH="high"
+
+if [ $# -gt 0 ]; then
+    case "$1" in
+        low|medium|high|xhigh)
+            REASONING_STRENGTH="$1"
+            shift
+            ;;
+        -*)
+            # It's a flag, keep default mode and pass the flag through
+            ;;
+        *)
+            echo "Usage: $0 [low|medium|high|xhigh] [server options...]"
+            exit 1
+            ;;
+    esac
+fi
+
+export LLAMA_CACHE="$HOME/.model-cache"
+MODEL_REPO="meta-models/Muse-Glimmer-30B-GGUF"
+MODEL_FILE="muse-glimmer-30B-kquant-dynamic.gguf"
+
+DEFAULT_CTX=131072
+CTX="${CTX:-$DEFAULT_CTX}"
+
+PLATFORM_ARGS=()
+if [ "$(uname)" != "Darwin" ]; then
+    PLATFORM_ARGS+=(--no-mmproj-offload)
+fi
+
+echo "Starting Muse Glimmer 30B with '$REASONING_STRENGTH' reasoning and ${CTX} context..."
+
+SERVER_BIN=$(command -v llama-server-cuda || command -v llama-server)
+if [ -z "$SERVER_BIN" ]; then
+    echo "Error: llama-server-cuda or llama-server not found in PATH"
+    exit 1
+fi
+
+exec "$SERVER_BIN" \
+    --hf-repo "$MODEL_REPO" \
+    --hf-file "$MODEL_FILE" \
+    --ctx-size "$CTX" \
+    --temp 1.0 \
+    --top-p 0.95 \
+    --top-k 64 \
+    --chat-template-kwargs "{\"reasoning_strength\":\"$REASONING_STRENGTH\"}" \
+    --spec-type draft-dflash \
+    --spec-draft-n-max 15 \
+    --n-gpu-layers 99 \
+    --parallel 1 \
+    --flash-attn on \
+    --cache-type-k f16 \
+    --cache-type-v f16 \
+    --fit off \
+    -cram 16384 \
+    --load-mode none \
+    "${PLATFORM_ARGS[@]}" \
+    "$@"

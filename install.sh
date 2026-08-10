@@ -77,6 +77,7 @@ symlink .config/tmux
 symlink .config/zellij
 symlink .local/lib
 symlink_file .local/bin/gemma-serve
+symlink_file .local/bin/muse-glimmer-serve
 symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve
 symlink_file .claude/statusline-command.sh
