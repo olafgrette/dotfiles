@@ -3,6 +3,10 @@ set -e
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+is_gui() {
+  [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" || "$(uname -s)" == "Darwin" ]]
+}
+
 symlink() {
     local src="$DOTFILES/$1"
     local dst="$HOME/$1"
@@ -121,6 +125,7 @@ if ! command -v starship &>/dev/null; then
 fi
 
 # Download ghostty shaders (gitignored, fetched on install)
+if is_gui; then
 SHADERS_DIR="$HOME/.config/ghostty/shaders"
 SHADERS_BASE="https://raw.githubusercontent.com/KroneCorylus/ghostty-shader-playground/main/public/shaders"
 mkdir -p "$SHADERS_DIR"
@@ -130,3 +135,4 @@ for shader in cursor_frozen.glsl; do
         curl -sfL "$SHADERS_BASE/$shader" -o "$SHADERS_DIR/$shader"
     fi
 done
+fi

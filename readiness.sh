@@ -15,6 +15,10 @@ done
 export PATH
 unset _d
 
+is_gui() {
+  [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ] || [ "$(uname -s)" = "Darwin" ]
+}
+
 check() {
     # $1 = display name, $2... = candidate binaries (present if ANY exist)
     name="$1"
@@ -35,7 +39,9 @@ group() {
 group "Core stack"
 check fish fish
 check starship starship
-check ghostty ghostty
+if is_gui; then
+  check ghostty ghostty
+fi
 check "tmux" tmux
 check "zellij" zellij
 check "helix (hx)" hx helix
@@ -77,7 +83,9 @@ check ssh-add ssh-add
 case "$(uname -s)" in
 Linux)
     group "Linux"
-    check xdg-open xdg-open
+    if is_gui; then
+      check xdg-open xdg-open
+    fi
     check loginctl loginctl
     ;;
 Darwin)
