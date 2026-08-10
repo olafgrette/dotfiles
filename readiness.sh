@@ -36,37 +36,41 @@ group() {
     printf '\n%s\n' "$1"
 }
 
-group "Core stack"
+group "Prerequisites"
+check git git
+check jq jq
+check curl curl
+check awk awk
+
+group "Shell"
 check fish fish
 check starship starship
+
+group "Terminal"
 if is_gui; then
   check ghostty ghostty
 fi
 check "tmux" tmux
 check "zellij" zellij
+
+group "Editor"
 check "helix (hx)" hx helix
-check git git
-
-group "Install / statusline deps"
-check jq jq
-check curl curl
-check awk awk
-
-group "Helix language servers"
 check marksman marksman
 check markdown-oxide markdown-oxide
 check harper-ls harper-ls
 
-group "Toolchains / version managers"
+group "Toolchains"
 check uv uv
 check cargo cargo
 check chruby chruby chruby-exec
 check bun bun
+check node node
+check npm npm
 
-group "Agents / AI Tools"
+group "Agents / AI"
 check brunnr brunnr
 check claude claude
-check gemini gemini
+check agy agy
 check qmd qmd
 check opencode opencode
 check "llama-server" llama-server-cuda llama-server
@@ -74,7 +78,6 @@ check "llama-server" llama-server-cuda llama-server
 group "Remote / persistence (optional)"
 check "et (eternal terminal)" et
 check systemd-run systemd-run
-check "agy (agent skills)" agy
 
 group "SSH"
 check ssh ssh
