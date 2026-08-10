@@ -73,6 +73,8 @@ check claude claude
 check agy agy
 check qmd qmd
 check opencode opencode
+check codex codex
+check muse muse
 check "llama-server" llama-server-cuda llama-server
 
 group "Remote / persistence (optional)"
@@ -88,6 +90,21 @@ Linux)
     group "Linux"
     if is_gui; then
       check xdg-open xdg-open
+      # Font check
+      if command -v fc-list >/dev/null 2>&1; then
+        if fc-list | grep -qi "RecMonoCasual"; then
+          printf '  \xe2\x9c\x85 %s\n' "RecMonoCasual Nerd Font"
+        else
+          printf '  \xe2\x9d\x8c %s\n' "RecMonoCasual Nerd Font"
+        fi
+      else
+        if ls "$HOME/.local/share/fonts/"*RecMonoCasual* >/dev/null 2>&1 || \
+           ls "$HOME/.fonts/"*RecMonoCasual* >/dev/null 2>&1; then
+          printf '  \xe2\x9c\x85 %s\n' "RecMonoCasual Nerd Font"
+        else
+          printf '  \xe2\x9d\x8c %s\n' "RecMonoCasual Nerd Font (fc-list not found)"
+        fi
+      fi
     fi
     check loginctl loginctl
     ;;
