@@ -1,0 +1,244 @@
+#!/usr/bin/env python3
+"""Capture and apply sparse DankMaterialShell settings."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import tempfile
+from typing import Any
+
+
+MISSING = object()
+REQUIRED = object()
+BLOCKED = {
+    "activeDisplayProfile",
+    "browserUsageHistory",
+    "configVersion",
+    "connectedFrameBarStyleBackups",
+    "desktopClockDisplayPreferences",
+    "displayProfiles",
+    "enabledGpuPciIds",
+    "filePickerUsageHistory",
+    "frameScreenPreferences",
+    "greeterSyncBaseline",
+    "hyprlandOutputSettings",
+    "matugenTargetMonitor",
+    "niriOutputSettings",
+    "screenPreferences",
+    "selectedGpuIndex",
+    "showOnLastDisplay",
+    "systemMonitorDisplayPreferences",
+    "systemMonitorGpuPciId",
+}
+
+
+def load_json(path: Path, *, missing: Any = REQUIRED) -> Any:
+    if not path.exists():
+        if missing is REQUIRED:
+            raise FileNotFoundError(path)
+        return missing
+    with path.open(encoding="utf-8") as stream:
+        value = json.load(stream)
+    if not isinstance(value, dict):
+        raise ValueError(f"{path}: expected a JSON object")
+    return value
+
+
+def atomic_json(path: Path, value: dict[str, Any]) -> bool:
+    content = json.dumps(value, indent=2, sort_keys=True) + "\n"
+    if path.exists() and path.read_text(encoding="utf-8") == content:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.chmod(temporary, 0o644)
+        os.replace(temporary, path)
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+        raise
+    return True
+
+
+def deep_overlay(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
+    result = dict(base)
+    for key, value in overlay.items():
+        if isinstance(result.get(key), dict) and isinstance(value, dict):
+            result[key] = deep_overlay(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def settings_equal(value: Any, default: Any) -> bool:
+    """Compare DMS values, including colors serialized as component objects."""
+    if value == default:
+        return True
+    if isinstance(default, str) and re.fullmatch(r"#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?", default):
+        if isinstance(value, dict) and all(channel in value for channel in ("r", "g", "b", "a")):
+            hex_value = default.lstrip("#")
+            channels = [int(hex_value[index:index + 2], 16) / 255 for index in (0, 2, 4)]
+            channels.append(int(hex_value[6:8], 16) / 255 if len(hex_value) == 8 else 1.0)
+            return all(abs(float(value[name]) - expected) < 1e-6 for name, expected in zip("rgba", channels))
+    return False
+
+
+def three_way(old: Any, local: Any, new: Any) -> Any:
+    if local == old or local == new:
+        return new
+    if old == new:
+        return local
+    if all(value is MISSING or isinstance(value, dict) for value in (old, local, new)):
+        old_map = {} if old is MISSING else old
+        local_map = {} if local is MISSING else local
+        new_map = {} if new is MISSING else new
+        result: dict[str, Any] = {}
+        for key in old_map.keys() | local_map.keys() | new_map.keys():
+            merged = three_way(
+                old_map.get(key, MISSING),
+                local_map.get(key, MISSING),
+                new_map.get(key, MISSING),
+            )
+            if merged is not MISSING:
+                result[key] = merged
+        return result
+    return local
+
+
+def parse_defaults(path: Path) -> dict[str, Any]:
+    source = path.read_text(encoding="utf-8")
+    enums: dict[str, dict[str, int]] = {}
+    for match in re.finditer(r"\benum\s+(\w+)\s*\{(.*?)\}", source, re.S):
+        members: dict[str, int] = {}
+        next_value = 0
+        for item in match.group(2).split(","):
+            item = re.sub(r"//.*", "", item).strip()
+            if not item:
+                continue
+            member = re.fullmatch(r"(\w+)(?:\s*=\s*(-?\d+))?", item)
+            if not member:
+                continue
+            if member.group(2) is not None:
+                next_value = int(member.group(2))
+            members[member.group(1)] = next_value
+            next_value += 1
+        enums[match.group(1)] = members
+
+    defaults: dict[str, Any] = {}
+    property_re = re.compile(
+        r"^\s*(?:readonly\s+)?property\s+"
+        r"(?:bool|int|real|string|color|var)\s+(\w+):\s*(.*?)\s*;?\s*$"
+    )
+    enum_re = re.compile(r"SettingsData\.(\w+)\.(\w+)$")
+    for line in source.splitlines():
+        match = property_re.match(line)
+        if not match:
+            continue
+        name, expression = match.groups()
+        expression = expression.rstrip(";").strip()
+        enum = enum_re.fullmatch(expression)
+        if enum and enum.group(2) in enums.get(enum.group(1), {}):
+            defaults[name] = enums[enum.group(1)][enum.group(2)]
+            continue
+        candidate = expression
+        if candidate.startswith("(") and candidate.endswith(")"):
+            candidate = candidate[1:-1]
+        try:
+            value = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, (dict, list, str, int, float, bool)) or value is None:
+            defaults[name] = value
+    if not defaults:
+        raise ValueError(f"{path}: found no DMS defaults")
+    return defaults
+
+
+def find_defaults(explicit: Path | None) -> Path:
+    candidates = [
+        explicit,
+        Path(os.environ.get("DMS_SETTINGS_DATA", "")) if os.environ.get("DMS_SETTINGS_DATA") else None,
+        Path("/usr/share/quickshell/dms/Common/SettingsData.qml"),
+        Path.home() / ".local/share/quickshell/dms/Common/SettingsData.qml",
+    ]
+    for candidate in candidates:
+        if candidate and candidate.is_file():
+            return candidate
+    raise FileNotFoundError("could not locate DMS Common/SettingsData.qml")
+
+
+def capture(args: argparse.Namespace) -> int:
+    live = load_json(args.live)
+    defaults = parse_defaults(find_defaults(args.defaults))
+    local_patch = load_json(args.local_patch, missing={})
+    patch = {
+        key: value
+        for key, value in live.items()
+        if key not in BLOCKED
+        and key not in local_patch
+        and key in defaults
+        and not settings_equal(value, defaults[key])
+    }
+    skipped = sorted(set(live) - set(defaults) - BLOCKED - set(local_patch))
+    changed = atomic_json(args.patch, patch)
+    print(f"Captured {len(patch)} DMS settings" + ("" if changed else " (unchanged)"))
+    if skipped:
+        print("Skipped settings without resolvable defaults: " + ", ".join(skipped))
+    return 0
+
+
+def apply(args: argparse.Namespace) -> int:
+    shared = load_json(args.patch, missing={})
+    local_patch = load_json(args.local_patch, missing={})
+    desired = deep_overlay(shared, local_patch)
+    live = load_json(args.live, missing={})
+    baseline = load_json(args.baseline, missing=MISSING)
+    if baseline is MISSING:
+        merged = deep_overlay(live, desired)
+    else:
+        merged = three_way(baseline, live, desired)
+    live_changed = atomic_json(args.live, merged)
+    baseline_changed = atomic_json(args.baseline, desired)
+    if live_changed:
+        print(f"Applied DMS settings to {args.live}")
+    elif baseline_changed:
+        print("Updated DMS settings baseline")
+    return 0
+
+
+def parser() -> argparse.ArgumentParser:
+    repo = Path(__file__).resolve().parents[2]
+    config = Path.home() / ".config/DankMaterialShell"
+    state = Path.home() / ".local/state/DankMaterialShell"
+    result = argparse.ArgumentParser(description=__doc__)
+    result.add_argument("--live", type=Path, default=config / "settings.json")
+    result.add_argument("--patch", type=Path, default=repo / ".config/DankMaterialShell/settings.patch.json")
+    result.add_argument("--local-patch", type=Path, default=repo / ".config/DankMaterialShell/settings.local.json")
+    result.add_argument("--baseline", type=Path, default=state / "dotfiles-settings-baseline.json")
+    result.add_argument("--defaults", type=Path)
+    result.add_argument("command", choices=("apply", "capture"))
+    return result
+
+
+def main() -> int:
+    args = parser().parse_args()
+    try:
+        return capture(args) if args.command == "capture" else apply(args)
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"dms-settings: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

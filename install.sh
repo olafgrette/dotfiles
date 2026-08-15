@@ -84,7 +84,14 @@ symlink_file .local/bin/gemma-serve
 symlink_file .local/bin/muse-glimmer-serve
 symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve
+symlink_file .local/bin/dms-settings
 symlink_file .claude/statusline-command.sh
+
+# DMS owns a monolithic writable settings file. Keep portable preferences as a
+# sparse patch while preserving runtime- and machine-specific keys in place.
+if [ "$(uname -s)" = "Linux" ] && is_gui; then
+    "$DOTFILES/.local/bin/dms-settings" apply
+fi
 
 # Add statusline config to ~/.claude/settings.json if not already present
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
