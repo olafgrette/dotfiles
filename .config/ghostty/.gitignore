@@ -1,2 +1,4 @@
 shaders/
 ghostty.local.conf
+config.backup.*
+themes/dankcolors
