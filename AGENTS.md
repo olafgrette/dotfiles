@@ -7,7 +7,7 @@ Use `symlink` for directories, `symlink_file` for individual files.
 - **Shell**: fish
 - **Prompt**: starship
 - **Terminal**: ghostty
-- **Multiplexers**: tmux (`mux`), zellij (`zmux`)
+- **Multiplexers**: zellij (`zmux`)
 - **Editor**: helix
 
 Tools were chosen for sensible defaults, modern design, and low configuration need — a setup
@@ -50,27 +50,6 @@ four per-machine rather than symlinking — the repo holds no copy under a vendo
 - **`UNIVERSAL_AGENT_DIRECTIVES.local.md`** (gitignored, see above): appended verbatim
   after the rendered directives. This is where actual proprietary work instructions go —
   they never enter git history.
-
-## Agent skills
-
-`skills/` is the tool-neutral source for user-level agent skills. The `skill-sync` fish
-function links each skill into both `~/.claude/skills/` and `~/.codex/skills/`; linking
-skills individually leaves room for tool-managed or local-only skills in either destination.
-It runs during `install.sh` and periodically through `background-startup`.
-
-## Room coordination
-
-Room ID: **`dotfiles`**. Agents use their git branch name as username (`main` for work
-directly on main); the human is `olaf`.
-
-Every `room` command needs `--token`. Register once with `room join <username>` — the
-token lands in `~/.room/state/room-<username>.token` and is global, so read it from there
-rather than passing it around. Then `room subscribe dotfiles --token <token>` to receive
-messages.
-
-Commands only work against a running daemon: `room daemon --persistent --room dotfiles`.
-It is not started at login — start it manually when coordinating, or skip the room
-entirely for solo sessions. Nothing in this repo depends on it.
 
 ## Key decisions
 
