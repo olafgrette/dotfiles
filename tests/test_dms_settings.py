@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from types import SimpleNamespace
 
 
@@ -95,6 +96,24 @@ class DmsSettingsTest(unittest.TestCase):
             )
             self.assertEqual(MODULE.capture(args), 0)
             self.assertEqual(json.loads(patch.read_text()), {"changed": 2})
+
+    def test_offer_commit_stages_and_commits_only_patch(self):
+        completed = type("Completed", (), {"stdout": " M settings.patch.json\n"})()
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            tracked_patch = repo / "settings.patch.json"
+            tracked_patch.write_text("{}\n")
+            with (
+                patch.object(MODULE.subprocess, "run", return_value=completed) as run,
+                patch.object(MODULE.sys.stdin, "isatty", return_value=True),
+                patch("builtins.input", return_value="y"),
+            ):
+                MODULE.offer_commit(repo, tracked_patch)
+            commands = [call.args[0] for call in run.call_args_list]
+            self.assertEqual(commands[0][:2], ["git", "status"])
+            self.assertEqual(commands[1][:2], ["git", "diff"])
+            self.assertEqual(commands[2], ["git", "add", "--", "settings.patch.json"])
+            self.assertEqual(commands[3][0:3], ["git", "commit", "--only"])
 
 
 if __name__ == "__main__":

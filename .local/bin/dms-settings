@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 from typing import Any
@@ -178,6 +179,58 @@ def find_defaults(explicit: Path | None) -> Path:
     raise FileNotFoundError("could not locate DMS Common/SettingsData.qml")
 
 
+def offer_commit(repo: Path, patch: Path) -> None:
+    try:
+        relative = patch.resolve().relative_to(repo.resolve())
+    except ValueError:
+        return
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--", str(relative)],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    if not status:
+        return
+
+    if status.startswith("??"):
+        subprocess.run(
+            ["git", "diff", "--no-index", "--", "/dev/null", str(relative)],
+            cwd=repo,
+            check=False,
+        )
+    else:
+        subprocess.run(
+            ["git", "diff", "--no-ext-diff", "HEAD", "--", str(relative)],
+            cwd=repo,
+            check=True,
+        )
+
+    if not sys.stdin.isatty():
+        print("Not prompting for commit: stdin is not interactive")
+        return
+    if input("Commit DMS settings? [y/N] ").strip().lower() not in {"y", "yes"}:
+        return
+
+    subprocess.run(["git", "add", "--", str(relative)], cwd=repo, check=True)
+    subprocess.run(
+        [
+            "git",
+            "commit",
+            "--only",
+            "-m",
+            "chore(dms): update settings",
+            "-m",
+            "Capture portable GUI preferences while leaving machine-specific DMS state local.",
+            "--",
+            str(relative),
+        ],
+        cwd=repo,
+        check=True,
+    )
+
+
 def capture(args: argparse.Namespace) -> int:
     live = load_json(args.live)
     defaults = parse_defaults(find_defaults(args.defaults))
@@ -195,6 +248,7 @@ def capture(args: argparse.Namespace) -> int:
     print(f"Captured {len(patch)} DMS settings" + ("" if changed else " (unchanged)"))
     if skipped:
         print("Skipped settings without resolvable defaults: " + ", ".join(skipped))
+    offer_commit(Path(__file__).resolve().parents[2], args.patch)
     return 0
 
 
@@ -235,7 +289,7 @@ def main() -> int:
     args = parser().parse_args()
     try:
         return capture(args) if args.command == "capture" else apply(args)
-    except (OSError, ValueError, json.JSONDecodeError) as error:
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as error:
         print(f"dms-settings: {error}", file=sys.stderr)
         return 1
 

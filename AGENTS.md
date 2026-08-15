@@ -98,7 +98,8 @@ portable settings that differ from the installed DMS defaults.
 
 - `dms-settings apply` three-way merges the previously applied patch, live GUI-edited
   settings, and the current tracked/local patches. Local GUI conflicts win.
-- `dms-settings capture` regenerates the tracked patch from non-default live settings.
+- `dms-settings capture` regenerates the tracked patch from non-default live settings,
+  shows its Git diff, and offers to commit that file. Push remains explicit.
 - Display identifiers, usage histories, GPU selection, and other machine/runtime keys
   are blocklisted from capture.
 - The ignored `settings.local.json` is the final per-machine overlay. Its top-level
