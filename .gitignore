@@ -21,6 +21,12 @@ UNIVERSAL_AGENT_DIRECTIVES.local.md
 # opencode: pure local state, AGENTS.md is generated into $HOME by install.sh
 .opencode/
 
+# aconf.sh: machine-local shell hook, never shared
+aconf.local.sh
+# aconfmgr: machine-local declarations and capture output, never shared
+.config/aconfmgr/aconfmgr.local
+.config/aconfmgr/99-unsorted.sh
+
 # local npm installs (e.g. @openai/codex) land in symlinked .local/lib
 .local/lib/node_modules/
 .local/bin/codex

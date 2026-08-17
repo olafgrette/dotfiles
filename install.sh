@@ -89,7 +89,7 @@ symlink_file .claude/statusline-command.sh
 
 # DMS owns a monolithic writable settings file. Keep portable preferences as a
 # sparse patch while preserving runtime- and machine-specific keys in place.
-if [ "$(uname -s)" = "Linux" ] && is_gui; then
+if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShell/.firstlaunch" ]; then
     "$DOTFILES/.local/bin/dms-settings" apply
 fi
 
