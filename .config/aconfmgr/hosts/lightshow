@@ -1,0 +1,34 @@
+# Lightshow — desktop. Sourced explicitly by 90-host.sh, never auto-loaded.
+
+# Public Lightshow-only package intent.
+AddPackage cuda
+AddPackage xorg-xset
+AddPackage --foreign qt5-remoteobjects
+AddPackage --foreign qt5-webengine
+AddPackage --foreign zoom
+
+# Reviewed Lightshow-only system intent. All stored paths are host-specific via
+# CopyFileTo from files/hosts/lightshow. Private package and service intent
+# remains in the ignored aconfmgr.local.
+#
+# Fuse
+CopyFileTo "/hosts/lightshow/etc/fuse.conf" "/etc/fuse.conf"
+# DMS greeter (generic greeter user, not personal username)
+CopyFileTo "/hosts/lightshow/etc/greetd/config.toml" "/etc/greetd/config.toml"
+# Locale — one-line en_US.UTF-8
+CopyFileTo "/hosts/lightshow/etc/locale.conf" "/etc/locale.conf"
+CopyFileTo "/hosts/lightshow/etc/locale.gen" "/etc/locale.gen"
+# Pacman — current pacnew with [multilib] enabled
+CopyFileTo "/hosts/lightshow/etc/pacman.conf" "/etc/pacman.conf"
+# NVIDIA hook — Lightshow discrete GPU only
+CopyFileTo "/hosts/lightshow/etc/pacman.d/hooks/nvidia.hook" "/etc/pacman.d/hooks/nvidia.hook"
+# grub-btrfsd — ExecStart reset to --timeshift-auto --syslog
+CopyFileTo "/hosts/lightshow/etc/systemd/system/grub-btrfsd.service.d/override.conf" "/etc/systemd/system/grub-btrfsd.service.d/override.conf"
+# Shadow-unit absence is enforced by bootstrap after its rollback snapshot.
+# aconfmgr's deleted property is not idempotent for an unowned absent file.
+# Timezone — symlink, not file content
+CreateLink "/etc/localtime" "/usr/share/zoneinfo/America/Los_Angeles"
+# Display manager — vendor greetd
+CreateLink "/etc/systemd/system/display-manager.service" "/usr/lib/systemd/system/greetd.service"
+# grub-btrfsd enablement — Lightshow Btrfs only
+CreateLink "/etc/systemd/system/multi-user.target.wants/grub-btrfsd.service" "/usr/lib/systemd/system/grub-btrfsd.service"
