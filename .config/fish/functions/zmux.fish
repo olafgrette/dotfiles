@@ -1,3 +1,29 @@
+function __zmux_start --argument-names session
+    # Create the session — and with it the long-lived server process — detached,
+    # inside a transient systemd --user scope so it survives an abrupt SSH
+    # disconnect instead of being reaped with the login session's scope (pairs
+    # with `loginctl enable-linger`, set up by install.sh). Only the *server*
+    # needs to escape the login scope: wrapping the client too (as this function
+    # used to) is what leaves a zombie client attached after the terminal dies.
+    # Exits non-zero when the session is already up, which callers ignore.
+    if command -q systemd-run
+        systemd-run --scope --user --quiet --collect zellij attach --create-background $session 2>/dev/null
+    else
+        zellij attach --create-background $session 2>/dev/null
+    end
+end
+
+function __zmux_running --argument-names session
+    # `list-sessions` reports resurrectable (exited) sessions alongside live ones;
+    # only the absence of the EXITED marker means a server is actually up.
+    for line in (zellij list-sessions --no-formatting 2>/dev/null)
+        test (string split -m1 -f1 ' ' -- $line) = "$session"; or continue
+        string match -q '*(EXITED*' -- $line; and return 1
+        return 0
+    end
+    return 1
+end
+
 function zmux --description 'attach/create persistent zellij session, detaching stale clients'
     set -l session main
     test (count $argv) -gt 0; and set session $argv[1]
@@ -7,18 +33,26 @@ function zmux --description 'attach/create persistent zellij session, detaching 
         return 1
     end
 
-    # Create the session — and with it the long-lived server process — detached,
-    # inside a transient systemd --user scope so it survives an abrupt SSH
-    # disconnect instead of being reaped with the login session's scope (pairs
-    # with `loginctl enable-linger`, set up by install.sh). Only the *server*
-    # needs to escape the login scope: wrapping the client too (as this function
-    # used to) is what leaves a zombie client attached after the terminal dies.
-    # `attach -b` exits 1 with "Session already exists" when it's already up, and
-    # resurrects an exited session detached — either way, nothing to do here.
-    if command -q systemd-run
-        systemd-run --scope --user --quiet --collect zellij attach --create-background $session 2>/dev/null
-    else
-        zellij attach --create-background $session 2>/dev/null
+    # A reboot reaps every pane's shell *before* the server gets to serialize, so
+    # the saved layout ends up holding nothing but the tab-bar/status-bar plugins.
+    # Resurrecting that husk brings a server up that finds no panes and quits
+    # within ~0.2s, leaving the session EXITED again; the foreground attach below
+    # then opens a paneless session that immediately prints "Bye from Zellij!" —
+    # which is what a reboot used to cost. Hence the settle: a resurrection that
+    # is going to collapse has already collapsed by the time we look. A session
+    # still not up means its saved layout is worthless, so drop it and start clean
+    # rather than hand the user a session that dies on sight.
+    if not __zmux_running $session
+        __zmux_start $session
+        sleep 0.5
+        if not __zmux_running $session
+            zellij delete-session $session >/dev/null
+            __zmux_start $session
+            if not __zmux_running $session
+                echo "zmux: could not start session '$session'" >&2
+                return 1
+            end
+        end
     end
 
     # tmux's `new -AD` detaches every other client on attach; zellij has no
