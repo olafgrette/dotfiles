@@ -25,7 +25,10 @@ function __zmux_running --argument-names session
 end
 
 function zmux --description 'attach/create persistent zellij session, detaching stale clients'
-    set -l session main
+    # Default to the box's hostname rather than a fixed "main": zellij's
+    # tab-bar plugin shows the session name up top, so this is what puts the
+    # hostname in the header bar — natively, no status-bar plugin needed.
+    set -l session (hostname -s)
     test (count $argv) -gt 0; and set session $argv[1]
 
     if set -q ZELLIJ
