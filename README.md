@@ -25,8 +25,8 @@ Current winners include:
 * terminal emulator: **ghostty**
 * terminal multiplexer: **zellij**
 * editor: **helix**
-* window manager: **hyperland**
-* linux desktop environment: **DankMaterialShell**
+* window manager: **hyprland**
+* desktop environment: **DankMaterialShell**
 * an increasingly unreasonable number of AI agent harnesses
 
 ## Installation
