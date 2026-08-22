@@ -1,0 +1,27 @@
+[Unit]
+Description=rclone gdrive mount
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/rclone mount gdrive: %h/gdrive \
+    --vfs-cache-mode full \
+    --vfs-cache-max-size 10G \
+    --vfs-cache-max-age 24h \
+    --dir-cache-time 1000h \
+    --attr-timeout 1000h \
+    --poll-interval 15s \
+    --vfs-read-chunk-size 32M \
+    --vfs-read-chunk-size-limit 1G \
+    --buffer-size 128M \
+    --log-level INFO \
+    --log-file /tmp/rclone-gdrive.log \
+    --umask 022 \
+    --allow-other
+ExecStop=/bin/fusermount -uz %h/gdrive
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

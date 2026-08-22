@@ -31,19 +31,25 @@ symlink_file() {
     echo "Linked $dst"
 }
 
+# Strip domain/FQDN — personal-hosts contains short names (olafmbp, lightshow),
+# but uname -n can return olafmbp.local / FQDN on macOS/DHCP.
+short_host() {
+    local host
+    host="$(hostname -s 2>/dev/null || uname -n)"
+    printf '%s' "${host%%.*}"
+}
+
+is_personal() {
+    [ -f "$DOTFILES/personal-hosts" ] && grep -qxF "$(short_host)" "$DOTFILES/personal-hosts"
+}
+
 # Render UNIVERSAL_AGENT_DIRECTIVES.md into the agent directives shared by all
 # three tools, filtering <!-- scope:personal/work --> blocks by hostname and
 # appending the gitignored local override (work-only content that must
 # never enter git history).
 render_agent_directives() {
-    # Strip domain/FQDN — personal-hosts contains short names (olafmbp, lightshow),
-    # but uname -n can return olafmbp.local / FQDN on macOS/DHCP.
-    local host
-    host="$(hostname -s 2>/dev/null || uname -n)"
-    host="${host%%.*}"
     local scope="work"
-    if [ -f "$DOTFILES/personal-hosts" ] && \
-       grep -qxF "$host" "$DOTFILES/personal-hosts"; then
+    if is_personal; then
         scope="personal"
     fi
 
@@ -86,6 +92,16 @@ symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve
 symlink_file .local/bin/dms-settings
 symlink_file .claude/statusline-command.sh
+
+# Personal Linux hosts only: a personal Drive mount has no business on a work
+# or remote machine, and systemd user units are meaningless on macOS. Linked
+# individually, never as a directory — systemd writes enablement symlinks into
+# .config/systemd/user/*.wants/ and those are generated state, not
+# configuration. Linking does not enable; --allow-other needs the
+# user_allow_other that the Arch system layer puts in /etc/fuse.conf.
+if [ "$(uname -s)" = "Linux" ] && is_personal; then
+    symlink_file .config/systemd/user/rclone-gdrive.service
+fi
 
 # DMS owns a monolithic writable settings file. Keep portable preferences as a
 # sparse patch while preserving runtime- and machine-specific keys in place.
