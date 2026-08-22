@@ -83,6 +83,7 @@ AddPackage --foreign dsearch-bin
 AddPackage adw-gtk-theme
 AddPackage exo
 AddPackage gnome-disk-utility
+AddPackage kdeconnect
 AddPackage kimageformats
 AddPackage nautilus
 
@@ -113,6 +114,7 @@ AddPackage --foreign ttf-roboto-flex
 # Development and content toolchains.
 AddPackage bun
 AddPackage clang
+AddPackage cmake
 AddPackage dmd
 AddPackage fontforge
 AddPackage git-lfs
@@ -157,6 +159,7 @@ AddPackage --foreign minecraft-launcher
 AddPackage --foreign protonplus
 
 # Peripherals.
+AddPackage bluez
 AddPackage --foreign uhk-agent-appimage
 
 # Printing.
