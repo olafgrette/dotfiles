@@ -60,7 +60,7 @@ When the machine has nothing on it yet, not even this repository:
 curl -fsSL dots.oag.sh | sh
 ```
 
-Yes, `curl | sh`. It fetches `init.sh` out of this repository — the same repository I am about to let symlink my entire home directory — so the trust boundary was crossed several paragraphs ago.
+Yes, `curl | sh`. It fetches `init.sh` out of this repository. Served through a cloudflare worker which reads and returns the github raw content. The source for which is in this repository. This dotfile repository.
 
 It clones, converges the Arch system layer if the machine is one of mine, and then runs `install.sh`.
 
