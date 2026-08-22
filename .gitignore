@@ -33,3 +33,7 @@ aconfmgr/99-unsorted.sh
 
 # python: test bytecode cache
 __pycache__/
+
+# wrangler: local build cache and deploy state
+.wrangler/
+node_modules/

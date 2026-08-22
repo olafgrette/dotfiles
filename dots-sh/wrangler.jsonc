@@ -1,0 +1,23 @@
+{
+  "name": "dots-sh",
+  "main": "index.js",
+  "compatibility_date": "2026-08-22",
+
+  // custom_domain means the Worker *is* the origin: Cloudflare provisions the
+  // DNS record and certificate for dots.oag.sh itself. No proxied placeholder
+  // record, and nothing added to the cloudflared tunnel ingress.
+  "routes": [{ "pattern": "dots.oag.sh", "custom_domain": true }],
+
+  // No "limits" block: limits.cpu_ms is rejected on the Free plan (error
+  // 100328). It is also unnecessary there — Free has no overage billing at
+  // all, and stops serving at 100k requests/day with Error 1027 instead. Add
+  // "limits": { "cpu_ms": 50 } if this ever moves to a paid plan, where CPU
+  // time does become billable.
+
+  // Logs only. Traces begin billing against the same quota on 2026-10-01 and
+  // there is nothing here worth tracing.
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 }
+  }
+}
