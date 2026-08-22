@@ -12,7 +12,7 @@ from tests._helpers import arch_only, run_pty
 
 ROOT = Path(__file__).parents[1]
 ACONF = ROOT / "aconf.sh"
-ACONFMGR_CONFIG = ROOT / ".config/aconfmgr"
+ACONFMGR_CONFIG = ROOT / "aconfmgr"
 BASE_PREREQUISITES = ("aconfmgr", "yay")
 APPLY_PREREQUISITES = ("sudo", "timeshift", "date", "locale-gen", "systemctl")
 SUPPORT = ("bash", "cat", "dirname", "grep", "uname")
@@ -23,7 +23,7 @@ def fake_repo(tmp, *, personal=("testhost",), bypass_scope=True, shadow=False):
     repo.mkdir()
     shutil.copy(ACONF, repo / "aconf.sh")
     shutil.copytree(
-        ACONFMGR_CONFIG, repo / ".config/aconfmgr",
+        ACONFMGR_CONFIG, repo / "aconfmgr",
         ignore=shutil.ignore_patterns("aconfmgr.local", "99-unsorted.sh"),
     )
     (repo / "personal-hosts").write_text("\n".join(personal) + "\n")
@@ -117,7 +117,7 @@ class WrapperTest(unittest.TestCase):
     def test_clean_checkout_without_local_aconfmgr_file_lints(self):
         with tempfile.TemporaryDirectory() as tmp:
             repo = fake_repo(tmp)
-            self.assertFalse((repo / ".config/aconfmgr/aconfmgr.local").exists())
+            self.assertFalse((repo / "aconfmgr/aconfmgr.local").exists())
             env, log = recording_env(tmp)
             result = run(repo, "lint", env=env)
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -217,7 +217,7 @@ is_ignored /etc/os-release
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_local_and_capture_artifacts_are_gitignored(self):
-        for rel in ("aconf.local.sh", ".config/aconfmgr/aconfmgr.local", ".config/aconfmgr/99-unsorted.sh"):
+        for rel in ("aconf.local.sh", "aconfmgr/aconfmgr.local", "aconfmgr/99-unsorted.sh"):
             with self.subTest(path=rel):
                 result = subprocess.run(["git", "check-ignore", "-q", rel], cwd=ROOT)
                 self.assertEqual(result.returncode, 0, f"{rel} is not gitignored")

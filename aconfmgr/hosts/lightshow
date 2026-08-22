@@ -1,0 +1,26 @@
+# Lightshow — desktop. Sourced explicitly by 90-host.sh, never auto-loaded.
+
+# CPU firmware.
+AddPackage amd-ucode
+
+# NVIDIA GPU.
+AddPackage cuda
+AddPackage lib32-nvidia-utils
+AddPackage nvidia-open
+AddPackage nvidia-settings
+AddPackage nvidia-utils
+
+# Xorg utilities.
+AddPackage xorg-xhost
+AddPackage xorg-xset
+
+# Virtualization and guest display — VMs run on the desktop, not the laptop.
+AddPackage qemu-chardev-spice
+AddPackage qemu-hw-display-qxl
+AddPackage qemu-system-aarch64
+AddPackage qemu-ui-gtk
+AddPackage swtpm
+AddPackage virt-viewer
+
+# NVIDIA rebuild hook — this host has the only discrete GPU.
+CopyFileTo "/hosts/lightshow/etc/pacman.d/hooks/nvidia.hook" "/etc/pacman.d/hooks/nvidia.hook"

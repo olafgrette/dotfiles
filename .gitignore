@@ -24,8 +24,8 @@ UNIVERSAL_AGENT_DIRECTIVES.local.md
 # aconf.sh: machine-local shell hook, never shared
 aconf.local.sh
 # aconfmgr: machine-local declarations and capture output, never shared
-.config/aconfmgr/aconfmgr.local
-.config/aconfmgr/99-unsorted.sh
+aconfmgr/aconfmgr.local
+aconfmgr/99-unsorted.sh
 
 # local npm installs (e.g. @openai/codex) land in symlinked .local/lib
 .local/lib/node_modules/

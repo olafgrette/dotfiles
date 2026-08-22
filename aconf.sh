@@ -8,7 +8,7 @@ set -e
 set -o pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ACONFMGR_CONFIG="$REPO/.config/aconfmgr"
+ACONFMGR_CONFIG="$REPO/aconfmgr"
 SHADOW_UNIT="/etc/systemd/system/grub-btrfsd.service"
 
 die() {
