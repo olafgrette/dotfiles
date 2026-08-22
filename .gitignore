@@ -30,3 +30,6 @@ aconfmgr/99-unsorted.sh
 # local npm installs (e.g. @openai/codex) land in symlinked .local/lib
 .local/lib/node_modules/
 .local/bin/codex
+
+# python: test bytecode cache
+__pycache__/
