@@ -55,7 +55,6 @@ AddPackage tailscale
 AddPackage ufw
 AddPackage --foreign eternalterminal
 AddPackage --foreign onedrive-abraunegg
-AddPackage --foreign searxng-git
 
 # Audio and video.
 AddPackage cava
@@ -79,7 +78,6 @@ AddPackage matugen
 AddPackage nwg-displays
 AddPackage --foreign dankcalendar-bin
 AddPackage --foreign dsearch-bin
-AddPackage --foreign illogical-impulse-microtex-git-debug
 
 # Desktop applications and GTK/Qt integration.
 AddPackage adw-gtk-theme
@@ -87,7 +85,6 @@ AddPackage exo
 AddPackage gnome-disk-utility
 AddPackage kimageformats
 AddPackage nautilus
-AddPackage plasma-systemmonitor
 
 # Terminal environment.
 AddPackage fish
