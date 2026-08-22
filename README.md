@@ -52,6 +52,20 @@ You know.
 
 Dotfiles.
 
+## Fresh machine
+
+When the machine has nothing on it yet, not even this repository:
+
+```sh
+curl -fsSL dots.oag.sh | sh
+```
+
+Yes, `curl | sh`. It fetches `init.sh` out of this repository — the same repository I am about to let symlink my entire home directory — so the trust boundary was crossed several paragraphs ago.
+
+It clones, converges the Arch system layer if the machine is one of mine, and then runs `install.sh`.
+
+The parts that are still manual, and the ones worth reading before pointing this at a machine you like, are in [init.md](init.md).
+
 ## Architecture
 
 Repository paths mostly mirror `$HOME`.
