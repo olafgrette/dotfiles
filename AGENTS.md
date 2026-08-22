@@ -30,6 +30,9 @@ dotfile manager.
 - Generated files, caches, histories, downloaded third-party assets, and runtime
   state do not belong in Git. Check `.gitignore` and the owning tool before adding
   files from a symlinked directory.
+- `aconfmgr/` is the exception: system-layer declarations, deliberately top-level
+  and never linked into `$HOME`. Everything under `.config/` means "linked into
+  `~/.config`"; the system layer is not that.
 
 ## Target machines
 
@@ -39,6 +42,27 @@ dotfile manager.
 
 Unknown hosts must degrade to safe work/remote defaults. GUI-only setup is guarded
 by `DISPLAY`, `WAYLAND_DISPLAY`, or macOS detection.
+
+## Arch system layer
+
+`install.sh` converges `$HOME` on every host. `aconf.sh` converges the Arch
+system layer — explicit packages, reviewed `/etc`, unit enablement — and only on
+hosts listed in `personal-hosts`; work, remote, unknown, and non-Arch hosts are
+refused before anything inspects the system. `init.sh` is the once-per-box entry
+point. Setup instructions live in `init.md`.
+
+- The repository is public, so `aconfmgr/99-scope.sh` derives the `/etc`
+  allowlist from registered declarations and ignores everything else. Declaring
+  a path is what admits it; there is no denylist to update. Firewall, SSH,
+  VPN, tunnel, and network configuration stay out, along with their contents.
+- Common intent is `20-packages.sh` and `30-system.sh`. A `hosts/<short-name>`
+  overlay carries only what would be wrong on another machine, which in practice
+  means CPU and GPU hardware. A declared host with no overlay warns and
+  converges against common intent alone.
+- Anything added to `install.sh` runs on work and remote machines too. Personal-
+  only additions need an explicit `is_personal` gate; the failure is silent.
+- Nothing starts or restarts services. `apply` takes a Timeshift snapshot first
+  and confirms with a default of no.
 
 ## Shell configuration and convergence
 
@@ -67,6 +91,8 @@ Currently implemented:
 - Ghostty: `ghostty.local.conf` via optional `config-file`
 - DankMaterialShell: `settings.local.json`, merged after the tracked patch
 - Agent directives: `UNIVERSAL_AGENT_DIRECTIVES.local.md`, appended during rendering
+- `aconf.sh`: `aconf.local.sh`, sourced before dispatch
+- aconfmgr: `aconfmgr/aconfmgr.local`, for temporary or experimental packages
 
 When adding a tool, wire its `.local` pattern in the same change. Never put actual
 proprietary work instructions, credentials, internal hostnames, or work-only tooling
@@ -123,10 +149,16 @@ for tool-managed or local-only skills. It runs from both `install.sh` and
 - `bash -n install.sh`: installer syntax.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dms_settings.py`: DMS merge,
   capture, parser, and atomic-write behavior.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_aconf.py`: system-layer
+  gating, apply ordering, and configuration scope regressions.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_init.py`: fresh-machine
+  entry point.
+- `./aconf.sh lint`: compiles the aconfmgr configuration. Arch personal hosts only.
 - `git diff --check`: whitespace errors.
 
 Run the smallest relevant checks. Do not run `install.sh` merely as a test: it mutates
-the current home directory and may perform network or system setup.
+the current home directory and may perform network or system setup. Never run
+`./aconf.sh apply` as a test: it converges the live system.
 
 ## Key decisions
 
