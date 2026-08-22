@@ -216,6 +216,43 @@ is_ignored /etc/os-release
         result = subprocess.run(["bash", "-c", script, "bash", str(ACONFMGR_CONFIG)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def run_dispatch(self, host):
+        script = r'''
+set -e
+warnings=0
+ConfigWarning() { warnings=$((warnings+1)); }
+Color() { :; }
+FatalError() { echo "unexpected FatalError" >&2; exit 9; }
+AddPackage() { packages+=("$2$1"); }
+CopyFileTo() { :; }
+CreateLink() { :; }
+SetFileProperty() { :; }
+packages=()
+config_dir="$1"
+want_host="$2"
+hostname() { echo "$want_host"; }
+source "$config_dir/90-host.sh"
+printf 'warnings=%s packages=%s\n' "$warnings" "${#packages[@]}"
+'''
+        return subprocess.run(
+            ["bash", "-c", script, "bash", str(ACONFMGR_CONFIG), host],
+            capture_output=True, text=True,
+        )
+
+    def test_declared_host_with_overlay_loads_it_without_warning(self):
+        result = self.run_dispatch("lightshow")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("warnings=0", result.stdout)
+        self.assertNotIn("packages=0", result.stdout)
+
+    def test_host_without_overlay_warns_instead_of_failing(self):
+        # A fresh machine must converge against common intent before anyone has
+        # written its host file. The warning is the reminder to write one.
+        result = self.run_dispatch("no-such-host")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("warnings=1", result.stdout)
+        self.assertIn("packages=0", result.stdout)
+
     def test_local_and_capture_artifacts_are_gitignored(self):
         for rel in ("aconf.local.sh", "aconfmgr/aconfmgr.local", "aconfmgr/99-unsorted.sh"):
             with self.subTest(path=rel):
