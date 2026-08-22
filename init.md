@@ -143,3 +143,25 @@ network configuration out.
 Credentials live outside the repository and are set up by hand on each machine:
 `~/.config/rclone/rclone.conf`, tailscale state, cloudflared tunnel
 credentials, SSH host keys.
+
+Personal file secrets can be materialized explicitly from Bitwarden with:
+
+```sh
+secret-sync pull
+```
+
+This is deliberately manual: it prompts for a fresh vault unlock, fetches the
+current vault, shows every destination it will change, confirms with a default
+of no, writes atomically, and locks the CLI vault on exit. It is never run by
+`install.sh` or `background-startup`.
+
+The two Bitwarden item IDs and their destinations are fixed in the Fish
+function. The SSH Key item writes its verified `privateKey`/`publicKey` pair to
+`~/.ssh/id_ed25519` and `.pub` with modes `0600`/`0644`; the existing native SSH
+agent remains the consumer. The Google OAuth Login item's username/password
+update only `client_id` and `client_secret` in the existing `[gdrive]` remote.
+OAuth tokens and every other rclone setting remain local and writable.
+
+The rclone remote must already exist; create it with `rclone config` before
+pulling. Tailscale state, cloudflared tunnel credentials, SSH host keys, and
+other machine enrollment state remain unmanaged.

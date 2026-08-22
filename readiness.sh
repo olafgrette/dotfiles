@@ -84,6 +84,7 @@ check systemd-run systemd-run
 group "SSH"
 check ssh ssh
 check ssh-add ssh-add
+check "Bitwarden CLI" bw
 
 case "$(uname -s)" in
 Linux)
