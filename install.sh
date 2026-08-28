@@ -106,6 +106,12 @@ fi
 # DMS owns a monolithic writable settings file. Keep portable preferences as a
 # sparse patch while preserving runtime- and machine-specific keys in place.
 if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShell/.firstlaunch" ]; then
+    # This DMS fragment contains only user keybind overrides, so let its GUI
+    # write directly to the tracked file. Do not create Hyprland config on a
+    # DMS setup using another compositor.
+    if [ -f "$HOME/.config/hypr/dms/binds-user.lua" ] || [ -L "$HOME/.config/hypr/dms/binds-user.lua" ]; then
+        symlink_file .config/hypr/dms/binds-user.lua
+    fi
     "$DOTFILES/.local/bin/dms-settings" apply
 fi
 

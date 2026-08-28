@@ -133,8 +133,12 @@ portable settings that differ from the installed DMS defaults.
 - The merge baseline is local state at
   `~/.local/state/DankMaterialShell/dotfiles-settings-baseline.json`.
 
-Capture is explicit; background startup applies repository changes but never writes
-back to the repository.
+DMS's `~/.config/hypr/dms/binds-user.lua` is the narrow exception: it contains
+only user keybind overrides and is linked directly into Git, so Control Center
+edits intentionally dirty the repository.
+
+Settings capture is explicit; background startup applies repository changes but
+never writes back to the repository.
 
 ## Agent skills
 
