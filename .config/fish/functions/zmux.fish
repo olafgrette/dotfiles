@@ -30,7 +30,7 @@ function zmux --description 'attach/create persistent zellij session, detaching 
     # hostname in the header bar — natively, no status-bar plugin needed.
     # Truncated at the first '-' or '.' to keep short-lived/numbered hosts
     # (e.g. "build-42.example.com") from producing an unwieldy session name.
-    set -l session (hostname -s | string replace -r -- '[-.].*' '')
+    set -l session (uname -n | string replace -r -- '[-.].*' '')
     test (count $argv) -gt 0; and set session $argv[1]
 
     if set -q ZELLIJ
