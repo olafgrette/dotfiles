@@ -135,7 +135,9 @@ portable settings that differ from the installed DMS defaults.
 
 DMS's `~/.config/hypr/dms/binds-user.lua` is the narrow exception: it contains
 only user keybind overrides and is linked directly into Git, so Control Center
-edits intentionally dirty the repository.
+edits intentionally dirty the repository. Keep it to `hl.bind`/`hl.unbind`
+statements — Control Center rewrites the file — and put any logic those binds
+need in a tracked module beside it, as `.config/hypr/monitor-dir.lua` does.
 
 Settings capture is explicit; background startup applies repository changes but
 never writes back to the repository.

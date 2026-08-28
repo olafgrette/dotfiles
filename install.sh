@@ -111,6 +111,9 @@ if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShel
     # DMS setup using another compositor.
     if [ -f "$HOME/.config/hypr/dms/binds-user.lua" ] || [ -L "$HOME/.config/hypr/dms/binds-user.lua" ]; then
         symlink_file .config/hypr/dms/binds-user.lua
+        # Lua helper those overrides require(). Linked as a single file because
+        # the rest of ~/.config/hypr is DMS-generated state, not configuration.
+        symlink_file .config/hypr/monitor-dir.lua
     fi
     "$DOTFILES/.local/bin/dms-settings" apply
 fi

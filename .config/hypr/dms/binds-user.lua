@@ -2,7 +2,7 @@
 
 hl.unbind("SUPER + B")
 hl.bind("SUPER + B", hl.dsp.exec_cmd("dms ipc call defaultApp browser"))
-hl.bind("SUPER + ALT + left", hl.dsp.workspace.move({ monitor = "l" }), { description = "Move workspace to monitor left" })
-hl.bind("SUPER + ALT + down", hl.dsp.workspace.move({ monitor = "d" }), { description = "Move workspace to monitor down" })
-hl.bind("SUPER + ALT + up", hl.dsp.workspace.move({ monitor = "u" }), { description = "Move workspace to monitor up" })
-hl.bind("SUPER + ALT + right", hl.dsp.workspace.move({ monitor = "r" }), { description = "Move workspace to monitor right" })
+hl.bind("SUPER + ALT + left", require("monitor-dir").workspace_to("l"), { description = "Move workspace to monitor left" })
+hl.bind("SUPER + ALT + down", require("monitor-dir").workspace_to("d"), { description = "Move workspace to monitor down" })
+hl.bind("SUPER + ALT + up", require("monitor-dir").workspace_to("u"), { description = "Move workspace to monitor up" })
+hl.bind("SUPER + ALT + right", require("monitor-dir").workspace_to("r"), { description = "Move workspace to monitor right" })
