@@ -38,6 +38,7 @@
       "trigger": "?"
     }
   },
+  "clipboardEnterToPaste": true,
   "clockFormat": "24h",
   "controlCenterShowMicPercent": false,
   "currentThemeCategory": "dynamic",
@@ -45,9 +46,11 @@
   "customAnimationDuration": 110,
   "dockLauncherLogoMode": "dank",
   "enableRippleEffects": false,
-  "hyprlandLayoutBorderSize": 1,
+  "hyprlandLayoutBorderSize": 2,
+  "hyprlandLayoutGapsOutOverride": 0,
   "hyprlandLayoutGapsOverride": 0,
   "hyprlandLayoutRadiusOverride": 0,
+  "hyprlandResizeOnBorder": true,
   "launcherLogoMode": "os",
   "lockBeforeSuspend": true,
   "lockScreenPowerOffMonitorsOnLock": true,
@@ -58,6 +61,9 @@
   "muxType": "zellij",
   "osdPowerProfileEnabled": false,
   "popoutAnimationSpeed": 4,
+  "qtThemingEnabled": true,
+  "showWorkspaceApps": true,
   "showWorkspaceIndex": true,
+  "showWorkspacePadding": true,
   "workspaceFollowFocus": true
 }
