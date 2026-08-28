@@ -28,7 +28,9 @@ function zmux --description 'attach/create persistent zellij session, detaching 
     # Default to the box's hostname rather than a fixed "main": zellij's
     # tab-bar plugin shows the session name up top, so this is what puts the
     # hostname in the header bar — natively, no status-bar plugin needed.
-    set -l session (hostname -s)
+    # Truncated at the first '-' or '.' to keep short-lived/numbered hosts
+    # (e.g. "build-42.example.com") from producing an unwieldy session name.
+    set -l session (hostname -s | string replace -r -- '[-.].*' '')
     test (count $argv) -gt 0; and set session $argv[1]
 
     if set -q ZELLIJ
