@@ -152,7 +152,8 @@ class ApplyTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             result, log = self.run_apply(tmp, "y\n", shadow=True)
             self.assertEqual(result.returncode, 2, result.stdout)
-            self.assertIn("reappeared", result.stdout)
+            self.assertIn("shadows the package-owned unit", result.stdout)
+            self.assertIn("remove it explicitly if obsolete", result.stdout)
             self.assertFalse(any("timeshift --create" in line for line in log), log)
 
     def test_tty_without_display_checks_installed_greetd_after_apply(self):

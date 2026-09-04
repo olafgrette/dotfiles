@@ -84,7 +84,7 @@ apply_system() {
     [ -t 0 ] && [ -t 1 ] || die "apply requires an interactive terminal"
     require_commands sudo timeshift date locale-gen systemctl
     if [ -e "$SHADOW_UNIT" ] || [ -L "$SHADOW_UNIT" ]; then
-        die "$SHADOW_UNIT reappeared; inspect it and remove it explicitly before apply"
+        die "$SHADOW_UNIT shadows the package-owned unit; inspect it with: sudo systemctl cat grub-btrfsd.service; remove it explicitly if obsolete: sudo rm $SHADOW_UNIT"
     fi
 
     host="$(short_host)"

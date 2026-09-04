@@ -78,6 +78,12 @@ AddPackage greetd
 AddPackage uwsm
 AddPackage --foreign greetd-dms-greeter-git
 
+# Resolve virtual desktop dependencies without interactive provider prompts.
+AddPackage gnome-keyring
+AddPackage qt6-multimedia-ffmpeg
+AddPackage wireplumber
+AddPackage xdg-desktop-portal-gtk
+
 # Desktop shell and display configuration.
 AddPackage brightnessctl
 AddPackage dgop
@@ -110,6 +116,7 @@ AddPackage inotify-tools
 AddPackage zip
 
 # Fonts.
+AddPackage noto-fonts
 AddPackage noto-fonts-cjk
 AddPackage noto-fonts-emoji
 AddPackage noto-fonts-extra

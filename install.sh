@@ -106,6 +106,12 @@ fi
 # DMS owns a monolithic writable settings file. Keep portable preferences as a
 # sparse patch while preserving runtime- and machine-specific keys in place.
 if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShell/.firstlaunch" ]; then
+    # dms-shell owns the unit. DMS setup enables it, and convergence restores
+    # that package-owned service link if local state removes it later.
+    mkdir -p "$HOME/.config/systemd/user/graphical-session.target.wants"
+    ln -sfn /usr/lib/systemd/user/dms.service \
+        "$HOME/.config/systemd/user/graphical-session.target.wants/dms.service"
+
     # This DMS fragment contains only user keybind overrides, so let its GUI
     # write directly to the tracked file. Do not create Hyprland config on a
     # DMS setup using another compositor.

@@ -55,7 +55,10 @@ def stub_env(tmp, *, host="testhost", uid=1000, git_present=True, dms_present=Tr
     home.mkdir()
     origin = fake_repo(tmp / "origin", personal=(host,))
     command_log = tmp / "commands.log"
-    for name in ("bash", "cat", "dirname", "grep", "uname", "hostname", "id", "mktemp", "rm", "mkdir"):
+    for name in (
+        "awk", "bash", "cat", "curl", "dirname", "fish", "grep", "jq",
+        "uname", "hostname", "id", "mktemp", "rm", "mkdir",
+    ):
         real = shutil.which(name)
         if real:
             (bindir / name).symlink_to(real)
@@ -148,6 +151,17 @@ class InitTest(unittest.TestCase):
             result = run_pty(["bash", str(script)], env=env)
             self.assertEqual(result.returncode, 2, result.stdout)
             self.assertIn("dms", result.stdout.lower())
+            self.assertFalse(any(line.startswith("install ") for line in log_lines(log)))
+
+    def test_missing_home_layer_prerequisite_stops_before_install(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            script = fake_init(tmp, distro="fedora")
+            env, home, log = stub_env(tmp)
+            fake_repo(home / "dotfiles", personal=("testhost",))
+            (Path(env["PATH"]) / "jq").unlink()
+            result = run_pty(["bash", str(script)], env=env)
+            self.assertEqual(result.returncode, 2, result.stdout)
+            self.assertIn("missing prerequisites: jq", result.stdout)
             self.assertFalse(any(line.startswith("install ") for line in log_lines(log)))
 
     def test_dms_without_hypr_output_stops_before_install(self):

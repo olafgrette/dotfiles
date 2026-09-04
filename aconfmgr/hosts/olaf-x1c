@@ -23,3 +23,5 @@ AddPackage bolt
 
 # Wi-Fi backend for the Intel BE200 adapter.
 AddPackage iwd
+CopyFileTo "/hosts/olaf-x1c/etc/NetworkManager/conf.d/wifi_backend.conf" \
+    "/etc/NetworkManager/conf.d/wifi_backend.conf"

@@ -19,6 +19,16 @@ die() {
     exit 2
 }
 
+require_commands() {
+    missing=""
+    for command in "$@"; do
+        if ! command -v "$command" >/dev/null 2>&1; then
+            missing="$missing $command"
+        fi
+    done
+    [ -z "$missing" ] || die "missing prerequisites:$missing"
+}
+
 short_host() {
     host=$(hostname -s 2>/dev/null || uname -n)
     printf '%s\n' "${host%%.*}"
@@ -83,6 +93,7 @@ if [ "$PERSONAL_ARCH" -eq 1 ]; then
     fi
 fi
 
+require_commands awk bash curl fish git jq
 (cd "$REPO" && ./install.sh)
 
 cat <<EOF

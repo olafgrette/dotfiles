@@ -27,6 +27,11 @@ Declared hosts are in `personal-hosts` — currently `lightshow`, `olafmbp`,
 2. **Btrfs root with a configured Timeshift.** `apply` creates a snapshot
    before it changes anything and aborts if that fails. Timeshift's own
    configuration is not managed — set it up by hand.
+   A full `/etc/systemd/system/grub-btrfsd.service` shadows the package-owned
+   unit and stops the apply before snapshot creation. Inspect it with
+   `sudo systemctl cat grub-btrfsd.service`. If it is obsolete, remove that
+   exact file and rerun `init.sh`; aconfmgr then installs the tracked drop-in
+   and enablement link.
 3. **Clean up orphans before the first apply.** aconfmgr prunes orphaned
    packages recursively, so anything left over from installation gets swept as
    a side effect of convergence. Do it deliberately instead:
