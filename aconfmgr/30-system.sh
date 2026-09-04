@@ -33,6 +33,11 @@ CreateLink "/etc/systemd/system/multi-user.target.wants/cups.path" "/usr/lib/sys
 CreateLink "/etc/systemd/system/printer.target.wants/cups.service" "/usr/lib/systemd/system/cups.service"
 CreateLink "/etc/systemd/system/sockets.target.wants/cups.socket" "/usr/lib/systemd/system/cups.socket"
 
+# Bluetooth. The hardware condition in the vendor unit makes this a no-op on
+# hosts without a Bluetooth controller. The alias permits D-Bus activation.
+CreateLink "/etc/systemd/system/bluetooth.target.wants/bluetooth.service" "/usr/lib/systemd/system/bluetooth.service"
+CreateLink "/etc/systemd/system/dbus-org.bluez.service" "/usr/lib/systemd/system/bluetooth.service"
+
 # NetworkManager. Left unmanaged, a fresh host comes up with no network. The
 # dbus alias is what enabling the dispatcher writes.
 CreateLink "/etc/systemd/system/multi-user.target.wants/NetworkManager.service" "/usr/lib/systemd/system/NetworkManager.service"

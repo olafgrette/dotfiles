@@ -37,8 +37,10 @@ AddPackage --foreign timeshift-autosnap
 
 # Hardware inspection and power management.
 AddPackage dmidecode
+AddPackage fwupd
 AddPackage i2c-tools
 AddPackage power-profiles-daemon
+AddPackage wireless-regdb
 
 # Networking and remote access.
 AddPackage axel
@@ -57,22 +59,27 @@ AddPackage --foreign eternalterminal
 AddPackage --foreign onedrive-abraunegg
 
 # Audio and video.
+AddPackage alsa-utils
 AddPackage cava
 AddPackage gst-plugins-good
+AddPackage libva-utils
 AddPackage pipewire
 AddPackage pipewire-alsa
 AddPackage pipewire-jack
 AddPackage pipewire-pulse
 AddPackage rtkit
+AddPackage vulkan-tools
 
 # Desktop session.
 AddPackage dms-shell
 AddPackage quickshell
 AddPackage hyprland
 AddPackage greetd
+AddPackage uwsm
 AddPackage --foreign greetd-dms-greeter-git
 
 # Desktop shell and display configuration.
+AddPackage brightnessctl
 AddPackage dgop
 AddPackage matugen
 AddPackage nwg-displays
@@ -97,6 +104,7 @@ AddPackage tmux
 AddPackage zellij
 
 # Command-line utilities.
+AddPackage bitwarden-cli
 AddPackage fastfetch
 AddPackage inotify-tools
 AddPackage zip
@@ -160,6 +168,7 @@ AddPackage --foreign protonplus
 
 # Peripherals.
 AddPackage bluez
+AddPackage bluez-utils
 AddPackage --foreign uhk-agent-appimage
 
 # Printing.

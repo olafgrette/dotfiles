@@ -1,0 +1,25 @@
+# olaf-x1c — ThinkPad X1 Carbon laptop. Sourced explicitly by 90-host.sh.
+
+# CPU firmware.
+AddPackage intel-ucode
+
+# Lunar Lake audio firmware.
+AddPackage sof-firmware
+
+# Intel Arc graphics. The kernel driver and its firmware are in tree — linux
+# and linux-firmware are common intent — so only the userspace halves are
+# declared: graphics compute, Vulkan, VA-API decode, and VPL encode runtimes.
+# Mesa itself arrives as a dependency of the desktop stack.
+AddPackage intel-compute-runtime
+AddPackage intel-media-driver
+AddPackage vpl-gpu-rt
+AddPackage vulkan-intel
+
+# Synaptics 06cb:0123 fingerprint reader.
+AddPackage fprintd
+
+# Thunderbolt device authorization.
+AddPackage bolt
+
+# Wi-Fi backend for the Intel BE200 adapter.
+AddPackage iwd
