@@ -164,6 +164,7 @@ class ApplyTest(unittest.TestCase):
             self.assertLess(pos("sudo timeshift --create"), pos("--paranoid apply"))
             self.assertLess(pos("--paranoid apply"), pos("sudo locale-gen"))
             self.assertLess(pos("sudo locale-gen"), pos("sudo systemctl daemon-reload"))
+            self.assertLess(pos("sudo systemctl daemon-reload"), pos("systemctl --user daemon-reload"))
             self.assertLess(pos("sudo systemctl daemon-reload"), pos("systemctl list-unit-files greetd.service"))
             self.assertLess(pos("sudo systemctl daemon-reload"), pos("systemctl is-enabled --quiet greetd.service"))
             self.assertFalse(any(" restart " in f" {l} " for l in log), log)
@@ -184,6 +185,11 @@ class ApplyTest(unittest.TestCase):
 
 
 class ConfigTest(unittest.TestCase):
+    def test_legacy_and_system_rclone_units_match(self):
+        legacy = ROOT / ".config/systemd/user/rclone-gdrive.service"
+        system = ACONFMGR_CONFIG / "files/etc/systemd/user/rclone-gdrive.service"
+        self.assertEqual(legacy.read_bytes(), system.read_bytes())
+
     def test_aconfmgr_config_files_parse(self):
         sources = sorted(ACONFMGR_CONFIG.glob("*.sh"))
         sources.extend(sorted((ACONFMGR_CONFIG / "hosts").iterdir()))

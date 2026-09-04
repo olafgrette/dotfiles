@@ -93,14 +93,25 @@ symlink_file .local/bin/qwen-precise-serve
 symlink_file .local/bin/dms-settings
 symlink_file .claude/statusline-command.sh
 
-# Personal Linux hosts only: a personal Drive mount has no business on a work
-# or remote machine, and systemd user units are meaningless on macOS. Linked
-# individually, never as a directory — systemd writes enablement symlinks into
-# .config/systemd/user/*.wants/ and those are generated state, not
-# configuration. Linking does not enable; --allow-other needs the
-# user_allow_other that the Arch system layer puts in /etc/fuse.conf.
+# The Arch system layer now owns the rclone unit and its global enablement.
+# Remove only the exact links created by older revisions after that unit exists.
+# Keep them otherwise so a repository pull cannot disable a live mount before
+# the user applies the system layer.
 if [ "$(uname -s)" = "Linux" ] && is_personal; then
-    symlink_file .config/systemd/user/rclone-gdrive.service
+    rclone_user_unit="$HOME/.config/systemd/user/rclone-gdrive.service"
+    rclone_user_wants="$HOME/.config/systemd/user/default.target.wants/rclone-gdrive.service"
+    if [ -f /etc/systemd/user/rclone-gdrive.service ]; then
+        if [ -L "$rclone_user_wants" ] &&
+            [ "$(readlink "$rclone_user_wants")" = "$rclone_user_unit" ]; then
+            rm "$rclone_user_wants"
+            echo "Removed superseded $rclone_user_wants"
+        fi
+        if [ -L "$rclone_user_unit" ] &&
+            [ "$(readlink "$rclone_user_unit")" = "$DOTFILES/.config/systemd/user/rclone-gdrive.service" ]; then
+            rm "$rclone_user_unit"
+            echo "Removed superseded $rclone_user_unit"
+        fi
+    fi
 fi
 
 # DMS owns a monolithic writable settings file. Keep portable preferences as a

@@ -51,19 +51,23 @@ Declared hosts are in `personal-hosts` — currently `lightshow`, `olafmbp`,
    An existing `~/dotfiles` is left alone; it prints the `git remote set-url`
    to flip to SSH.
 
-5. **Enable what stays manual.** Nothing here starts or restarts services.
-   The Drive mount in particular needs a credential this repository does not
-   contain:
+5. **Enroll what stays manual.** Nothing here starts or restarts services.
+   The common aconfmgr layer globally enables the Drive user service, but its
+   path condition leaves it inactive until the local rclone config exists:
 
    ```sh
-   rclone config          # create the gdrive: remote
-   systemctl --user enable --now rclone-gdrive.service
+   secret-sync pull       # create gdrive: with its Bitwarden OAuth client
+   rclone config reconnect gdrive:  # obtain the user OAuth token
+   systemctl --user start rclone-gdrive.service
    ```
+
+   `rclone config` obtains the Google OAuth token. Bitwarden supplies only the
+   OAuth client ID and client secret; the token remains local and writable.
 
 ## What the first apply writes
 
-Eleven of the twelve managed objects are common intent, so a fresh host gets
-almost all of them on the first run. Two are worth knowing about in advance:
+Most managed objects are common intent, so a fresh host gets almost all of them
+on the first run. Two are worth knowing about in advance:
 
 - **`/etc/pacman.conf`** is replaced with this repository's copy — the current
   pacnew with `[multilib]` enabled. Extra repositories configured on the new
@@ -147,7 +151,8 @@ network configuration out.
 
 Credentials live outside the repository and are set up by hand on each machine:
 `~/.config/rclone/rclone.conf`, tailscale state, cloudflared tunnel
-credentials, SSH host keys.
+credentials, SSH host keys. The common aconfmgr layer owns the rclone user unit
+and its global enablement, but not this user-owned config.
 
 Personal file secrets can be materialized explicitly from Bitwarden with:
 
@@ -164,9 +169,11 @@ The two Bitwarden item IDs and their destinations are fixed in the Fish
 function. The SSH Key item writes its verified `privateKey`/`publicKey` pair to
 `~/.ssh/id_ed25519` and `.pub` with modes `0600`/`0644`; the existing native SSH
 agent remains the consumer. The Google OAuth Login item's username/password
-update only `client_id` and `client_secret` in the existing `[gdrive]` remote.
-OAuth tokens and every other rclone setting remain local and writable.
+populate `client_id` and `client_secret` in the `[gdrive]` remote. OAuth tokens
+and every other rclone setting remain local and writable.
 
-The rclone remote must already exist; create it with `rclone config` before
-pulling. Tailscale state, cloudflared tunnel credentials, SSH host keys, and
+When `rclone.conf` or its `[gdrive]` remote is absent, `secret-sync` creates a
+minimal remote with `type = drive`, `scope = drive`, and the Bitwarden client
+credentials. Run `rclone config reconnect gdrive:` afterward to obtain the
+Google OAuth token. Later pulls preserve that mutable token. The token and all
 other machine enrollment state remain unmanaged.

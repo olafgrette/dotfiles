@@ -94,6 +94,7 @@ apply_system() {
 
     sudo locale-gen
     sudo systemctl daemon-reload
+    systemctl --user daemon-reload
     if systemctl list-unit-files greetd.service &>/dev/null; then
         systemctl is-enabled --quiet greetd.service ||
             die "greetd is installed but not enabled"

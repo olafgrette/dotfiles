@@ -76,8 +76,15 @@ function __secret_sync_rclone_update --argument-names source client_id client_se
         end
     end
     if test $found_gdrive -eq 0
-        echo "secret-sync: rclone remote 'gdrive' does not exist; create it with 'rclone config' first" >&2
-        return 1
+        if test -s $source
+            printf '\n' >>$output
+        end
+        printf '%s\n' \
+            '[gdrive]' \
+            'type = drive' \
+            'scope = drive' \
+            "client_id = $client_id" \
+            "client_secret = $client_secret" >>$output
     end
 end
 
@@ -97,15 +104,15 @@ function __secret_sync_pull --argument-names temporary assume_yes
         echo 'secret-sync: XDG_CONFIG_HOME must be inside HOME' >&2
         return 1
     end
-    set -l sync_rclone 1
+    set -l rclone_source $rclone_config
     if test -L $rclone_config; or begin
             test -e $rclone_config; and not test -f $rclone_config
         end
         echo "secret-sync: refusing non-regular rclone config: $rclone_config" >&2
         return 1
     else if not test -f $rclone_config
-        echo "secret-sync: rclone config does not exist; skipping OAuth client update: $rclone_config" >&2
-        set sync_rclone 0
+        set rclone_source "$temporary/rclone.base.conf"
+        printf '%s\n' '[gdrive]' 'type = drive' 'scope = drive' >$rclone_source
     end
 
     bw sync >/dev/null; or begin
@@ -116,11 +123,9 @@ function __secret_sync_pull --argument-names temporary assume_yes
         echo "secret-sync: could not fetch SSH item $ssh_item_id" >&2
         return 1
     end
-    if test $sync_rclone -eq 1
-        bw get item $gdrive_item_id >"$temporary/gdrive.json"; or begin
-            echo "secret-sync: could not fetch Google OAuth item $gdrive_item_id" >&2
-            return 1
-        end
+    bw get item $gdrive_item_id >"$temporary/gdrive.json"; or begin
+        echo "secret-sync: could not fetch Google OAuth item $gdrive_item_id" >&2
+        return 1
     end
 
     set -l private "$temporary/id_ed25519"
@@ -161,17 +166,13 @@ function __secret_sync_pull --argument-names temporary assume_yes
         return 1
     end
 
-    set -l client_id
-    set -l client_secret
-    if test $sync_rclone -eq 1
-        set client_id (jq -er '.login.username | select(type == "string" and length > 0 and (contains("\n") | not) and (contains("\r") | not))' "$temporary/gdrive.json" | string collect); or begin
-            echo "secret-sync: item $gdrive_item_id has no valid login.username for client_id" >&2
-            return 1
-        end
-        set client_secret (jq -er '.login.password | select(type == "string" and length > 0 and (contains("\n") | not) and (contains("\r") | not))' "$temporary/gdrive.json" | string collect); or begin
-            echo "secret-sync: item $gdrive_item_id has no valid login.password for client_secret" >&2
-            return 1
-        end
+    set -l client_id (jq -er '.login.username | select(type == "string" and length > 0 and (contains("\n") | not) and (contains("\r") | not))' "$temporary/gdrive.json" | string collect); or begin
+        echo "secret-sync: item $gdrive_item_id has no valid login.username for client_id" >&2
+        return 1
+    end
+    set -l client_secret (jq -er '.login.password | select(type == "string" and length > 0 and (contains("\n") | not) and (contains("\r") | not))' "$temporary/gdrive.json" | string collect); or begin
+        echo "secret-sync: item $gdrive_item_id has no valid login.password for client_secret" >&2
+        return 1
     end
     if test -L "$HOME/.ssh"
         echo "secret-sync: refusing SSH materialization through symlink: $HOME/.ssh" >&2
@@ -186,18 +187,13 @@ function __secret_sync_pull --argument-names temporary assume_yes
         end
     end
 
-    set -l sources $private $public
-    set -l targets "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"
-    set -l modes 600 644
-    set -l descriptions "SSH private key ($fingerprint)" "SSH public key ($fingerprint)"
-    if test $sync_rclone -eq 1
-        set -l rclone_output "$temporary/rclone.conf"
-        __secret_sync_rclone_update $rclone_config $client_id $client_secret $rclone_output; or return 1
-        set -a sources $rclone_output
-        set -a targets $rclone_config
-        set -a modes 600
-        set -a descriptions 'rclone OAuth client for gdrive'
-    end
+    set -l rclone_output "$temporary/rclone.conf"
+    __secret_sync_rclone_update $rclone_source $client_id $client_secret $rclone_output; or return 1
+
+    set -l sources $private $public $rclone_output
+    set -l targets "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub" $rclone_config
+    set -l modes 600 644 600
+    set -l descriptions "SSH private key ($fingerprint)" "SSH public key ($fingerprint)" 'rclone OAuth client for gdrive'
     set -l changed
     set -l index 1
     while test $index -le (count $sources)
