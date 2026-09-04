@@ -52,6 +52,15 @@ class DmsSettingsTest(unittest.TestCase):
                 {"enabled": True, "name": "dms", "speed": 5, "empty": {}},
             )
 
+    def test_find_defaults_uses_embedded_runtime_shell(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = Path(directory)
+            defaults = runtime / "danklinux-shell/current/Common/SettingsData.qml"
+            defaults.parent.mkdir(parents=True)
+            defaults.write_text("property bool enabled: true\n")
+            with patch.dict(MODULE.os.environ, {"XDG_RUNTIME_DIR": str(runtime)}, clear=True):
+                self.assertEqual(MODULE.find_defaults(None), defaults)
+
     def test_atomic_json_is_stable(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "settings.json"

@@ -176,6 +176,11 @@ def find_defaults(explicit: Path | None) -> Path:
     for candidate in candidates:
         if candidate and candidate.is_file():
             return candidate
+
+    runtime = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
+    embedded = list(runtime.glob("danklinux-shell/*/Common/SettingsData.qml"))
+    if embedded:
+        return max(embedded, key=lambda path: path.parent.parent.stat().st_ctime_ns)
     raise FileNotFoundError("could not locate DMS Common/SettingsData.qml")
 
 
