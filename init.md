@@ -56,6 +56,7 @@ Declared hosts are in `personal-hosts` — currently `lightshow`, `olafmbp`,
    path condition leaves it inactive until the local rclone config exists:
 
    ```sh
+   ./aconf.sh apply       # already completed when init.sh succeeds
    secret-sync pull       # create gdrive: with its Bitwarden OAuth client
    rclone config reconnect gdrive:  # obtain the user OAuth token
    systemctl --user start rclone-gdrive.service

@@ -74,7 +74,8 @@ def write_executable(path, body):
     path.chmod(0o755)
 
 
-def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, greetd_present=True, greetd_failure=False):
+def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, greetd_present=True,
+                  greetd_failure=False, user_reload_failure=False):
     env = stub_env(tmp, present=(*BASE_PREREQUISITES, *APPLY_PREREQUISITES))
     bindir = Path(env["PATH"])
     log = Path(tmp) / "commands.log"
@@ -84,6 +85,7 @@ def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, greetd_pr
         "FAIL_APPLY": "1" if apply_failure else "0",
         "GREETD_PRESENT": "1" if greetd_present else "0",
         "FAIL_GREETD": "1" if greetd_failure else "0",
+        "FAIL_USER_RELOAD": "1" if user_reload_failure else "0",
     })
     write_executable(bindir / "aconfmgr", r'''#!/bin/bash
 printf 'aconfmgr %s\n' "$*" >> "$COMMAND_LOG"
@@ -96,7 +98,11 @@ if [ "$1" = timeshift ] && [ "$2" = --create ] && [ "$FAIL_SNAPSHOT" = 1 ]; then
 exit 0
 ''')
     write_executable(bindir / "systemctl", r'''#!/bin/sh
+if [ "$1" = --user ]; then
+    printf 'user-systemctl-env %s %s\n' "$XDG_RUNTIME_DIR" "$DBUS_SESSION_BUS_ADDRESS" >> "$COMMAND_LOG"
+fi
 printf 'systemctl %s\n' "$*" >> "$COMMAND_LOG"
+if [ "$*" = '--user daemon-reload' ] && [ "$FAIL_USER_RELOAD" = 1 ]; then exit 1; fi
 if [ "$*" = 'list-unit-files greetd.service' ] && [ "$GREETD_PRESENT" = 0 ]; then exit 1; fi
 if [ "$*" = 'is-enabled --quiet greetd.service' ] && [ "$FAIL_GREETD" = 1 ]; then exit 1; fi
 exit 0
@@ -125,9 +131,12 @@ class WrapperTest(unittest.TestCase):
 
 
 class ApplyTest(unittest.TestCase):
-    def run_apply(self, tmp, input_text, *, shadow=False, **failures):
+    def run_apply(self, tmp, input_text, *, shadow=False, missing_user_bus_env=False, **failures):
         repo = fake_repo(tmp, shadow=shadow)
         env, log_path = recording_env(tmp, **failures)
+        if missing_user_bus_env:
+            env.pop("XDG_RUNTIME_DIR", None)
+            env.pop("DBUS_SESSION_BUS_ADDRESS", None)
         result = run_pty(["bash", str(repo / "aconf.sh"), "apply"], env=env, input_text=input_text)
         log = log_path.read_text().splitlines() if log_path.exists() else []
         return result, log
@@ -175,6 +184,19 @@ class ApplyTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout)
             self.assertTrue(any("list-unit-files greetd.service" in l for l in log), log)
             self.assertFalse(any("is-enabled --quiet greetd.service" in l for l in log), log)
+
+    def test_user_manager_reload_derives_missing_bus_environment(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result, log = self.run_apply(tmp, "y\n", missing_user_bus_env=True)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            expected = f"user-systemctl-env /run/user/{os.getuid()} unix:path=/run/user/{os.getuid()}/bus"
+            self.assertIn(expected, log)
+
+    def test_user_manager_reload_failure_is_nonfatal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result, _ = self.run_apply(tmp, "y\n", user_reload_failure=True)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            self.assertIn("will load the global units at next start", result.stdout)
 
     def test_installed_but_disabled_greetd_fails_postflight(self):
         with tempfile.TemporaryDirectory() as tmp:

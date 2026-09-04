@@ -79,6 +79,16 @@ create_rollback_snapshot() {
     printf 'aconf: created Timeshift snapshot %s\n' "$comment"
 }
 
+reload_user_manager() {
+    local runtime_dir session_bus
+    runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$UID}"
+    session_bus="${DBUS_SESSION_BUS_ADDRESS:-unix:path=$runtime_dir/bus}"
+    if ! XDG_RUNTIME_DIR="$runtime_dir" DBUS_SESSION_BUS_ADDRESS="$session_bus" \
+        systemctl --user daemon-reload; then
+        echo "aconf: warning: could not reload the user manager; it will load the global units at next start" >&2
+    fi
+}
+
 apply_system() {
     local host
     [ -t 0 ] && [ -t 1 ] || die "apply requires an interactive terminal"
@@ -94,7 +104,7 @@ apply_system() {
 
     sudo locale-gen
     sudo systemctl daemon-reload
-    systemctl --user daemon-reload
+    reload_user_manager
     if systemctl list-unit-files greetd.service &>/dev/null; then
         systemctl is-enabled --quiet greetd.service ||
             die "greetd is installed but not enabled"
