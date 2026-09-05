@@ -4,17 +4,18 @@ function fish_greeting --description "Random ocean-themed greeting"
     # Informal benchmark: each model drafts ocean/nautical one-liners for
     # this greeting. Lines left commented out didn't meet the bar and were
     # cut. "# === model ===" marks a new model's submissions; plain
-    # indented "#" lines below it are that model's rejects.
+    # indented "#" lines below it are that model's rejects and/or ones
+    # I got tired of.
     set -l quotes \
         # === sonnet 4.6 ===
-        "Another day, another fathom." \
-        "Scaling up..." \
+        #    "Another day, another fathom." \
+        #    "Scaling up..." \
         "Don't flounder — you've got this." \
         "Gill-ty of opening another terminal." \
         "Just keep committing, just keep committing." \
         #   "Something smells like a merge conflict." \
-        "The upstream is strong today." \
-        "Reeling in the dependencies..." \
+        #   "The upstream is strong today." \
+        #   "Reeling in the dependencies..." \
         "New shell, who dis?" \
         "Spawning a new session..." \
         "The porpoise of this terminal is unclear." \
@@ -26,18 +27,18 @@ function fish_greeting --description "Random ocean-themed greeting"
         #   "Swimming upstream with a hotfix." \
         #   "Hooked another dependency." \
         "Wading into legacy code again." \
-        "Sole survivor of the last deploy." \
+        #   "Sole survivor of the last deploy." \
         "You can't kelp yourself, can you." \
         "Baited by another bug report." \
-        "Net positive changes today? Let's see." \
+        #   "Net positive changes today? Let's see." \
         "Forking around again." \
-        "Caught between a reef and a hard place." \
+        #   "Caught between a reef and a hard place." \
         "\$PATH to the sea." \
-        "piping output to /dev/ocean." \
+        #   "piping output to /dev/ocean." \
         "0 0 * * *  release the kraken." \
         "/dev/null is where dreams go to swim." \
-        "tail -f /var/log/ocean.log" \
-        "brew install ambition — already up to date." \
+        #   "tail -f /var/log/ocean.log" \
+        #   "brew install ambition — already up to date." \
         #   retired in ecc5835 — initial batch (9d8dddb / c1ec3e9)
         #   "Oh shell, you're back." \
         #   "You've got bigger fish to fry." \
@@ -77,9 +78,9 @@ function fish_greeting --description "Random ocean-themed greeting"
         #   "Seas the day, ship to prod." \
         "Don't be shellfish, share the cache." \
         #   "This PR looks a bit fishy — in a good way." \
-        "Tuna-ing the GC for better latency." \
-        "Betta run tests before you merge." \
-        "Cod review: LGTM, let's land it." \
+        #   "Tuna-ing the GC for better latency." \
+        #   "Betta run tests before you merge." \
+        #   "Cod review: LGTM, let's land it." \
         #   "Water you waiting for? Commit already." \
         "Shrimply the best refactor I've seen." \
         #   "Off the hook — zero warnings." \
@@ -96,7 +97,7 @@ function fish_greeting --description "Random ocean-themed greeting"
         "Anglerfish: the original phishing attack." \
         "Puffer overflow at line 42." \
         "Nautilus: nature's first shell." \
-        "Clam down, it's just a segfault." \
+        #    "Clam down, it's just a segfault." \
         "Salmon-tic versioning: major bumps swim upstream." \
         "Roe, roe, roe your boat, gently down /dev/stream." \
         "Barnacles on the legacy code. Scrape gently." \
@@ -116,7 +117,7 @@ function fish_greeting --description "Random ocean-themed greeting"
         # "EOF: End Of Fjord." \
         # "RAID: Redundant Array of Inexpensive Dolphins." \
         # "TDD: Tide-Driven Development." \
-        "Krill your darlings." \
+        # "Krill your darlings." \
         # "Squid pro quo: I'll review yours if you review mine." \
         # "Coral-ary: the fix broke two other things." \
         # "kill -9: the harpoon option." \
@@ -126,25 +127,25 @@ function fish_greeting --description "Random ocean-themed greeting"
         # "Reef-actoring the codebase, one coral at a time." \
         "Pier review complete — ship it." \
         "A whale of a memory leak." \
-    # "Fin-ished the sprint, barely." \
-    # "Eel of a bug to track down." \
-    # "Crustacean-level access required." \
-    # "Squid goals: eight arms, one merge conflict." \
-    # "Cache me if you can, said the herring." \
-    #"Coelacanth: still alive, like this codebase." \
-    #"Trout of order: 500 error." \
-    # "Plankton-sized commit, whale-sized diff." \
-    # "Sushi grade code: raw, but it works." \
-    #   "Carping about tabs vs spaces again?" \
-    #   "Otter chaos in the terminal today." \
-    #   "Seal the deal — tests are green." \
-    #   "Plaice your bets: does this deploy work?" \
-    #   "Bass-ically everything's on fire." \
-    #   "Undertow of technical debt pulling you back." \
-    #   "Halibut you finish that PR first?" \
-    #   "Manta the branches before merging." \
-    #   "Lobster claws deep into legacy code." \
-    # "Snapper decision: merge now, ask later."
+        # "Fin-ished the sprint, barely." \
+        # "Eel of a bug to track down." \
+        # "Crustacean-level access required." \
+        # "Squid goals: eight arms, one merge conflict." \
+        # "Cache me if you can, said the herring." \
+        #"Coelacanth: still alive, like this codebase." \
+        #"Trout of order: 500 error." \
+        # "Plankton-sized commit, whale-sized diff." \
+        # "Sushi grade code: raw, but it works." \
+        #   "Carping about tabs vs spaces again?" \
+        #   "Otter chaos in the terminal today." \
+        #   "Seal the deal — tests are green." \
+        #   "Plaice your bets: does this deploy work?" \
+        #   "Bass-ically everything's on fire." \
+        #   "Undertow of technical debt pulling you back." \
+        #   "Halibut you finish that PR first?" \
+        #   "Manta the branches before merging." \
+        #   "Lobster claws deep into legacy code." \
+        # "Snapper decision: merge now, ask later."
         # === gpt-6-astra ===
         "The sea has no SLA." \
         "Aye, aye, /dev/captain." \
