@@ -125,7 +125,7 @@ function fish_greeting --description "Random ocean-themed greeting"
         # === sonnet 5 ===
         # "Reef-actoring the codebase, one coral at a time." \
         "Pier review complete — ship it." \
-        "A whale of a memory leak." #\
+        "A whale of a memory leak." \
     # "Fin-ished the sprint, barely." \
     # "Eel of a bug to track down." \
     # "Crustacean-level access required." \
@@ -145,6 +145,17 @@ function fish_greeting --description "Random ocean-themed greeting"
     #   "Manta the branches before merging." \
     #   "Lobster claws deep into legacy code." \
     # "Snapper decision: merge now, ask later."
+        # === gpt-6-astra ===
+        "The sea has no SLA." \
+        "Aye, aye, /dev/captain." \
+        "All ports open. That's a submarine problem." \
+        "The Titanic also passed its health checks." \
+        "Any sufficiently old ship is a dependency." \
+        "The bottleneck is in the Suez Canal." \
+        "We put the logs in the sea. Now they're a raft." \
+        "Captain's log: permission denied." \
+        "The abyss returns 200. The abyss always returns 200." \
+        "Here be dragons. See the backlog for details."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
