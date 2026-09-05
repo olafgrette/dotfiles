@@ -83,6 +83,7 @@ AddPackage gnome-keyring
 AddPackage qt6-multimedia-ffmpeg
 AddPackage wireplumber
 AddPackage xdg-desktop-portal-gtk
+AddPackage xdg-desktop-portal-hyprland
 
 # Desktop shell and display configuration.
 AddPackage brightnessctl
