@@ -16,7 +16,7 @@ UNIVERSAL_AGENT_DIRECTIVES.local.md
 .config/zellij/*.bak*
 
 # DankMaterialShell: machine-specific overrides layered after the shared patch
-.config/DankMaterialShell/settings.local.json
+.config/DankMaterialShell/*.local.json
 
 # opencode: pure local state, AGENTS.md is generated into $HOME by install.sh
 .opencode/

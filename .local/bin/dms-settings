@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 from typing import Any
+from types import SimpleNamespace
 
 
 MISSING = object()
@@ -236,28 +237,46 @@ def offer_commit(repo: Path, patch: Path) -> None:
     )
 
 
+def settings_files(args: argparse.Namespace):
+    """Keep auxiliary preferences separate from DMS's main settings schema."""
+    yield args, True
+    for name in ("clsettings", "plugin_settings"):
+        yield SimpleNamespace(
+            live=args.live.with_name(f"{name}.json"),
+            patch=args.patch.with_name(f"{name}.patch.json"),
+            local_patch=args.local_patch.with_name(f"{name}.local.json"),
+            baseline=args.baseline.with_name(f"dotfiles-{name}-baseline.json"),
+        ), False
+
+
 def capture(args: argparse.Namespace) -> int:
-    live = load_json(args.live)
     defaults = parse_defaults(find_defaults(args.defaults))
-    local_patch = load_json(args.local_patch, missing={})
-    patch = {
-        key: value
-        for key, value in live.items()
-        if key not in BLOCKED
-        and key not in local_patch
-        and key in defaults
-        and not settings_equal(value, defaults[key])
-    }
-    skipped = sorted(set(live) - set(defaults) - BLOCKED - set(local_patch))
-    changed = atomic_json(args.patch, patch)
-    print(f"Captured {len(patch)} DMS settings" + ("" if changed else " (unchanged)"))
-    if skipped:
-        print("Skipped settings without resolvable defaults: " + ", ".join(skipped))
-    offer_commit(Path(__file__).resolve().parents[2], args.patch)
+    captures = []
+    for paths, primary in settings_files(args):
+        if not primary and not paths.live.exists():
+            continue
+        live = load_json(paths.live)
+        local_patch = load_json(paths.local_patch, missing={})
+        patch = {
+            key: value
+            for key, value in live.items()
+            if key not in local_patch
+            and (not primary or key not in BLOCKED)
+            and (not primary or key not in defaults or not settings_equal(value, defaults[key]))
+        }
+        captures.append((paths.patch, patch))
+
+    # Validate every source before changing any tracked file.
+    for path, patch in captures:
+        changed = atomic_json(path, patch)
+        print(f"Captured {len(patch)} DMS settings in {path.name}"
+              + ("" if changed else " (unchanged)"))
+    for path, _ in captures:
+        offer_commit(Path(__file__).resolve().parents[2], path)
     return 0
 
 
-def apply(args: argparse.Namespace) -> int:
+def apply_file(args: argparse.Namespace) -> int:
     shared = load_json(args.patch, missing={})
     local_patch = load_json(args.local_patch, missing={})
     desired = deep_overlay(shared, local_patch)
@@ -276,11 +295,28 @@ def apply(args: argparse.Namespace) -> int:
     return 0
 
 
+def apply(args: argparse.Namespace) -> int:
+    files = [paths for paths, primary in settings_files(args)
+             if primary or paths.patch.exists() or paths.local_patch.exists()
+             or paths.baseline.exists()]
+    # A malformed auxiliary file must not leave an earlier file applied.
+    for paths in files:
+        for path in (paths.patch, paths.local_patch, paths.live, paths.baseline):
+            load_json(path, missing={})
+    for paths in files:
+        apply_file(paths)
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     repo = Path(__file__).resolve().parents[2]
     config = Path.home() / ".config/DankMaterialShell"
     state = Path.home() / ".local/state/DankMaterialShell"
-    result = argparse.ArgumentParser(description=__doc__)
+    result = argparse.ArgumentParser(
+        description=__doc__,
+        epilog="Also handles sibling clsettings and plugin_settings files, with separate "
+               "patches, local overrides, and merge baselines. Does not restart DMS.",
+    )
     result.add_argument("--live", type=Path, default=config / "settings.json")
     result.add_argument("--patch", type=Path, default=repo / ".config/DankMaterialShell/settings.patch.json")
     result.add_argument("--local-patch", type=Path, default=repo / ".config/DankMaterialShell/settings.local.json")

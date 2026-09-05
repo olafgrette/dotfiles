@@ -120,16 +120,24 @@ four per-machine rather than symlinking — the repo holds no copy under a vendo
 
 DMS owns a large, writable `~/.config/DankMaterialShell/settings.json`; do not symlink
 that file into Git. `.config/DankMaterialShell/settings.patch.json` contains only
-portable settings that differ from the installed DMS defaults.
+portable settings that differ from the installed DMS defaults. Settings without
+resolvable defaults are retained. `clsettings.patch.json` and
+`plugin_settings.patch.json` capture clipboard and plugin preferences in full;
+clipboard contents, caches, and session state are never captured.
 
 - `dms-settings apply` three-way merges the previously applied patch, live GUI-edited
   settings, and the current tracked/local patches. Local GUI conflicts win.
 - `dms-settings capture` regenerates the tracked patch from non-default live settings,
-  shows its Git diff, and offers to commit that file. Push remains explicit.
+  shows its Git diff, and offers to commit each changed file. Push remains explicit.
 - Display identifiers, usage histories, GPU selection, and other machine/runtime keys
   are blocklisted from capture.
-- The ignored `settings.local.json` is the final per-machine overlay. Its top-level
-  keys are excluded from shared capture.
+- Each patch has an ignored `<name>.local.json` final per-machine overlay. Its
+  top-level keys are excluded from shared capture. Auxiliary files use the same
+  three-way merge and separate `dotfiles-<name>-baseline.json` state files.
+- Auxiliary live files sit beside `--live`; patches and local overrides sit beside
+  `--patch` and `--local-patch`. Missing auxiliary files are left alone.
+- Clipboard backend preferences take effect when DMS next loads them; applying
+  settings does not restart DMS.
 - The merge baseline is local state at
   `~/.local/state/DankMaterialShell/dotfiles-settings-baseline.json`.
 
