@@ -99,6 +99,8 @@ AddPackage gnome-disk-utility
 AddPackage kdeconnect
 AddPackage kimageformats
 AddPackage nautilus
+# DMS generates KDE color schemes for Qt applications.
+AddPackage --foreign qt6ct-kde
 
 # Terminal environment.
 AddPackage fish
