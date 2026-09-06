@@ -13,6 +13,9 @@ CopyFile "/etc/pacman.conf"
 # FUSE — user_allow_other, needed by the rclone and OneDrive mounts.
 CopyFile "/etc/fuse.conf"
 
+# PAM login limits — raise the hard nofile ceiling for PAM sessions.
+CopyFile "/etc/security/limits.conf"
+
 # Google Drive. Install and globally enable the user unit, but let its
 # ConditionPathExists gate keep it inert until the user has enrolled rclone.
 # The config and OAuth material remain user-owned state outside aconfmgr.
