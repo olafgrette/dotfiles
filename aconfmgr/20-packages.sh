@@ -100,6 +100,8 @@ AddPackage gnome-disk-utility
 AddPackage kdeconnect
 AddPackage kimageformats
 AddPackage nautilus
+AddPackage shotwell
+
 # DMS generates KDE color schemes for Qt applications.
 AddPackage --foreign qt6ct-kde
 
