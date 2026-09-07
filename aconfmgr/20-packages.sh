@@ -160,6 +160,7 @@ AddPackage --foreign claude-desktop
 AddPackage bitwarden
 AddPackage discord
 AddPackage firefox
+AddPackage firefoxpwa # A tool to install, manage and use Progressive Web Apps (PWAs) in Mozilla Firefox (native component)
 AddPackage signal-desktop
 AddPackage --foreign google-chrome
 # Zoom, with the Qt runtimes it optionally loads.
