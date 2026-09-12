@@ -93,8 +93,8 @@ symlink_file .local/bin/qwen-precise-serve
 symlink_file .local/bin/dms-settings
 symlink_file .claude/statusline-command.sh
 
-# DMS owns a monolithic writable settings file. Keep portable preferences as a
-# sparse patch while preserving runtime- and machine-specific keys in place.
+# DMS 1.6 writes sparse settings. Merge shared preferences while keeping GUI
+# edits and machine-specific settings local.
 if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShell/.firstlaunch" ]; then
     # dms-shell owns the unit. DMS setup enables it, and convergence restores
     # that package-owned service link if local state removes it later.

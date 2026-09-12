@@ -2,33 +2,6 @@
   "acLockTimeout": 300,
   "acMonitorTimeout": 600,
   "animationSpeed": 4,
-  "appIdSubstitutions": [
-    {
-      "pattern": "Spotify",
-      "replacement": "spotify",
-      "type": "exact"
-    },
-    {
-      "pattern": "beepertexts",
-      "replacement": "beeper",
-      "type": "exact"
-    },
-    {
-      "pattern": "home assistant desktop",
-      "replacement": "homeassistant-desktop",
-      "type": "exact"
-    },
-    {
-      "pattern": "com.transmissionbt.transmission",
-      "replacement": "transmission-gtk",
-      "type": "contains"
-    },
-    {
-      "pattern": "^steam_app_(\\d+)$",
-      "replacement": "steam_icon_$1",
-      "type": "regex"
-    }
-  ],
   "barElevationEnabled": false,
   "builtInPluginSettings": {
     "dms_clipboard_search": {
@@ -40,7 +13,6 @@
   },
   "clipboardEnterToPaste": true,
   "clockFormat": "24h",
-  "controlCenterShowMicPercent": false,
   "currentThemeCategory": "dynamic",
   "currentThemeName": "dynamic",
   "customAnimationDuration": 110,
@@ -59,9 +31,7 @@
   "modalAnimationSpeed": 4,
   "monoFontFamily": "RecMonoCasual Nerd Font Mono",
   "muxType": "zellij",
-  "osdPowerProfileEnabled": false,
   "popoutAnimationSpeed": 4,
-  "qtThemingEnabled": true,
   "showWorkspaceApps": true,
   "showWorkspaceIndex": true,
   "showWorkspacePadding": true,

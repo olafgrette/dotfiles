@@ -7,7 +7,6 @@ import argparse
 import json
 import os
 from pathlib import Path
-import re
 import subprocess
 import sys
 import tempfile
@@ -24,6 +23,7 @@ BLOCKED = {
     "connectedFrameBarStyleBackups",
     "desktopClockDisplayPreferences",
     "displayProfiles",
+    "displayPreviousRefreshModes",
     "enabledGpuPciIds",
     "filePickerUsageHistory",
     "frameScreenPreferences",
@@ -83,19 +83,6 @@ def deep_overlay(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any
     return result
 
 
-def settings_equal(value: Any, default: Any) -> bool:
-    """Compare DMS values, including colors serialized as component objects."""
-    if value == default:
-        return True
-    if isinstance(default, str) and re.fullmatch(r"#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?", default):
-        if isinstance(value, dict) and all(channel in value for channel in ("r", "g", "b", "a")):
-            hex_value = default.lstrip("#")
-            channels = [int(hex_value[index:index + 2], 16) / 255 for index in (0, 2, 4)]
-            channels.append(int(hex_value[6:8], 16) / 255 if len(hex_value) == 8 else 1.0)
-            return all(abs(float(value[name]) - expected) < 1e-6 for name, expected in zip("rgba", channels))
-    return False
-
-
 def three_way(old: Any, local: Any, new: Any) -> Any:
     if local == old or local == new:
         return new
@@ -118,71 +105,53 @@ def three_way(old: Any, local: Any, new: Any) -> Any:
     return local
 
 
-def parse_defaults(path: Path) -> dict[str, Any]:
-    source = path.read_text(encoding="utf-8")
-    enums: dict[str, dict[str, int]] = {}
-    for match in re.finditer(r"\benum\s+(\w+)\s*\{(.*?)\}", source, re.S):
-        members: dict[str, int] = {}
-        next_value = 0
-        for item in match.group(2).split(","):
-            item = re.sub(r"//.*", "", item).strip()
-            if not item:
-                continue
-            member = re.fullmatch(r"(\w+)(?:\s*=\s*(-?\d+))?", item)
-            if not member:
-                continue
-            if member.group(2) is not None:
-                next_value = int(member.group(2))
-            members[member.group(1)] = next_value
-            next_value += 1
-        enums[match.group(1)] = members
+# These lists remain in settings.json in DMS 1.6. Keep their machine fields
+# local while allowing the rest of each instance to travel between hosts.
+INSTANCE_FIELDS = {
+    "barConfigs": {"screenPreferences": None, "showOnLastDisplay": None},
+    "desktopWidgetInstances": {
+        "positions": None,
+        "config": {"displayPreferences": None, "gpuPciId": None},
+    },
+}
 
-    defaults: dict[str, Any] = {}
-    property_re = re.compile(
-        r"^\s*(?:readonly\s+)?property\s+"
-        r"(?:bool|int|real|string|color|var)\s+(\w+):\s*(.*?)\s*;?\s*$"
-    )
-    enum_re = re.compile(r"SettingsData\.(\w+)\.(\w+)$")
-    for line in source.splitlines():
-        match = property_re.match(line)
-        if not match:
+
+def machine_fields(value: dict, fields: dict) -> dict:
+    return {
+        key: machine_fields(value[key], nested) if nested is not None else value[key]
+        for key, nested in fields.items()
+        if key in value and (nested is None or isinstance(value[key], dict))
+    }
+
+
+def without_machine_fields(value: dict, fields: dict) -> dict:
+    return {
+        key: without_machine_fields(item, fields[key])
+        if key in fields and isinstance(item, dict) else item
+        for key, item in value.items()
+        if key not in fields or fields[key] is not None
+    }
+
+
+def portable(settings: dict) -> dict:
+    result = {key: value for key, value in settings.items() if key not in BLOCKED}
+    for key, fields in INSTANCE_FIELDS.items():
+        if key in result:
+            result[key] = [without_machine_fields(item, fields) for item in result[key]]
+    return result
+
+
+def localize_instances(settings: dict, live: dict) -> dict:
+    result = dict(settings)
+    for key, fields in INSTANCE_FIELDS.items():
+        if key not in result:
             continue
-        name, expression = match.groups()
-        expression = expression.rstrip(";").strip()
-        enum = enum_re.fullmatch(expression)
-        if enum and enum.group(2) in enums.get(enum.group(1), {}):
-            defaults[name] = enums[enum.group(1)][enum.group(2)]
-            continue
-        candidate = expression
-        if candidate.startswith("(") and candidate.endswith(")"):
-            candidate = candidate[1:-1]
-        try:
-            value = json.loads(candidate)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(value, (dict, list, str, int, float, bool)) or value is None:
-            defaults[name] = value
-    if not defaults:
-        raise ValueError(f"{path}: found no DMS defaults")
-    return defaults
-
-
-def find_defaults(explicit: Path | None) -> Path:
-    candidates = [
-        explicit,
-        Path(os.environ.get("DMS_SETTINGS_DATA", "")) if os.environ.get("DMS_SETTINGS_DATA") else None,
-        Path("/usr/share/quickshell/dms/Common/SettingsData.qml"),
-        Path.home() / ".local/share/quickshell/dms/Common/SettingsData.qml",
-    ]
-    for candidate in candidates:
-        if candidate and candidate.is_file():
-            return candidate
-
-    runtime = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
-    embedded = list(runtime.glob("danklinux-shell/*/Common/SettingsData.qml"))
-    if embedded:
-        return max(embedded, key=lambda path: path.parent.parent.stat().st_ctime_ns)
-    raise FileNotFoundError("could not locate DMS Common/SettingsData.qml")
+        by_id = {item["id"]: item for item in live.get(key, []) if "id" in item}
+        result[key] = [
+            deep_overlay(machine_fields(by_id.get(item.get("id"), {}), fields), item)
+            for item in result[key]
+        ]
+    return result
 
 
 def offer_commit(repo: Path, patch: Path) -> None:
@@ -250,19 +219,18 @@ def settings_files(args: argparse.Namespace):
 
 
 def capture(args: argparse.Namespace) -> int:
-    defaults = parse_defaults(find_defaults(args.defaults))
     captures = []
     for paths, primary in settings_files(args):
         if not primary and not paths.live.exists():
             continue
         live = load_json(paths.live)
+        if primary:
+            live = portable(live)
         local_patch = load_json(paths.local_patch, missing={})
         patch = {
             key: value
             for key, value in live.items()
             if key not in local_patch
-            and (not primary or key not in BLOCKED)
-            and (not primary or key not in defaults or not settings_equal(value, defaults[key]))
         }
         captures.append((paths.patch, patch))
 
@@ -276,12 +244,20 @@ def capture(args: argparse.Namespace) -> int:
     return 0
 
 
-def apply_file(args: argparse.Namespace) -> int:
+def apply_file(args: argparse.Namespace, primary: bool = True) -> int:
     shared = load_json(args.patch, missing={})
     local_patch = load_json(args.local_patch, missing={})
-    desired = deep_overlay(shared, local_patch)
     live = load_json(args.live, missing={})
     baseline = load_json(args.baseline, missing=MISSING)
+    if primary:
+        shared = localize_instances(portable(shared), live)
+        if baseline is not MISSING:
+            # Local overrides own their whole top-level key, including machine
+            # fields. Keep their original baseline so GUI conflicts still win.
+            instances = {key: value for key, value in baseline.items()
+                         if key in INSTANCE_FIELDS and key not in local_patch}
+            baseline = {**baseline, **localize_instances(portable(instances), live)}
+    desired = deep_overlay(shared, local_patch)
     if baseline is MISSING:
         merged = deep_overlay(live, desired)
     else:
@@ -296,15 +272,15 @@ def apply_file(args: argparse.Namespace) -> int:
 
 
 def apply(args: argparse.Namespace) -> int:
-    files = [paths for paths, primary in settings_files(args)
+    files = [(paths, primary) for paths, primary in settings_files(args)
              if primary or paths.patch.exists() or paths.local_patch.exists()
              or paths.baseline.exists()]
     # A malformed auxiliary file must not leave an earlier file applied.
-    for paths in files:
+    for paths, primary in files:
         for path in (paths.patch, paths.local_patch, paths.live, paths.baseline):
             load_json(path, missing={})
-    for paths in files:
-        apply_file(paths)
+    for paths, primary in files:
+        apply_file(paths, primary)
     return 0
 
 
@@ -321,7 +297,6 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--patch", type=Path, default=repo / ".config/DankMaterialShell/settings.patch.json")
     result.add_argument("--local-patch", type=Path, default=repo / ".config/DankMaterialShell/settings.local.json")
     result.add_argument("--baseline", type=Path, default=state / "dotfiles-settings-baseline.json")
-    result.add_argument("--defaults", type=Path)
     result.add_argument("command", choices=("apply", "capture"))
     return result
 

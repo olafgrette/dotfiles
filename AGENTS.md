@@ -118,19 +118,25 @@ four per-machine rather than symlinking — the repo holds no copy under a vendo
 
 ## DankMaterialShell settings
 
-DMS owns a large, writable `~/.config/DankMaterialShell/settings.json`; do not symlink
+DMS 1.6 owns a sparse, writable `~/.config/DankMaterialShell/settings.json`; do not symlink
 that file into Git. `.config/DankMaterialShell/settings.patch.json` contains only
-portable settings that differ from the installed DMS defaults. Settings without
-resolvable defaults are retained. `clsettings.patch.json` and
+portable preferences captured from that file. DMS handles default suppression;
+we do not parse its source or require a running shell to capture. Serialized color
+objects are retained as DMS writes them. `clsettings.patch.json` and
 `plugin_settings.patch.json` capture clipboard and plugin preferences in full;
 clipboard contents, caches, and session state are never captured.
 
 - `dms-settings apply` three-way merges the previously applied patch, live GUI-edited
   settings, and the current tracked/local patches. Local GUI conflicts win.
+  A missing key is a reset to the DMS default. Retire redundant default
+  declarations and let apply clear their baselines before reintroducing them;
+  without a defaults schema, automatic default removal and a GUI reset cannot
+  be distinguished.
 - `dms-settings capture` regenerates the tracked patch from non-default live settings,
   shows its Git diff, and offers to commit each changed file. Push remains explicit.
 - Display identifiers, usage histories, GPU selection, and other machine/runtime keys
-  are blocklisted from capture.
+  are excluded from capture, including nested bar and desktop-widget selectors.
+  Apply preserves those nested machine fields by instance ID.
 - Each patch has an ignored `<name>.local.json` final per-machine overlay. Its
   top-level keys are excluded from shared capture. Auxiliary files use the same
   three-way merge and separate `dotfiles-<name>-baseline.json` state files.
