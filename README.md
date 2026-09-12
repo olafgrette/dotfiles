@@ -216,13 +216,11 @@ It:
 * refuses hosts not explicitly listed in `personal-hosts`
 * requires an interactive terminal
 * defaults confirmation to **no**
-* refuses known-dangerous preconditions
 * creates a Timeshift snapshot before system mutation
 * aborts if snapshot creation fails
-* runs `aconfmgr --paranoid apply`
+* runs `aconfmgr apply` with normal change-group prompts
 * regenerates locale state afterward
 * reloads system and user systemd managers
-* performs postflight sanity checks
 
 There is deliberately no automatic rollback.
 

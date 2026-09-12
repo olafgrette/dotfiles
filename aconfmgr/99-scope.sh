@@ -5,19 +5,7 @@
 
 # _aconf_managed is populated by wrappers in 00-scope.sh that intercept every
 # CopyFile/CopyFileTo/CreateLink/SetFileProperty destination.
-_aconf_allow=("/etc")
-for _a in "${_aconf_managed[@]}"; do
-    _aconf_allow+=("$_a")
-    _p="$_a"
-    while [[ "$_p" == /etc/* ]]; do
-        _p="${_p%/*}"
-        [[ "$_p" == "" ]] && break
-        _found=0
-        for _e in "${_aconf_allow[@]}"; do [[ "$_e" == "$_p" ]] && _found=1 && break; done
-        [[ $_found -eq 0 ]] && _aconf_allow+=("$_p")
-        [[ "$_p" == "/etc" ]] && break
-    done
-done
+_aconf_allow=("/etc" "${_aconf_managed[@]}")
 
 _aconf_is_allowed() {
     local p="$1" a

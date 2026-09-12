@@ -93,27 +93,6 @@ symlink_file .local/bin/qwen-precise-serve
 symlink_file .local/bin/dms-settings
 symlink_file .claude/statusline-command.sh
 
-# The Arch system layer now owns the rclone unit and its global enablement.
-# Remove only the exact links created by older revisions after that unit exists.
-# Keep them otherwise so a repository pull cannot disable a live mount before
-# the user applies the system layer.
-if [ "$(uname -s)" = "Linux" ] && is_personal; then
-    rclone_user_unit="$HOME/.config/systemd/user/rclone-gdrive.service"
-    rclone_user_wants="$HOME/.config/systemd/user/default.target.wants/rclone-gdrive.service"
-    if [ -f /etc/systemd/user/rclone-gdrive.service ]; then
-        if [ -L "$rclone_user_wants" ] &&
-            [ "$(readlink "$rclone_user_wants")" = "$rclone_user_unit" ]; then
-            rm "$rclone_user_wants"
-            echo "Removed superseded $rclone_user_wants"
-        fi
-        if [ -L "$rclone_user_unit" ] &&
-            [ "$(readlink "$rclone_user_unit")" = "$DOTFILES/.config/systemd/user/rclone-gdrive.service" ]; then
-            rm "$rclone_user_unit"
-            echo "Removed superseded $rclone_user_unit"
-        fi
-    fi
-fi
-
 # DMS owns a monolithic writable settings file. Keep portable preferences as a
 # sparse patch while preserving runtime- and machine-specific keys in place.
 if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShell/.firstlaunch" ]; then

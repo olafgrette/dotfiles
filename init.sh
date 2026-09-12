@@ -50,11 +50,6 @@ if [ "$HOST" = archlinux ]; then
     die "hostname is still 'archlinux'; set it first: sudo hostnamectl set-hostname <hostname>"
 fi
 
-ARCH=0
-if [ "$(distro_id)" = arch ]; then
-    ARCH=1
-fi
-
 if [ ! -e "$REPO" ]; then
     command -v git >/dev/null 2>&1 ||
         die "missing prerequisite: git; install it with: sudo pacman -S --needed git"
@@ -68,16 +63,9 @@ To use SSH for future Git operations, run:
   git -C $REPO remote set-url origin git@github.com:olafgrette/dotfiles.git
 EOF
 
-[ -f "$REPO/install.sh" ] || die "$REPO exists but has no install.sh"
 [ -f "$REPO/personal-hosts" ] || die "$REPO exists but has no personal-hosts"
 
-PERSONAL_ARCH=0
-if [ "$ARCH" -eq 1 ] && grep -qxF "$HOST" "$REPO/personal-hosts"; then
-    PERSONAL_ARCH=1
-fi
-
-if [ "$PERSONAL_ARCH" -eq 1 ]; then
-    [ -f "$REPO/aconf.sh" ] || die "$REPO exists but has no aconf.sh"
+if [ "$(distro_id)" = arch ] && grep -qxF "$HOST" "$REPO/personal-hosts"; then
     (cd "$REPO" && ./aconf.sh apply)
     if [ ! -d "$HOME/.config/hypr" ]; then
         GHOSTTY="$HOME/.config/ghostty"

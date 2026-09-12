@@ -33,8 +33,7 @@ CreateLink "/etc/systemd/system/multi-user.target.wants/cronie.service" "/usr/li
 SetFileProperty / mode 555
 
 # Snapshot boot entries. The drop-in resets ExecStart before --timeshift-auto
-# --syslog; the vendor unit ships disabled. Bootstrap enforces the shadow-unit
-# absence this link needs, after its rollback snapshot.
+# --syslog; the vendor unit ships disabled.
 CopyFile "/etc/systemd/system/grub-btrfsd.service.d/override.conf"
 CreateLink "/etc/systemd/system/multi-user.target.wants/grub-btrfsd.service" "/usr/lib/systemd/system/grub-btrfsd.service"
 
@@ -56,7 +55,6 @@ CreateLink "/etc/systemd/system/multi-user.target.wants/NetworkManager.service" 
 CreateLink "/etc/systemd/system/network-online.target.wants/NetworkManager-wait-online.service" "/usr/lib/systemd/system/NetworkManager-wait-online.service"
 CreateLink "/etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service" "/usr/lib/systemd/system/NetworkManager-dispatcher.service"
 
-# Display manager — vendor greetd, verified by the bootstrap postflight. The
-# greeter runs DMS on Hyprland as the generic greeter account.
+# Display manager — vendor greetd runs DMS on Hyprland as the generic greeter account.
 CopyFile "/etc/greetd/config.toml"
 CreateLink "/etc/systemd/system/display-manager.service" "/usr/lib/systemd/system/greetd.service"

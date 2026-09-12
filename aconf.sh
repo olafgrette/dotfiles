@@ -9,7 +9,6 @@ set -o pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ACONFMGR_CONFIG="$REPO/aconfmgr"
-SHADOW_UNIT="/etc/systemd/system/grub-btrfsd.service"
 
 die() {
     echo "aconf: $*" >&2
@@ -93,22 +92,14 @@ apply_system() {
     local host
     [ -t 0 ] && [ -t 1 ] || die "apply requires an interactive terminal"
     require_commands sudo timeshift date locale-gen systemctl
-    if [ -e "$SHADOW_UNIT" ] || [ -L "$SHADOW_UNIT" ]; then
-        die "$SHADOW_UNIT shadows the package-owned unit; inspect it with: sudo systemctl cat grub-btrfsd.service; remove it explicitly if obsolete: sudo rm $SHADOW_UNIT"
-    fi
-
     host="$(short_host)"
     confirm_apply "$host"
     create_rollback_snapshot "$host"
-    run_aconfmgr --paranoid apply
+    run_aconfmgr apply
 
     sudo locale-gen
     sudo systemctl daemon-reload
     reload_user_manager
-    if systemctl list-unit-files greetd.service &>/dev/null; then
-        systemctl is-enabled --quiet greetd.service ||
-            die "greetd is installed but not enabled"
-    fi
 }
 
 # Optional machine-local profile hook, never shared. It may adjust wrapper

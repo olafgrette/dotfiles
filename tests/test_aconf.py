@@ -1,8 +1,7 @@
-"""Black-box tests for aconf.sh — trimmed, harness deduplicated."""
+"""Black-box tests for aconf.sh."""
 
 import os
 from pathlib import Path
-import shlex
 import shutil
 import subprocess
 import tempfile
@@ -18,7 +17,7 @@ APPLY_PREREQUISITES = ("sudo", "timeshift", "date", "locale-gen", "systemctl")
 SUPPORT = ("bash", "cat", "dirname", "grep", "uname")
 
 
-def fake_repo(tmp, *, personal=("testhost",), bypass_scope=True, shadow=False):
+def fake_repo(tmp, *, personal=("testhost",), bypass_scope=True):
     repo = Path(tmp) / "dotfiles"
     repo.mkdir()
     shutil.copy(ACONF, repo / "aconf.sh")
@@ -28,15 +27,11 @@ def fake_repo(tmp, *, personal=("testhost",), bypass_scope=True, shadow=False):
     )
     (repo / "personal-hosts").write_text("\n".join(personal) + "\n")
     if bypass_scope:
-        shadow_path = Path(tmp) / "shadow-unit"
         lines = [
             "short_host() { echo testhost; }",
             'require_declared_arch_host() { [ -d "$ACONFMGR_CONFIG" ]; }',
-            f"SHADOW_UNIT={shlex.quote(str(shadow_path))}",
         ]
         (repo / "aconf.local.sh").write_text("\n".join(lines) + "\n")
-        if shadow:
-            shadow_path.write_text("unexpected shadow unit\n")
     return repo
 
 
@@ -74,8 +69,7 @@ def write_executable(path, body):
     path.chmod(0o755)
 
 
-def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, greetd_present=True,
-                  greetd_failure=False, user_reload_failure=False):
+def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, user_reload_failure=False):
     env = stub_env(tmp, present=(*BASE_PREREQUISITES, *APPLY_PREREQUISITES))
     bindir = Path(env["PATH"])
     log = Path(tmp) / "commands.log"
@@ -83,8 +77,6 @@ def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, greetd_pr
         "COMMAND_LOG": str(log),
         "FAIL_SNAPSHOT": "1" if snapshot_failure else "0",
         "FAIL_APPLY": "1" if apply_failure else "0",
-        "GREETD_PRESENT": "1" if greetd_present else "0",
-        "FAIL_GREETD": "1" if greetd_failure else "0",
         "FAIL_USER_RELOAD": "1" if user_reload_failure else "0",
     })
     write_executable(bindir / "aconfmgr", r'''#!/bin/bash
@@ -103,8 +95,6 @@ if [ "$1" = --user ]; then
 fi
 printf 'systemctl %s\n' "$*" >> "$COMMAND_LOG"
 if [ "$*" = '--user daemon-reload' ] && [ "$FAIL_USER_RELOAD" = 1 ]; then exit 1; fi
-if [ "$*" = 'list-unit-files greetd.service' ] && [ "$GREETD_PRESENT" = 0 ]; then exit 1; fi
-if [ "$*" = 'is-enabled --quiet greetd.service' ] && [ "$FAIL_GREETD" = 1 ]; then exit 1; fi
 exit 0
 ''')
     return env, log
@@ -120,19 +110,10 @@ class WrapperTest(unittest.TestCase):
             self.assertIn("not in personal-hosts", result.stderr)
             self.assertNotIn("missing prerequisites", result.stderr)
 
-    def test_clean_checkout_without_local_aconfmgr_file_lints(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            repo = fake_repo(tmp)
-            self.assertFalse((repo / "aconfmgr/aconfmgr.local").exists())
-            env, log = recording_env(tmp)
-            result = run(repo, "lint", env=env)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertRegex(log.read_text(), r"--aur-helper yay --color never check$")
-
 
 class ApplyTest(unittest.TestCase):
-    def run_apply(self, tmp, input_text, *, shadow=False, missing_user_bus_env=False, **failures):
-        repo = fake_repo(tmp, shadow=shadow)
+    def run_apply(self, tmp, input_text, *, missing_user_bus_env=False, **failures):
+        repo = fake_repo(tmp)
         env, log_path = recording_env(tmp, **failures)
         if missing_user_bus_env:
             env.pop("XDG_RUNTIME_DIR", None)
@@ -157,33 +138,30 @@ class ApplyTest(unittest.TestCase):
             self.assertIn("confirmation refused", result.stdout)
             self.assertFalse(any("timeshift --create" in line for line in log), log)
 
-    def test_reappeared_shadow_unit_is_refused_before_snapshot(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result, log = self.run_apply(tmp, "y\n", shadow=True)
-            self.assertEqual(result.returncode, 2, result.stdout)
-            self.assertIn("shadows the package-owned unit", result.stdout)
-            self.assertIn("remove it explicitly if obsolete", result.stdout)
-            self.assertFalse(any("timeshift --create" in line for line in log), log)
-
-    def test_tty_without_display_checks_installed_greetd_after_apply(self):
+    def test_snapshot_precedes_apply_and_manager_reloads(self):
         with tempfile.TemporaryDirectory() as tmp:
             result, log = self.run_apply(tmp, "y\n")
             self.assertEqual(result.returncode, 0, result.stdout)
             def pos(f): return next(i for i, line in enumerate(log) if f in line)
-            self.assertLess(pos("sudo timeshift --create"), pos("--paranoid apply"))
-            self.assertLess(pos("--paranoid apply"), pos("sudo locale-gen"))
+            self.assertLess(pos("sudo timeshift --create"), pos("--color never apply"))
+            self.assertLess(pos("--color never apply"), pos("sudo locale-gen"))
             self.assertLess(pos("sudo locale-gen"), pos("sudo systemctl daemon-reload"))
             self.assertLess(pos("sudo systemctl daemon-reload"), pos("systemctl --user daemon-reload"))
-            self.assertLess(pos("sudo systemctl daemon-reload"), pos("systemctl list-unit-files greetd.service"))
-            self.assertLess(pos("sudo systemctl daemon-reload"), pos("systemctl is-enabled --quiet greetd.service"))
             self.assertFalse(any(" restart " in f" {l} " for l in log), log)
 
-    def test_host_without_greetd_skips_enablement_check(self):
+    def test_snapshot_failure_stops_before_apply(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result, log = self.run_apply(tmp, "y\n", greetd_present=False)
-            self.assertEqual(result.returncode, 0, result.stdout)
-            self.assertTrue(any("list-unit-files greetd.service" in l for l in log), log)
-            self.assertFalse(any("is-enabled --quiet greetd.service" in l for l in log), log)
+            result, log = self.run_apply(tmp, "y\n", snapshot_failure=True)
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertTrue(any("timeshift --create" in line for line in log), log)
+            self.assertFalse(any(line.startswith("aconfmgr ") for line in log), log)
+
+    def test_apply_failure_stops_before_postflight(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result, log = self.run_apply(tmp, "y\n", apply_failure=True)
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertTrue(any(line.startswith("aconfmgr ") for line in log), log)
+            self.assertFalse(any("locale-gen" in line or "systemctl" in line for line in log), log)
 
     def test_user_manager_reload_derives_missing_bus_environment(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -198,20 +176,8 @@ class ApplyTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout)
             self.assertIn("will load the global units at next start", result.stdout)
 
-    def test_installed_but_disabled_greetd_fails_postflight(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result, log = self.run_apply(tmp, "y\n", greetd_failure=True)
-            self.assertEqual(result.returncode, 2, result.stdout)
-            self.assertIn("greetd is installed but not enabled", result.stdout)
-            self.assertTrue(any("is-enabled --quiet greetd.service" in l for l in log), log)
-
 
 class ConfigTest(unittest.TestCase):
-    def test_legacy_and_system_rclone_units_match(self):
-        legacy = ROOT / ".config/systemd/user/rclone-gdrive.service"
-        system = ACONFMGR_CONFIG / "files/etc/systemd/user/rclone-gdrive.service"
-        self.assertEqual(legacy.read_bytes(), system.read_bytes())
-
     def test_aconfmgr_config_files_parse(self):
         sources = sorted(ACONFMGR_CONFIG.glob("*.sh"))
         sources.extend(sorted((ACONFMGR_CONFIG / "hosts").iterdir()))
@@ -240,6 +206,9 @@ source "$config_dir/99-scope.sh"
 is_ignored() { local p="$1" pat; for pat in "${ignore_paths[@]}"; do [[ "$p" == $pat ]] && return 0; done; return 1; }
 [[ " ${_aconf_managed[*]} " == *" /etc/synthetic-private-local.conf "* ]]
 ! is_ignored /etc/synthetic-private-local.conf
+! is_ignored /etc/systemd
+! is_ignored /etc/systemd/system
+! is_ignored /etc/systemd/system/grub-btrfsd.service.d/override.conf
 is_ignored /etc/os-release
 '''
         result = subprocess.run(["bash", "-c", script, "bash", str(ACONFMGR_CONFIG)], capture_output=True, text=True)

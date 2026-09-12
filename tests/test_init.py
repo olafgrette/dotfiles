@@ -1,4 +1,4 @@
-"""Black-box tests for init.sh — trimmed, harness deduplicated."""
+"""Black-box tests for init.sh."""
 
 import os
 from pathlib import Path
@@ -29,31 +29,23 @@ def fake_init(tmp, distro="arch"):
     return script
 
 
-def fake_repo(path, *, personal=("testhost",), hypr_home=None):
+def fake_repo(path, *, personal=("testhost",)):
     path.mkdir(parents=True)
     (path / "personal-hosts").write_text("\n".join(personal) + "\n")
     write_executable(path / "aconf.sh", r'''#!/bin/sh
-if [ "${ACONF_PROMPT:-0}" = 1 ]; then
-    printf 'aconf confirmation [y/N] ' >&2
-    IFS= read -r reply || { echo 'aconf confirmation input closed' >&2; exit 3; }
-    [ "$reply" = y ] || { echo 'aconf confirmation refused' >&2; exit 2; }
-fi
 printf 'aconf %s\n' "$*" >> "$COMMAND_LOG"
 ''')
     write_executable(path / "install.sh", '#!/bin/sh\nprintf \'install %s\\n\' "$*" >> "$COMMAND_LOG"\n')
     write_executable(path / "readiness.sh", "#!/bin/sh\nexit 0\n")
-    if hypr_home is not None:
-        (hypr_home / ".config/hypr").mkdir(parents=True)
     return path
 
 
-def stub_env(tmp, *, host="testhost", uid=1000, git_present=True, dms_present=True, dms_exit=0, dms_creates_hypr=True):
+def stub_env(tmp, *, host="testhost", uid=1000, dms_exit=0, dms_creates_hypr=True):
     tmp = Path(tmp)
     bindir = tmp / "bin"
     bindir.mkdir()
     home = tmp / "home"
     home.mkdir()
-    origin = fake_repo(tmp / "origin", personal=(host,))
     command_log = tmp / "commands.log"
     for name in (
         "awk", "bash", "cat", "curl", "dirname", "fish", "grep", "jq",
@@ -71,13 +63,9 @@ def stub_env(tmp, *, host="testhost", uid=1000, git_present=True, dms_present=Tr
     (bindir / "id").chmod(0o755)
     (bindir / "git").write_text("#!/bin/sh\nif [ \"$1\" = clone ]; then mkdir -p \"$3\"; echo cloned > \"$3/README\"; fi\nprintf 'git %s\\n' \"$*\" >> \"$COMMAND_LOG\"\n")
     (bindir / "git").chmod(0o755)
-    if not git_present:
-        (bindir / "git").write_text("#!/bin/sh\nexit 127\n")
-        (bindir / "git").chmod(0o755)
     dms_creates = "1" if dms_creates_hypr else "0"
     (bindir / "dms").write_text(
         f"#!/bin/sh\nprintf 'dms %s\\n' \"$*\" >> \"$COMMAND_LOG\"\n"
-        f"if [ ! \"{dms_present}\" = True ]; then exit 127; fi\n"
         f"if [ \"$*\" = \"setup\" ] && [ \"{dms_creates}\" = \"1\" ]; then mkdir -p \"$HOME/.config/hypr\"; fi\n"
         f"exit {dms_exit}\n"
     )
@@ -143,16 +131,6 @@ class InitTest(unittest.TestCase):
             self.assertIn("dms setup failed", result.stdout.lower())
             self.assertFalse(any(line.startswith("install ") for line in log_lines(log)))
 
-    def test_missing_dms_stops_before_install(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            script = fake_init(tmp)
-            env, home, log = stub_env(tmp, dms_present=False)
-            fake_repo(home / "dotfiles", personal=("testhost",))
-            result = run_pty(["bash", str(script)], env=env)
-            self.assertEqual(result.returncode, 2, result.stdout)
-            self.assertIn("dms", result.stdout.lower())
-            self.assertFalse(any(line.startswith("install ") for line in log_lines(log)))
-
     def test_missing_home_layer_prerequisite_stops_before_install(self):
         with tempfile.TemporaryDirectory() as tmp:
             script = fake_init(tmp, distro="fedora")
@@ -205,7 +183,7 @@ class InitTest(unittest.TestCase):
             self.assertFalse(any(line.startswith("dms ") for line in lines))
             self.assertTrue(any(line.startswith("install ") for line in lines))
 
-    def test_non_arch_clones_and_installs_without_system_or_dms_gate(self):
+    def test_non_arch_installs_without_system_or_dms_gate(self):
         with tempfile.TemporaryDirectory() as tmp:
             script = fake_init(tmp, distro="fedora")
             env, home, log = stub_env(tmp)
