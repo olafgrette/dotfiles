@@ -57,4 +57,5 @@ CreateLink "/etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service" "/us
 
 # Display manager — vendor greetd runs DMS on Hyprland as the generic greeter account.
 CopyFile "/etc/greetd/config.toml"
+CopyFile "/etc/tmpfiles.d/dms-greeter-session.conf"
 CreateLink "/etc/systemd/system/display-manager.service" "/usr/lib/systemd/system/greetd.service"

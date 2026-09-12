@@ -77,6 +77,10 @@ on the first run. Two are worth knowing about in advance:
 
 ## Host intent
 
+At boot, systemd-tmpfiles seeds DMS Greeter's session memory with
+`hyprland-uwsm.desktop` if the memory file is absent. Fresh machines default to
+UWSM-managed Hyprland; existing session selections remain unchanged.
+
 A declared host with no file under `aconfmgr/hosts/` converges against common
 intent alone and prints a warning — a new machine must be able to bootstrap
 before anyone has written its host file. Write the overlay afterward.
