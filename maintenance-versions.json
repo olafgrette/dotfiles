@@ -1,0 +1,224 @@
+{
+  "tools": {
+    "fish": {
+      "upstream": "https://github.com/fish-shell/fish-shell",
+      "reviewedThrough": "4.9.3",
+      "reviewedOn": "2026-09-12",
+      "source": "https://fishshell.com/docs/current/relnotes.html",
+      "commands": [
+        "fish"
+      ],
+      "packages": {
+        "arch": [
+          "fish"
+        ]
+      },
+      "status": "reviewed"
+    },
+    "starship": {
+      "upstream": "https://github.com/starship/starship",
+      "source": "https://github.com/starship/starship/releases/tag/v1.26.0",
+      "commands": [
+        "starship"
+      ],
+      "packages": {
+        "arch": [
+          "starship"
+        ]
+      },
+      "status": "pending",
+      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+    },
+    "ghostty": {
+      "upstream": "https://github.com/ghostty-org/ghostty",
+      "reviewedThrough": "1.3.1",
+      "reviewedOn": "2026-09-12",
+      "source": "https://ghostty.org/docs/install/release-notes/1-3-1",
+      "commands": [
+        "ghostty"
+      ],
+      "packages": {
+        "arch": [
+          "ghostty"
+        ]
+      },
+      "status": "reviewed"
+    },
+    "zellij": {
+      "upstream": "https://github.com/zellij-org/zellij",
+      "reviewedThrough": "0.45.1",
+      "reviewedOn": "2026-09-12",
+      "source": "https://github.com/zellij-org/zellij/blob/main/CHANGELOG.md",
+      "commands": [
+        "zellij"
+      ],
+      "packages": {
+        "arch": [
+          "zellij"
+        ]
+      },
+      "status": "reviewed"
+    },
+    "tmux": {
+      "upstream": "https://github.com/tmux/tmux",
+      "source": "https://github.com/tmux/tmux/releases/tag/3.7c",
+      "commands": [
+        "tmux"
+      ],
+      "packages": {
+        "arch": [
+          "tmux"
+        ]
+      },
+      "status": "pending",
+      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+    },
+    "helix": {
+      "upstream": "https://github.com/helix-editor/helix",
+      "source": "https://github.com/helix-editor/helix/releases/tag/25.07.1",
+      "commands": [
+        "helix",
+        "hx"
+      ],
+      "packages": {
+        "arch": [
+          "helix"
+        ]
+      },
+      "status": "pending",
+      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+    },
+    "hyprland": {
+      "upstream": "https://github.com/hyprwm/Hyprland",
+      "source": "https://github.com/hyprwm/Hyprland/releases/tag/v0.56.2",
+      "commands": [
+        "Hyprland"
+      ],
+      "packages": {
+        "arch": [
+          "hyprland"
+        ]
+      },
+      "status": "pending",
+      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+    },
+    "greetd": {
+      "upstream": "https://git.sr.ht/~kennylevinsen/greetd",
+      "commands": [
+        "greetd"
+      ],
+      "packages": {
+        "arch": [
+          "greetd"
+        ]
+      },
+      "status": "excluded",
+      "reason": "Review DMS patch notes for the desktop stack; no separate routine review."
+    },
+    "uwsm": {
+      "upstream": "https://github.com/Vladimir-csp/uwsm",
+      "commands": [
+        "uwsm"
+      ],
+      "packages": {
+        "arch": [
+          "uwsm"
+        ]
+      },
+      "status": "excluded",
+      "reason": "Review DMS patch notes for the desktop stack; no separate routine review."
+    },
+    "dankmaterialshell": {
+      "upstream": "https://github.com/AvengeMedia/DankMaterialShell",
+      "reviewedThrough": "v1.6.1",
+      "reviewedOn": "2026-09-12",
+      "source": "https://github.com/AvengeMedia/DankMaterialShell/releases/tag/v1.6.1",
+      "commands": [
+        "dms"
+      ],
+      "packages": {
+        "arch": [
+          "dms-shell"
+        ]
+      },
+      "status": "reviewed",
+      "notes": "1.6.1 changes the service hard file limit and bar shadow precedence. Reassess our nofile.conf after upgrading dms-shell; upgrading the greeter does not update DMS."
+    },
+    "quickshell": {
+      "upstream": "https://git.outfoxxed.me/quickshell/quickshell",
+      "commands": [
+        "qs"
+      ],
+      "packages": {
+        "arch": [
+          "quickshell"
+        ]
+      },
+      "status": "excluded",
+      "reason": "Review DMS patch notes for the desktop stack; no separate routine review."
+    },
+    "aconfmgr": {
+      "upstream": "https://github.com/CyberShadow/aconfmgr",
+      "reviewedThrough": "96ab414",
+      "reviewedOn": "2026-09-12",
+      "source": "https://github.com/CyberShadow/aconfmgr/commits/master",
+      "commands": [
+        "aconfmgr"
+      ],
+      "packages": {
+        "arch": [
+          "aconfmgr-git"
+        ]
+      },
+      "status": "reviewed"
+    },
+    "dms-greeter": {
+      "commands": [
+        "dms-greeter"
+      ],
+      "packages": {
+        "arch": [
+          "greetd-dms-greeter-git"
+        ]
+      },
+      "status": "excluded",
+      "reason": "Review DMS patch notes for the desktop stack; no separate routine review.",
+      "upstream": "https://github.com/AvengeMedia/dank-greeter"
+    },
+    "llama.cpp": {
+      "commands": [
+        "llama-server-cuda",
+        "llama-server"
+      ],
+      "packages": {},
+      "status": "excluded",
+      "reason": "Llama serving tools and wrappers are outside routine maintenance review; no installed package mapping established."
+    },
+    "rclone": {
+      "commands": [
+        "rclone"
+      ],
+      "packages": {
+        "arch": [
+          "rclone"
+        ]
+      },
+      "upstream": "https://github.com/rclone/rclone",
+      "status": "pending",
+      "reason": "Repository integration exists; no patch-note review recorded."
+    },
+    "bitwarden-cli": {
+      "commands": [
+        "bw"
+      ],
+      "packages": {
+        "arch": [
+          "bitwarden-cli"
+        ]
+      },
+      "upstream": "https://github.com/bitwarden/clients",
+      "status": "pending",
+      "reason": "Repository integration exists; no patch-note review recorded."
+    }
+  }
+}
