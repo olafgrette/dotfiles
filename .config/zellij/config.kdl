@@ -153,7 +153,7 @@ keybinds clear-defaults=true {
             SwitchToMode "locked"
         }
     }
-    shared_among "normal" "locked" {
+    normal {
         // Focus: Alt+arrows only (Alt+h/j/k/l removed — clashes with helix Alt motions)
         bind "Alt left" { MoveFocusOrTab "left"; }
         bind "Alt down" { MoveFocus "down"; }
