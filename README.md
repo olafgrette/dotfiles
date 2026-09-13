@@ -305,6 +305,12 @@ That process:
 
 It is deliberately never invoked by `install.sh` or background convergence.
 
+Both `secret-sync` and `private-sync` require a host listed in `personal-hosts`.
+`private-sync ssh` manually synchronizes `~/.ssh/config.shared` through an
+encrypted `gdrive:private-sync/` folder. Other Drive folders stay unchanged.
+Bitwarden holds its encryption password and salt; `config.local` stays local.
+See [encrypted SSH enrollment and conflict recovery](init.md#encrypted-personal-ssh-configuration).
+
 Other machine enrollment state also remains local and manual, including things such as OAuth tokens, Tailscale state, Cloudflare tunnel credentials, and SSH host keys.
 
 So, approximately:

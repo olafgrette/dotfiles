@@ -91,6 +91,7 @@ symlink_file .local/bin/muse-glimmer-serve
 symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve
 symlink_file .local/bin/dms-settings
+symlink_file .local/bin/private-sync
 symlink_file .claude/statusline-command.sh
 
 # DMS 1.6 writes sparse settings. Merge shared preferences while keeping GUI

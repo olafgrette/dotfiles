@@ -160,6 +160,9 @@ Personal file secrets can be materialized explicitly from Bitwarden with:
 secret-sync pull
 ```
 
+`secret-sync` and `private-sync` refuse hosts absent from `personal-hosts`
+before accessing Bitwarden or Drive. Neither has a bypass flag.
+
 This is deliberately manual: it prompts for a fresh vault unlock, fetches the
 current vault, shows every destination it will change, confirms with a default
 of no, writes atomically, and locks the CLI vault on exit. It is never run by
@@ -177,3 +180,70 @@ minimal remote with `type = drive`, `scope = drive`, and the Bitwarden client
 credentials. Run `rclone config reconnect gdrive:` afterward to obtain the
 Google OAuth token. Later pulls preserve that mutable token. The token and all
 other machine enrollment state remain unmanaged.
+
+### Encrypted personal SSH configuration
+
+`private-sync ssh` uses rclone crypt and bisync for one file:
+`~/.ssh/config.shared`. Only `gdrive:private-sync/` contains encrypted data;
+the rest of Drive is unchanged. The encrypted `ssh/` subtree holds the shared
+config, an access-check sentinel, and any conflict copies. Run sync manually
+on one machine at a time; its local lock does not coordinate other hosts.
+
+Create a Bitwarden **Login** item named exactly `private-sync (rclone)`.
+Generate two independent 64-character random alphanumeric strings. Store the
+encryption password in Username and the salt in Password. Retain both for
+recovery: changing either requires re-encrypting existing data. The command
+unlocks Bitwarden afresh, fetches these values, passes obscured credentials
+to rclone through its child environment, then locks the vault. It does not
+persist them in rclone.conf. The existing `gdrive` OAuth enrollment is required.
+
+On the first machine, review `~/.ssh/config` for personal-only content, then:
+
+```sh
+private-sync ssh --prepare
+private-sync ssh --resync local
+private-sync ssh --dry-run
+private-sync ssh
+```
+
+Preparation preserves the original as `~/.ssh/config.before-private-sync`,
+copies it to `config.shared`, and installs this entry point:
+
+```sshconfig
+Include config.local
+Host *
+    Include config.shared
+```
+
+`config.local` stays local. The `Host *` resets the scope left by an included
+local file. Existing additional Include files are not synchronized; review
+their portability separately. No private keys or known_hosts are synchronized.
+
+On another personal machine with an existing config, prepare it first and
+review any machine-specific entries into `config.local`, then run
+`private-sync ssh --resync vault`. This explicitly prefers the encrypted copy
+where both sides have the same file. If there is no existing config, run:
+
+```sh
+private-sync ssh --resync vault
+private-sync ssh --prepare
+```
+
+Preparation creates the entry point above with mode `0600`, preserves the
+downloaded shared config and any `config.local`, and sets the SSH directory
+mode to `0700`. Repeating preparation leaves this setup unchanged.
+
+Ordinary runs copy local edits into `~/.local/share/private-sync/ssh/`, sync,
+then atomically install a nonempty, conflict-free result with mode `0600`.
+Failures, remote deletion, conflicts, or concurrent local edits preserve the
+active config. State is in `~/.local/state/private-sync/`.
+
+On conflict, reconcile `config.shared.conflict*` in the staging directory and
+the active `~/.ssh/config.shared`. Save copies outside staging, put the reviewed
+result in the active file, remove the resolved staging conflict files, then
+run ordinary sync to propagate the result and conflict-file deletions.
+If bisync requires recovery, review both sides and explicitly choose
+`--resync local` or `--resync vault`. Never choose a winner automatically.
+An initial dry run can fail if the remote directory does not yet exist;
+`--resync local` creates it after confirmation. Dry runs leave live SSH files
+unchanged but can create local staging/state and access the vault and Drive.

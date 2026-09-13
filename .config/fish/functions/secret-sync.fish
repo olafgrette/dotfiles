@@ -236,6 +236,10 @@ function __secret_sync_pull --argument-names temporary assume_yes
 end
 
 function secret-sync --description 'manually materialize personal secrets from Bitwarden'
+    if not is_personal
+        echo 'secret-sync: unavailable on non-personal hosts' >&2
+        return 2
+    end
     if test (count $argv) -lt 1; or test $argv[1] != pull
         echo 'usage: secret-sync pull [--yes]' >&2
         return 2

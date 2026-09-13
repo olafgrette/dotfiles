@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""Manually synchronize personal SSH configuration through an encrypted folder."""
+
+import argparse
+import fcntl
+import json
+import os
+from pathlib import Path
+import socket
+import subprocess
+import sys
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+ITEM = "private-sync (rclone)"
+REMOTE = "gdrive:private-sync"
+
+
+def personal():
+    allowlist = ROOT / "personal-hosts"
+    return allowlist.is_file() and socket.gethostname().split(".")[0] in allowlist.read_text().splitlines()
+
+
+def safe_path(path, directory=False):
+    for part in (path, *path.parents):
+        if part.is_symlink():
+            raise ValueError(f"refusing symlink: {part}")
+    if path.exists() and not (path.is_dir() if directory else path.is_file()):
+        raise ValueError(f"unexpected file type: {path}")
+
+
+def atomic_write(path, data):
+    safe_path(path)
+    fd, name = tempfile.mkstemp(prefix=".private-sync-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(data)
+        os.replace(name, path)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
+def capture(args, env=None, input=None):
+    return subprocess.run(args, env=env, input=input, text=True, stdout=subprocess.PIPE, check=True).stdout
+
+
+def prepare(ssh):
+    config = ssh / "config"
+    shared = ssh / "config.shared"
+    backup = ssh / "config.before-private-sync"
+    wrapper = b"Include config.local\nHost *\n    Include config.shared\n"
+    for path in (config, shared, backup, ssh / "config.local"):
+        safe_path(path)
+    if config.exists() and config.read_bytes() == wrapper and shared.is_file():
+        print("SSH includes already prepared.")
+        return
+    if not config.exists() and not backup.exists():
+        if not shared.is_file() or not shared.stat().st_size:
+            raise ValueError("pull shared config first with private-sync ssh --resync vault")
+        atomic_write(config, wrapper)
+        print("Prepared SSH includes for the existing shared config.")
+        return
+    if shared.exists() or backup.exists():
+        raise ValueError("existing shared config or backup; review migration manually")
+    if not config.is_file() or not config.stat().st_size:
+        raise ValueError("create a personal ~/.ssh/config before preparing sync")
+    content = config.read_bytes()
+    if b"config.shared" in content or b"config.local" in content:
+        raise ValueError("existing private-sync includes; review migration manually")
+    atomic_write(backup, content)
+    atomic_write(shared, content)
+    atomic_write(config, wrapper)
+    print(f"Prepared SSH includes; original retained at {backup}")
+
+
+def sync(args, stage, state, live):
+    conflicts = list(stage.glob("config.shared.conflict*"))
+    if conflicts:
+        raise ValueError(f"unresolved conflicts in {stage}; reconcile these before another run")
+    safe_path(live)
+    original = live.read_bytes() if live.exists() else None
+    if original is None and args.resync != "vault":
+        raise ValueError(f"create {live} from reviewed personal SSH entries first; or use --resync vault")
+    staged = stage / "config.shared"
+    safe_path(staged)
+    if original is not None and (not staged.exists() or staged.read_bytes() != original):
+        atomic_write(stage / "config.shared", original)
+    sentinel = stage / "RCLONE_TEST"
+    safe_path(sentinel)
+    if not sentinel.exists():
+        atomic_write(sentinel, b"private-sync SSH access check\n")
+
+    env = dict(os.environ)
+    env.pop("BW_SESSION", None)
+    session = capture(["bw", "unlock", "--raw"], env).strip()
+    if not session:
+        raise ValueError("Bitwarden unlock returned an empty session")
+    env["BW_SESSION"] = session
+    try:
+        subprocess.run(["bw", "sync"], env=env, stdout=subprocess.DEVNULL, check=True)
+        item = json.loads(capture(["bw", "get", "item", ITEM], env))
+        if item.get("type") != 1 or item.get("name") != ITEM:
+            raise ValueError(f"expected a Login item named exactly {ITEM}")
+        login = item.get("login", {})
+        crypt = dict(env)
+        # Override this remote in the child only. The rest of Drive is untouched.
+        for key, value in {
+            "TYPE": "crypt", "REMOTE": REMOTE,
+            "FILENAME_ENCRYPTION": "standard", "DIRECTORY_NAME_ENCRYPTION": "true",
+        }.items():
+            crypt[f"RCLONE_CONFIG_PRIVATE_SYNC_{key}"] = value
+        for field, key in (("username", "PASSWORD"), ("password", "PASSWORD2")):
+            value = login.get(field)
+            if not isinstance(value, str) or not value or any(c in value for c in "\r\n\0"):
+                raise ValueError(f"{ITEM}: {field} must contain a single-line encryption secret")
+            crypt[f"RCLONE_CONFIG_PRIVATE_SYNC_{key}"] = capture(
+                ["rclone", "obscure", "-"], env, value + "\n"
+            ).strip()
+        command = [
+            "rclone", "bisync", str(stage), "private_sync:ssh",
+            "--workdir", str(state / "bisync"),
+            "--include", "/config.shared", "--include", "/config.shared.conflict*",
+            "--include", "/RCLONE_TEST", "--check-access",
+            "--conflict-resolve", "none", "--conflict-loser", "num",
+        ]
+        if args.resync:
+            command += ["--resync", "--resync-mode", "path1" if args.resync == "local" else "path2"]
+        if args.dry_run:
+            command += ["--dry-run"]
+        # Bisync requires both roots to exist, including on its first run.
+        if args.resync == "local" and not args.dry_run:
+            subprocess.run(["rclone", "mkdir", "private_sync:ssh"], env=crypt, check=True)
+            subprocess.run(["rclone", "copyto", str(sentinel), "private_sync:ssh/RCLONE_TEST"], env=crypt, check=True)
+        subprocess.run(command, env=crypt, check=True)
+        if args.dry_run:
+            return
+        if list(stage.glob("config.shared.conflict*")):
+            raise ValueError(f"sync conflict: live config preserved; reconcile files in {stage}")
+        result = stage / "config.shared"
+        safe_path(result)
+        if not result.is_file() or not result.stat().st_size:
+            raise ValueError("remote config absent or empty; live config preserved")
+        safe_path(live)
+        current = live.read_bytes() if live.exists() else None
+        if current != original:
+            raise ValueError("live config changed during sync; preserve both copies and reconcile manually")
+        atomic_write(live, result.read_bytes())
+        print(f"Synchronized {live}")
+    finally:
+        subprocess.run(["bw", "lock"], env=env, stdout=subprocess.DEVNULL, check=True)
+
+
+def main():
+    if not personal():
+        print("private-sync: unavailable on non-personal hosts", file=sys.stderr)
+        return 2
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("target", choices=["ssh"])
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--resync", choices=["local", "vault"], help="explicit initial/recovery winner")
+    parser.add_argument("--prepare", action="store_true", help="install SSH includes after a vault pull, or back up and split an existing config")
+    args = parser.parse_args()
+    if args.prepare and (args.dry_run or args.resync):
+        parser.error("--prepare cannot be combined with --dry-run or --resync")
+    os.umask(0o077)
+    home = Path.home()
+    stage = home / ".local/share/private-sync/ssh"
+    state = home / ".local/state/private-sync"
+    ssh = home / ".ssh"
+    try:
+        for path in (stage, state, state / "bisync", ssh):
+            safe_path(path, directory=True)
+            path.mkdir(parents=True, exist_ok=True, mode=0o700)
+            path.chmod(0o700)
+        lock = state / "lock"
+        safe_path(lock)
+        with lock.open("a") as stream:
+            fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if args.prepare:
+                if input("Prepare SSH includes (back up and migrate an existing config, if present)? [y/N] ").lower() not in ("y", "yes"):
+                    return 2
+                prepare(ssh)
+                return 0
+            if not args.dry_run:
+                direction = f"; resync winner: {args.resync}" if args.resync else ""
+                if input(f"Sync personal SSH config with encrypted {REMOTE}/ssh{direction}? [y/N] ").lower() not in ("y", "yes"):
+                    return 2
+            sync(args, stage, state, ssh / "config.shared")
+    except (OSError, ValueError, subprocess.CalledProcessError, EOFError) as error:
+        print(f"private-sync: {error}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

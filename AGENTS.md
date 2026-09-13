@@ -164,6 +164,7 @@ for tool-managed or local-only skills. It runs from both `install.sh` and
 
 - `./readiness.sh`: read-only inventory of expected commands and platform dependencies.
 - `bash -n install.sh`: installer syntax.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_private_sync.py tests/test_secret_sync.py`: personal-host gates, local secret materialization, and encrypted sync preservation (temporary local rclone backend; no vault or cloud access).
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dms_settings.py`: DMS replacement,
   capture, parser, and atomic-write behavior.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_aconf.py`: system-layer
