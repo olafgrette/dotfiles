@@ -4,6 +4,7 @@
   "animationSpeed": 4,
   "barConfigs": [
     {
+      "attachToScreenEdge": true,
       "autoHide": false,
       "autoHideDelay": 250,
       "borderColor": "surfaceText",
@@ -23,6 +24,7 @@
       "gothCornersEnabled": false,
       "id": "default",
       "innerPadding": 4,
+      "island": false,
       "leftWidgets": [
         "launcherButton",
         "workspaceSwitcher",
@@ -43,7 +45,7 @@
         "battery",
         "controlCenterButton"
       ],
-      "spacing": 4,
+      "spacing": 0,
       "squareCorners": false,
       "transparency": 1,
       "visible": true,
@@ -55,15 +57,23 @@
     "dms_clipboard_search": {
       "trigger": "cb"
     },
+    "dms_power": {
+      "trigger": "pw"
+    },
+    "dms_qr_generator": {
+      "trigger": "qrg"
+    },
     "dms_settings_search": {
       "trigger": "?"
     }
   },
+  "calendarBackend": "dankcal",
+  "clipboardClickToPaste": true,
   "clipboardEnterToPaste": true,
   "clockFormat": "24h",
   "currentThemeCategory": "dynamic",
   "currentThemeName": "dynamic",
-  "customAnimationDuration": 22,
+  "customAnimationDuration": 4,
   "desktopClockCustomColor": {
     "a": 1,
     "b": 1,
@@ -93,6 +103,7 @@
   "monoFontFamily": "RecMonoCasual Nerd Font Mono",
   "muxType": "zellij",
   "popoutAnimationSpeed": 4,
+  "reduceMotion": true,
   "showWorkspaceApps": true,
   "showWorkspaceIndex": true,
   "showWorkspacePadding": true,
@@ -109,5 +120,7 @@
     "r": 1,
     "valid": true
   },
+  "useAutoLocation": true,
+  "useFahrenheit": true,
   "workspaceFollowFocus": true
 }
