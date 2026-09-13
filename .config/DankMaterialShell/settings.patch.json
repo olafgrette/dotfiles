@@ -2,6 +2,54 @@
   "acLockTimeout": 300,
   "acMonitorTimeout": 600,
   "animationSpeed": 4,
+  "barConfigs": [
+    {
+      "autoHide": false,
+      "autoHideDelay": 250,
+      "borderColor": "surfaceText",
+      "borderEnabled": false,
+      "borderOpacity": 1,
+      "borderThickness": 1,
+      "bottomGap": 0,
+      "centerWidgets": [
+        "music",
+        "clock",
+        "weather"
+      ],
+      "enabled": true,
+      "fontScale": 1,
+      "gothCornerRadiusOverride": false,
+      "gothCornerRadiusValue": 12,
+      "gothCornersEnabled": false,
+      "id": "default",
+      "innerPadding": 4,
+      "leftWidgets": [
+        "launcherButton",
+        "workspaceSwitcher",
+        "focusedWindow"
+      ],
+      "name": "Main Bar",
+      "noBackground": false,
+      "openOnOverview": false,
+      "popupGapsAuto": true,
+      "popupGapsManual": 4,
+      "position": 0,
+      "rightWidgets": [
+        "systemTray",
+        "clipboard",
+        "cpuUsage",
+        "memUsage",
+        "notificationButton",
+        "battery",
+        "controlCenterButton"
+      ],
+      "spacing": 4,
+      "squareCorners": false,
+      "transparency": 1,
+      "visible": true,
+      "widgetTransparency": 1
+    }
+  ],
   "barElevationEnabled": false,
   "builtInPluginSettings": {
     "dms_clipboard_search": {
@@ -15,7 +63,20 @@
   "clockFormat": "24h",
   "currentThemeCategory": "dynamic",
   "currentThemeName": "dynamic",
-  "customAnimationDuration": 110,
+  "customAnimationDuration": 22,
+  "desktopClockCustomColor": {
+    "a": 1,
+    "b": 1,
+    "g": 1,
+    "hslHue": -1,
+    "hslLightness": 1,
+    "hslSaturation": 0,
+    "hsvHue": -1,
+    "hsvSaturation": 0,
+    "hsvValue": 1,
+    "r": 1,
+    "valid": true
+  },
   "dockLauncherLogoMode": "dank",
   "enableRippleEffects": false,
   "hyprlandLayoutBorderSize": 2,
@@ -35,5 +96,18 @@
   "showWorkspaceApps": true,
   "showWorkspaceIndex": true,
   "showWorkspacePadding": true,
+  "systemMonitorCustomColor": {
+    "a": 1,
+    "b": 1,
+    "g": 1,
+    "hslHue": -1,
+    "hslLightness": 1,
+    "hslSaturation": 0,
+    "hsvHue": -1,
+    "hsvSaturation": 0,
+    "hsvValue": 1,
+    "r": 1,
+    "valid": true
+  },
   "workspaceFollowFocus": true
 }
