@@ -14,7 +14,6 @@ from typing import Any
 from types import SimpleNamespace
 
 
-MISSING = object()
 REQUIRED = object()
 BLOCKED = {
     "activeDisplayProfile",
@@ -81,28 +80,6 @@ def deep_overlay(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any
         else:
             result[key] = value
     return result
-
-
-def three_way(old: Any, local: Any, new: Any) -> Any:
-    if local == old or local == new:
-        return new
-    if old == new:
-        return local
-    if all(value is MISSING or isinstance(value, dict) for value in (old, local, new)):
-        old_map = {} if old is MISSING else old
-        local_map = {} if local is MISSING else local
-        new_map = {} if new is MISSING else new
-        result: dict[str, Any] = {}
-        for key in old_map.keys() | local_map.keys() | new_map.keys():
-            merged = three_way(
-                old_map.get(key, MISSING),
-                local_map.get(key, MISSING),
-                new_map.get(key, MISSING),
-            )
-            if merged is not MISSING:
-                result[key] = merged
-        return result
-    return local
 
 
 # These lists remain in settings.json in DMS 1.6. Keep their machine fields
@@ -214,7 +191,6 @@ def settings_files(args: argparse.Namespace):
             live=args.live.with_name(f"{name}.json"),
             patch=args.patch.with_name(f"{name}.patch.json"),
             local_patch=args.local_patch.with_name(f"{name}.local.json"),
-            baseline=args.baseline.with_name(f"dotfiles-{name}-baseline.json"),
         ), False
 
 
@@ -227,11 +203,16 @@ def capture(args: argparse.Namespace) -> int:
         if primary:
             live = portable(live)
         local_patch = load_json(paths.local_patch, missing={})
+        shared = load_json(paths.patch, missing={})
+        if primary:
+            shared = portable(shared)
         patch = {
             key: value
             for key, value in live.items()
             if key not in local_patch
         }
+        # This machine cannot capture shared values hidden by local overrides.
+        patch.update({key: value for key, value in shared.items() if key in local_patch})
         captures.append((paths.patch, patch))
 
     # Validate every source before changing any tracked file.
@@ -248,36 +229,25 @@ def apply_file(args: argparse.Namespace, primary: bool = True) -> int:
     shared = load_json(args.patch, missing={})
     local_patch = load_json(args.local_patch, missing={})
     live = load_json(args.live, missing={})
-    baseline = load_json(args.baseline, missing=MISSING)
     if primary:
-        shared = localize_instances(portable(shared), live)
-        if baseline is not MISSING:
-            # Local overrides own their whole top-level key, including machine
-            # fields. Keep their original baseline so GUI conflicts still win.
-            instances = {key: value for key, value in baseline.items()
-                         if key in INSTANCE_FIELDS and key not in local_patch}
-            baseline = {**baseline, **localize_instances(portable(instances), live)}
+        shared = portable(shared)
+        shared = {**{key: value for key, value in live.items() if key in BLOCKED}, **shared}
     desired = deep_overlay(shared, local_patch)
-    if baseline is MISSING:
-        merged = deep_overlay(live, desired)
-    else:
-        merged = three_way(baseline, live, desired)
-    live_changed = atomic_json(args.live, merged)
-    baseline_changed = atomic_json(args.baseline, desired)
+    if primary:
+        desired = localize_instances(desired, live)
+    live_changed = atomic_json(args.live, desired)
     if live_changed:
         print(f"Applied DMS settings to {args.live}")
-    elif baseline_changed:
-        print("Updated DMS settings baseline")
     return 0
 
 
 def apply(args: argparse.Namespace) -> int:
     files = [(paths, primary) for paths, primary in settings_files(args)
              if primary or paths.patch.exists() or paths.local_patch.exists()
-             or paths.baseline.exists()]
+             or paths.live.exists()]
     # A malformed auxiliary file must not leave an earlier file applied.
     for paths, primary in files:
-        for path in (paths.patch, paths.local_patch, paths.live, paths.baseline):
+        for path in (paths.patch, paths.local_patch, paths.live):
             load_json(path, missing={})
     for paths, primary in files:
         apply_file(paths, primary)
@@ -287,16 +257,15 @@ def apply(args: argparse.Namespace) -> int:
 def parser() -> argparse.ArgumentParser:
     repo = Path(__file__).resolve().parents[2]
     config = Path.home() / ".config/DankMaterialShell"
-    state = Path.home() / ".local/state/DankMaterialShell"
     result = argparse.ArgumentParser(
         description=__doc__,
-        epilog="Also handles sibling clsettings and plugin_settings files, with separate "
-               "patches, local overrides, and merge baselines. Does not restart DMS.",
+        epilog="Apply replaces portable settings with the tracked patches and local overrides. "
+               "Capture writes current portable settings back to the patches. Also handles sibling "
+               "clsettings and plugin_settings files. Does not restart DMS.",
     )
     result.add_argument("--live", type=Path, default=config / "settings.json")
     result.add_argument("--patch", type=Path, default=repo / ".config/DankMaterialShell/settings.patch.json")
     result.add_argument("--local-patch", type=Path, default=repo / ".config/DankMaterialShell/settings.local.json")
-    result.add_argument("--baseline", type=Path, default=state / "dotfiles-settings-baseline.json")
     result.add_argument("command", choices=("apply", "capture"))
     return result
 

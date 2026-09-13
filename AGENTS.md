@@ -126,26 +126,23 @@ objects are retained as DMS writes them. `clsettings.patch.json` and
 `plugin_settings.patch.json` capture clipboard and plugin preferences in full;
 clipboard contents, caches, and session state are never captured.
 
-- `dms-settings apply` three-way merges the previously applied patch, live GUI-edited
-  settings, and the current tracked/local patches. Local GUI conflicts win.
-  A missing key is a reset to the DMS default. Retire redundant default
-  declarations and let apply clear their baselines before reintroducing them;
-  without a defaults schema, automatic default removal and a GUI reset cannot
-  be distinguished.
+- `dms-settings apply` replaces portable live settings with the tracked patches
+  plus local overrides. Settings absent from both reset to the DMS default.
+  There is no merge baseline. Capture GUI changes before the next apply,
+  including apply from background startup, or they will be overwritten.
 - `dms-settings capture` regenerates the tracked patch from non-default live settings,
   shows its Git diff, and offers to commit each changed file. Push remains explicit.
 - Display identifiers, usage histories, GPU selection, and other machine/runtime keys
   are excluded from capture, including nested bar and desktop-widget selectors.
   Apply preserves those nested machine fields by instance ID.
 - Each patch has an ignored `<name>.local.json` final per-machine overlay. Its
-  top-level keys are excluded from shared capture. Auxiliary files use the same
-  three-way merge and separate `dotfiles-<name>-baseline.json` state files.
+  top-level keys are excluded from shared capture; existing shared values for
+  those keys are retained. Auxiliary files use the same replacement contract.
 - Auxiliary live files sit beside `--live`; patches and local overrides sit beside
-  `--patch` and `--local-patch`. Missing auxiliary files are left alone.
+  `--patch` and `--local-patch`. An auxiliary family is skipped only when its live
+  file, tracked patch, and local override are all absent.
 - Clipboard backend preferences take effect when DMS next loads them; applying
   settings does not restart DMS.
-- The merge baseline is local state at
-  `~/.local/state/DankMaterialShell/dotfiles-settings-baseline.json`.
 
 DMS's `~/.config/hypr/dms/binds-user.lua` is the narrow exception: it contains
 only user keybind overrides and is linked directly into Git, so Control Center
@@ -167,7 +164,7 @@ for tool-managed or local-only skills. It runs from both `install.sh` and
 
 - `./readiness.sh`: read-only inventory of expected commands and platform dependencies.
 - `bash -n install.sh`: installer syntax.
-- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dms_settings.py`: DMS merge,
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dms_settings.py`: DMS replacement,
   capture, parser, and atomic-write behavior.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_aconf.py`: system-layer
   gating, apply ordering, and configuration scope regressions.
