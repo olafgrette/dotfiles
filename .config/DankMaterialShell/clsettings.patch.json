@@ -3,6 +3,6 @@
   "clearAtStartup": false,
   "disabled": false,
   "maxEntrySize": 5242880,
-  "maxHistory": 50000,
+  "maxHistory": 100000,
   "maxPinned": 25
 }
