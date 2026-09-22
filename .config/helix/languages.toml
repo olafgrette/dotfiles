@@ -1,3 +1,19 @@
 [[language]]
 name = "markdown"
 language-servers = ["marksman", "markdown-oxide", "harper-ls"]
+
+[[language]]
+name = "html"
+language-servers = ["vscode-html-language-server"]
+
+[[language]]
+name = "python"
+language-servers = ["ty"]
+
+[[language]]
+name = "toml"
+language-servers = ["taplo"]
+
+[[language]]
+name = "yaml"
+language-servers = ["yaml-language-server"]

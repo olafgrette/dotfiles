@@ -132,6 +132,7 @@ AddPackage --foreign ttf-gabarito-git
 AddPackage --foreign ttf-roboto-flex
 
 # Development and content toolchains.
+AddPackage bash-language-server
 AddPackage bun
 AddPackage clang
 AddPackage cmake
@@ -143,6 +144,9 @@ AddPackage go
 AddPackage java-runtime-common
 AddPackage jdk-openjdk
 AddPackage lazygit
+AddPackage lua-language-server
+AddPackage markdown-oxide
+AddPackage marksman
 AddPackage meson
 AddPackage nodejs-lts-jod
 AddPackage npm
@@ -150,7 +154,15 @@ AddPackage python-html5lib
 AddPackage python-psutil
 AddPackage rustup
 AddPackage shellcheck
+AddPackage taplo-cli
+AddPackage ty
+AddPackage typescript-language-server
 AddPackage uv
+AddPackage yaml-language-server
+AddPackage --foreign fish-lsp
+AddPackage --foreign jdtls
+AddPackage --foreign kotlin-language-server
+AddPackage --foreign vscode-langservers-extracted
 
 # Agent and assistant tooling.
 AddPackage openai-codex
