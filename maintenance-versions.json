@@ -26,8 +26,10 @@
           "starship"
         ]
       },
-      "status": "pending",
-      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+      "status": "reviewed",
+      "reviewedThrough": "1.26.0",
+      "reviewedOn": "2026-09-22",
+      "notes": "Initial baseline: 1.26.0 release notes only. Timezone handling changed; no migration needed for the tracked local %H:%M format. Older releases not reviewed."
     },
     "ghostty": {
       "upstream": "https://github.com/ghostty-org/ghostty",
@@ -61,7 +63,7 @@
     },
     "tmux": {
       "upstream": "https://github.com/tmux/tmux",
-      "source": "https://github.com/tmux/tmux/releases/tag/3.7c",
+      "source": "https://raw.githubusercontent.com/tmux/tmux/3.7c/CHANGES",
       "commands": [
         "tmux"
       ],
@@ -70,8 +72,10 @@
           "tmux"
         ]
       },
-      "status": "pending",
-      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+      "status": "reviewed",
+      "reviewedThrough": "3.7c",
+      "reviewedOn": "2026-09-22",
+      "notes": "Initial baseline: 3.7 through 3.7c and the 3.7 release notes. No required config changes; copy-mode line numbers are optional. Older releases not reviewed."
     },
     "helix": {
       "upstream": "https://github.com/helix-editor/helix",
@@ -85,8 +89,10 @@
           "helix"
         ]
       },
-      "status": "pending",
-      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+      "status": "reviewed",
+      "reviewedThrough": "25.07.1",
+      "reviewedOn": "2026-09-22",
+      "notes": "Initial baseline: 25.07.1 release notes plus 25.07 upgrade notes. Tracked keymaps do not use changed command-mode syntax. Markdown and extracted HTML/CSS/JSON servers are installed and found by health checks. Selected JavaScript/TypeScript, Java, Kotlin, Python, Fish, Bash, Lua, TOML and YAML servers are declared and found by post-apply Helix health checks. These checks confirm executable discovery, not project-level LSP operation. User prefers one server per configured language, selecting the first Helix default: ty for Python, taplo for TOML, yaml-language-server for YAML and vscode-html-language-server for HTML. Markdown intentionally retains marksman, markdown-oxide and harper-ls. Extra Python, TOML and Ansible package declarations were removed. User otherwise prefers Helix defaults; Kotlin default is deprecated upstream and its AUR package requires Java 11. After user installed the rustup component, rust-analyzer --version succeeds (1.88.0). Rustfmt works; lldb-dap is absent. Older releases not reviewed."
     },
     "hyprland": {
       "upstream": "https://github.com/hyprwm/Hyprland",
@@ -99,8 +105,10 @@
           "hyprland"
         ]
       },
-      "status": "pending",
-      "reason": "Prior pass did not establish a patch-note review; establish the initial baseline."
+      "status": "reviewed",
+      "reviewedThrough": "v0.56.2",
+      "reviewedOn": "2026-09-22",
+      "notes": "Initial baseline: v0.56.2 patch notes, with v0.56.0 upgrade notes and v0.56.1 Lua module-loading fixes inspected. Tracked bindings already use Lua. No demonstrated native replacement for monitor-dir.lua; retain it. Older releases not reviewed."
     },
     "greetd": {
       "upstream": "https://git.sr.ht/~kennylevinsen/greetd",
@@ -130,9 +138,9 @@
     },
     "dankmaterialshell": {
       "upstream": "https://github.com/AvengeMedia/DankMaterialShell",
-      "reviewedThrough": "v1.6.1",
-      "reviewedOn": "2026-09-12",
-      "source": "https://github.com/AvengeMedia/DankMaterialShell/releases/tag/v1.6.1",
+      "reviewedThrough": "v1.6.2",
+      "reviewedOn": "2026-09-22",
+      "source": "https://github.com/AvengeMedia/DankMaterialShell/releases/tag/v1.6.2",
       "commands": [
         "dms"
       ],
@@ -142,7 +150,7 @@
         ]
       },
       "status": "reviewed",
-      "notes": "1.6.1 changes the service hard file limit and bar shadow precedence. Reassess our nofile.conf after upgrading dms-shell; upgrading the greeter does not update DMS."
+      "notes": "Reviewed v1.6.1 to v1.6.2. Clipboard, display and focused-monitor fixes need no tracked settings migration. User chose to retain nofile.conf at 524288 for both limits; removing it would lower the soft limit to the vendor value of 16384 (vendor hard limit: infinity). Global bar shadows remain disabled by our patch."
     },
     "quickshell": {
       "upstream": "https://git.outfoxxed.me/quickshell/quickshell",
@@ -159,9 +167,9 @@
     },
     "aconfmgr": {
       "upstream": "https://github.com/CyberShadow/aconfmgr",
-      "reviewedThrough": "96ab414",
+      "reviewedThrough": "96ab414343b9467fca5ef46f04bc1bd1fc7bd8f1",
       "reviewedOn": "2026-09-12",
-      "source": "https://github.com/CyberShadow/aconfmgr/commits/master",
+      "source": "https://github.com/CyberShadow/aconfmgr/commit/96ab414343b9467fca5ef46f04bc1bd1fc7bd8f1",
       "commands": [
         "aconfmgr"
       ],
@@ -204,8 +212,11 @@
         ]
       },
       "upstream": "https://github.com/rclone/rclone",
-      "status": "pending",
-      "reason": "Repository integration exists; no patch-note review recorded."
+      "status": "reviewed",
+      "reviewedThrough": "v1.75.1",
+      "reviewedOn": "2026-09-22",
+      "source": "https://rclone.org/changelog/#v1-75-1-2026-09-04",
+      "notes": "Initial baseline: v1.75.1 patch notes only. Bisync empty-file accounting, crypt directory names and VFS fixes are relevant; no required wrapper or mount changes identified. Older releases not reviewed."
     },
     "bitwarden-cli": {
       "commands": [
@@ -217,8 +228,11 @@
         ]
       },
       "upstream": "https://github.com/bitwarden/clients",
-      "status": "pending",
-      "reason": "Repository integration exists; no patch-note review recorded."
+      "status": "reviewed",
+      "reviewedThrough": "cli-v2026.2.0",
+      "reviewedOn": "2026-09-22",
+      "source": "https://github.com/bitwarden/clients/releases/tag/cli-v2026.2.0",
+      "notes": "Initial baseline: installed CLI v2026.2.0 release notes only. Send and confirm-user changes do not affect unlock, sync, get-item and lock integration. Older or newer CLI releases not reviewed."
     }
   }
 }
