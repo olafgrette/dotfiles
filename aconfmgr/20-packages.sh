@@ -168,6 +168,7 @@ AddPackage --foreign vscode-langservers-extracted
 AddPackage openai-codex
 AddPackage opencode
 AddPackage --foreign antigravity-cli
+AddPackage --foreign claude-code
 AddPackage --foreign claude-desktop
 
 # Browsers and communication.
