@@ -123,6 +123,17 @@ keybinds clear-defaults=true {
             SwitchToMode "locked"
         }
         bind "d" { Detach; }
+        // Remote URL: zellij downloads and caches the wasm, so nothing is
+        // vendored or added to install.sh. Pinned because the cache is keyed
+        // by URL and would never refresh a "latest" link.
+        bind "j" {
+            LaunchOrFocusPlugin "https://github.com/laperlej/zellij-choose-tree/releases/download/v0.4.2/zellij-choose-tree.wasm" {
+                floating true
+                move_to_focused_tab true
+                show_plugins false
+            }
+            SwitchToMode "locked"
+        }
         bind "l" {
             LaunchOrFocusPlugin "zellij:layout-manager" {
                 floating true
