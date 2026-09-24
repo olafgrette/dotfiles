@@ -53,6 +53,8 @@
     }
   ],
   "barElevationEnabled": false,
+  "batteryLockTimeout": 300,
+  "batteryMonitorTimeout": 300,
   "builtInPluginSettings": {
     "dms_clipboard_search": {
       "trigger": "cb"
