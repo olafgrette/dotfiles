@@ -246,6 +246,12 @@ default_mode "locked"
 default_shell "fish"
 theme "operator-mono-dark"
 
+// Not inherited over SSH or through sudo, so tools in panes fall back to
+// 256 colors without it.
+env {
+    COLORTERM "truecolor"
+}
+
 // Matched to the actual terminal palette: Ghostty's "Operator Mono Dark"
 // (~/.config/ghostty/config) supplies the ANSI colors fish highlights with,
 // so backgrounds anchor to #191919 / selection #19273b and accents lead with
