@@ -44,6 +44,7 @@ if command -v jq >/dev/null 2>&1; then
       session_name=\(.session_id // .session_name // "")
       cwd_raw=\(.cwd // .workspace.current_dir // "")
       model=\(.model.display_name // "")
+      effort=\(.effort.level // "")
       used_pct=\(.context_window.used_percentage // "")
       cost=\(.cost.total_cost_usd // "")
       api_ms=\(.cost.total_api_duration_ms // "")
@@ -126,6 +127,10 @@ printf "${BG_DARK} "
 
 if [ -n "$model" ]; then
   printf "${FG_GREEN}${model} "
+fi
+
+if [ -n "$effort" ]; then
+  printf "${FG_GREEN}%s " "${effort}"
 fi
 
 if [ -n "$ctx_display" ]; then
