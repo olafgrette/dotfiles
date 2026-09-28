@@ -202,6 +202,7 @@ source "$config_dir/00-scope.sh"
 source "$config_dir/30-system.sh"
 source "$config_dir/hosts/lightshow"
 CopyFile "/etc/synthetic-private-local.conf"
+pacman() { printf '%s\n' /etc/synthetic-deleted.conf /etc/synthetic-private-local.conf /etc/synthetic-deleted-dir/; }
 source "$config_dir/99-scope.sh"
 is_ignored() { local p="$1" pat; for pat in "${ignore_paths[@]}"; do [[ "$p" == $pat ]] && return 0; done; return 1; }
 [[ " ${_aconf_managed[*]} " == *" /etc/synthetic-private-local.conf "* ]]
@@ -210,9 +211,37 @@ is_ignored() { local p="$1" pat; for pat in "${ignore_paths[@]}"; do [[ "$p" == 
 ! is_ignored /etc/systemd/system
 ! is_ignored /etc/systemd/system/grub-btrfsd.service.d/override.conf
 is_ignored /etc/os-release
+is_ignored /etc/synthetic-deleted.conf
+is_ignored /etc/synthetic-deleted-dir/child
 '''
         result = subprocess.run(["bash", "-c", script, "bash", str(ACONFMGR_CONFIG)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_scope_enumeration_failures_abort(self):
+        for failure in ("pacman", "find"):
+            with self.subTest(failure=failure):
+                script = r'''
+set -e
+ignore_paths=()
+IgnorePath() { ignore_paths+=("$1"); }
+FatalError() { printf '%s' "$1" >&2; exit 9; }
+pacman() { printf '%s\n' /etc/synthetic-deleted.conf; }
+if [[ "$2" == pacman ]]; then
+    pacman() { echo 'package enumeration failed' >&2; return 1; }
+else
+    find() { printf '/etc/partial\0'; echo 'filesystem enumeration failed' >&2; return 1; }
+fi
+source "$1/00-scope.sh"
+source "$1/99-scope.sh"
+echo UNSAFE_CONTINUATION
+'''
+                result = subprocess.run(
+                    ["bash", "-c", script, "bash", str(ACONFMGR_CONFIG), failure],
+                    capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 9, result.stderr)
+                self.assertIn("enumeration failed", result.stderr)
+                self.assertNotIn("UNSAFE_CONTINUATION", result.stdout)
 
     def run_dispatch(self, host):
         script = r'''

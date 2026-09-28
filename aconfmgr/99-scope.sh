@@ -1,7 +1,8 @@
 # Finalize /etc allowlist — fail-closed, runtime-derived.
 #
-# Ignore every existing /etc path except registered destinations and their
-# ancestors. Other roots are excluded by 00-scope.sh.
+# Ignore existing and package-owned /etc paths except registered destinations
+# and their ancestors. Package inventories also cover deleted files: aconfmgr
+# otherwise treats their absence as drift and offers to restore them.
 
 # _aconf_managed is populated by wrappers in 00-scope.sh that intercept every
 # CopyFile/CopyFileTo/CreateLink/SetFileProperty destination.
@@ -16,17 +17,40 @@ _aconf_is_allowed() {
     return 1
 }
 
-if [[ -d /etc ]]; then
-    while IFS= read -r -d '' _p; do
-        if ! _aconf_is_allowed "$_p"; then
-            IgnorePath "$_p"
-            # Prevent package-ownership discovery from re-adding descendants.
-            if [[ -d "$_p" ]]; then
-                IgnorePath "$_p/*"
-            fi
+_aconf_collect_scope() {
+    local owned candidates p
+    local descend=()
+    if ! owned=$("${PACMAN:-pacman}" --query --list --quiet); then
+        FatalError 'Cannot enumerate package-owned paths; refusing to derive scope.\n'
+        return 1
+    fi
+    # Only descend into declared ancestors. Unmanaged directories are ignored
+    # as a whole, so inspecting their private contents is unnecessary.
+    for p in "${_aconf_managed[@]}"; do
+        while [[ "$p" == /etc/* ]]; do
+            p=${p%/*}
+            descend+=(-path "$p" -o)
+        done
+    done
+    candidates=$(mktemp) || return 1
+    if ! find /etc -mindepth 1 -print0 -type d ! \( "${descend[@]}" -false \) -prune > "$candidates"; then
+        rm -f "$candidates"
+        FatalError 'Cannot enumerate managed /etc ancestors; refusing to derive scope.\n'
+        return 1
+    fi
+    while IFS= read -r p; do
+        [[ "$p" == /etc/* ]] && printf '%s\0' "${p%/}" >> "$candidates"
+    done <<< "$owned"
+    while IFS= read -r -d '' p; do
+        if ! _aconf_is_allowed "$p"; then
+            IgnorePath "$p"
+            # Include descendants even when a package directory is absent.
+            IgnorePath "$p/*"
         fi
-    done < <(find /etc -mindepth 1 -print0 2>/dev/null || true)
-fi
+    done < "$candidates"
+    rm -f "$candidates"
+}
+_aconf_collect_scope
 
 # Verify sensitive sentinels against aconfmgr's derived ignore patterns.
 for _p in /etc/shadow /etc/gshadow /etc/passwd /etc/group \
@@ -52,5 +76,5 @@ do
 done
 
 unset _aconf_allow
-unset -f _aconf_is_allowed
+unset -f _aconf_is_allowed _aconf_collect_scope
 unset _p _a _found
