@@ -191,16 +191,19 @@ if [ "$BACKGROUND" = 0 ] && ! command -v starship &>/dev/null; then
     curl -sS https://starship.rs/install.sh | sh -s -- -y
 fi
 
-# Download zellij plugins (gitignored, fetched on install). Version is in the
-# filename so bumping it in config.kdl and here converges on the next run.
+# Download zellij plugins (gitignored, fetched on install). The path stays
+# fixed for config.kdl; a stamp records the fetched version so a bump here
+# replaces the file on the next run.
 ZELLIJ_PLUGINS_DIR="$HOME/.config/zellij/plugins"
 CHOOSE_TREE_VERSION="v0.4.2"
-CHOOSE_TREE_WASM="$ZELLIJ_PLUGINS_DIR/zellij-choose-tree-$CHOOSE_TREE_VERSION.wasm"
-if [ "$BACKGROUND" = 0 ] && [ ! -f "$CHOOSE_TREE_WASM" ]; then
+CHOOSE_TREE_WASM="$ZELLIJ_PLUGINS_DIR/zellij-choose-tree.wasm"
+if [ "$BACKGROUND" = 0 ] && { [ ! -f "$CHOOSE_TREE_WASM" ] || [ "$(cat "$CHOOSE_TREE_WASM.version" 2>/dev/null)" != "$CHOOSE_TREE_VERSION" ]; }; then
     echo "Downloading zellij plugin: zellij-choose-tree $CHOOSE_TREE_VERSION"
     mkdir -p "$ZELLIJ_PLUGINS_DIR"
     curl -sfL "https://github.com/laperlej/zellij-choose-tree/releases/download/$CHOOSE_TREE_VERSION/zellij-choose-tree.wasm" \
-        -o "$CHOOSE_TREE_WASM.part" && mv "$CHOOSE_TREE_WASM.part" "$CHOOSE_TREE_WASM"
+        -o "$CHOOSE_TREE_WASM.part" \
+        && mv "$CHOOSE_TREE_WASM.part" "$CHOOSE_TREE_WASM" \
+        && echo "$CHOOSE_TREE_VERSION" > "$CHOOSE_TREE_WASM.version"
 fi
 
 # Download ghostty shaders (gitignored, fetched on install)
