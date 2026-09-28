@@ -29,7 +29,8 @@ dotfile manager.
   `lib.bak` backups remain untouched; conflicting entries stop migration.
 - `install.sh` backs up conflicting destinations, creates links, renders agent
   directives, applies portable DankMaterialShell settings, installs missing
-  Starship, fetches the Ghostty shader, and enables Linux linger.
+  Starship, fetches the Ghostty shader and zellij plugins, and enables Linux
+  linger.
   `install.sh --background` skips network setup and linger changes.
 - Generated files, caches, histories, downloaded third-party assets, and runtime
   state do not belong in Git. Check `.gitignore` and the owning tool before adding

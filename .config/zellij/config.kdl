@@ -170,11 +170,10 @@ keybinds clear-defaults=true {
         bind "Alt o" { MoveTab "right"; }
         bind "Alt p" { TogglePaneInGroup; }
         bind "Alt Shift p" { ToggleGroupMarking; }
-        // Remote URL: zellij downloads and caches the wasm, so nothing is
-        // vendored or added to install.sh. Pinned because the cache is keyed
-        // by URL and would never refresh a "latest" link.
+        // Fetched by install.sh; keep the version in sync with it. A remote
+        // https: location did not load reliably.
         bind "w" {
-            LaunchOrFocusPlugin "https://github.com/laperlej/zellij-choose-tree/releases/download/v0.4.2/zellij-choose-tree.wasm" {
+            LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-choose-tree-v0.4.2.wasm" {
                 floating true
                 move_to_focused_tab true
                 show_plugins false
