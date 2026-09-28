@@ -170,10 +170,10 @@ keybinds clear-defaults=true {
         bind "Alt o" { MoveTab "right"; }
         bind "Alt p" { TogglePaneInGroup; }
         bind "Alt Shift p" { ToggleGroupMarking; }
-        // Fetched by install.sh; keep the version in sync with it. A remote
-        // https: location did not load reliably.
+        // Fetched and version-pinned by install.sh. A remote https: location
+        // did not load reliably.
         bind "w" {
-            LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-choose-tree-v0.4.2.wasm" {
+            LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-choose-tree.wasm" {
                 floating true
                 move_to_focused_tab true
                 show_plugins false
