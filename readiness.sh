@@ -41,6 +41,7 @@ check git git
 check jq jq
 check curl curl
 check awk awk
+check python3 python3
 
 group "Shell"
 check fish fish

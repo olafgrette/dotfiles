@@ -23,10 +23,10 @@ dotfile manager.
 - Use `symlink` for a whole configuration directory or standalone config at the
   mirrored path. Use `symlink_file` when a directory must remain real so tracked,
   generated, local-only, and tool-managed files can coexist.
-- `install.sh` is convergent, but not purely read-only: it backs up conflicting
-  destinations, creates links, renders agent directives, installs Starship when
-  absent, fetches the configured Ghostty shader, enables Linux linger, and applies
-  portable DankMaterialShell settings.
+- `install.sh` backs up conflicting destinations, creates links, renders agent
+  directives, applies portable DankMaterialShell settings, installs missing
+  Starship, fetches the Ghostty shader, and enables Linux linger.
+  `install.sh --background` skips network setup and linger changes.
 - Generated files, caches, histories, downloaded third-party assets, and runtime
   state do not belong in Git. Check `.gitignore` and the owning tool before adding
   files from a symlinked directory.
@@ -71,11 +71,14 @@ Fish loads shared configuration from `config.fish`, platform layers from
 `conf.d/hosts/<host>.fish`. Put a host file in Git only when its contents are safe
 and useful on personal machines; work-specific values still belong in local files.
 
-Every interactive shell launches `background-startup` asynchronously. At most once
-per five minutes it runs `git pull --ff-only`, then `install.sh` only if the pull
-succeeds. It also refreshes skill links and optional local tooling. Keep this path
-quiet, bounded, idempotent, and safe to run while other shells are starting. Do not
-add prompts or long foreground work.
+Every interactive shell launches `background-startup` asynchronously. Its Python
+supervisor, `dotfiles-update`, shares a nonblocking lock with foreground installs.
+At most once per five minutes it pulls clean `main` tracking `origin/main`, then
+applies only changed HOME inputs with `install.sh --background`. Failed applies
+retain their receipt for retry.
+The entire background run, including optional local tooling, has a 120-second
+limit. State and the last failure log live in `$XDG_STATE_HOME/dotfiles` (default
+`~/.local/state/dotfiles`). Keep this path quiet and free of prompts.
 
 ## Local overrides
 
@@ -157,8 +160,8 @@ never writes back to the repository.
 
 `skills/` is the tool-neutral source for user-level agent skills. `skill-sync` links
 each skill individually into `~/.claude/skills/` and `~/.codex/skills/`, leaving room
-for tool-managed or local-only skills. It runs from both `install.sh` and
-`background-startup`.
+for tool-managed or local-only skills. It runs from `install.sh`, including when
+background convergence detects changed skills.
 
 ## Validation
 
@@ -171,6 +174,10 @@ for tool-managed or local-only skills. It runs from both `install.sh` and
   gating, apply ordering, and configuration scope regressions.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_init.py`: fresh-machine
   entry point.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dotfiles_update.py`:
+  update gating, locking, retry, and timeout behavior with local Git repositories.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_install.py`: installer
+  behavior in temporary repository/HOME copies with network and system setup stubbed.
 - `./aconf.sh lint`: compiles the aconfmgr configuration. Arch personal hosts only.
 - `git diff --check`: whitespace errors.
 

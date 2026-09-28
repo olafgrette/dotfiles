@@ -49,7 +49,7 @@ def stub_env(tmp, *, host="testhost", uid=1000, dms_exit=0, dms_creates_hypr=Tru
     command_log = tmp / "commands.log"
     for name in (
         "awk", "bash", "cat", "curl", "dirname", "fish", "grep", "jq",
-        "uname", "hostname", "id", "mktemp", "rm", "mkdir",
+        "uname", "hostname", "id", "mktemp", "rm", "mkdir", "python3",
     ):
         real = shutil.which(name)
         if real:

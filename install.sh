@@ -3,6 +3,15 @@ set -e
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+case "${1-}" in
+    '') BACKGROUND=0 ;;
+    --background) BACKGROUND=1 ;;
+    *) echo 'usage: install.sh [--background]' >&2; exit 2 ;;
+esac
+if [ "${DOTFILES_INSTALL_LOCKED-}" != "$DOTFILES" ]; then
+    exec python3 "$DOTFILES/.local/bin/dotfiles-update" --install "$@"
+fi
+
 is_gui() {
   [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" || "$(uname -s)" == "Darwin" ]]
 }
@@ -92,6 +101,7 @@ symlink_file .local/bin/qwen-fast-serve
 symlink_file .local/bin/qwen-precise-serve
 symlink_file .local/bin/dms-settings
 symlink_file .local/bin/private-sync
+symlink_file .local/bin/dotfiles-update
 symlink_file .claude/statusline-command.sh
 
 # DMS 1.6 writes sparse settings. Merge shared preferences while keeping GUI
@@ -137,7 +147,7 @@ generate_file .codex/AGENTS.md "$AGENT_DIRECTIVES"
 # rootless alternative to KillUserProcesses=no in logind.conf.
 # Non-fatal: containers/WSL often have the loginctl binary without a running
 # systemd/dbus, which would otherwise abort the whole install under set -e.
-if [ "$(uname -s)" = "Linux" ] && command -v loginctl &>/dev/null; then
+if [ "$BACKGROUND" = 0 ] && [ "$(uname -s)" = "Linux" ] && command -v loginctl &>/dev/null; then
     CURRENT_USER="$(id -un)"
     if [ "$(loginctl show-user "$CURRENT_USER" -p Linger --value 2>/dev/null)" != "yes" ]; then
         echo "Enabling user lingering for $CURRENT_USER"
@@ -145,16 +155,16 @@ if [ "$(uname -s)" = "Linux" ] && command -v loginctl &>/dev/null; then
     fi
 fi
 
-# Sync agent skills (also run by background-startup on each shell start)
-fish -c skill-sync
+# Avoid user startup hooks while installing, including agent prompts.
+fish --no-config -c 'source $argv[1]; skill-sync' "$DOTFILES/.config/fish/functions/skill-sync.fish"
 
-if ! command -v starship &>/dev/null; then
+if [ "$BACKGROUND" = 0 ] && ! command -v starship &>/dev/null; then
     echo "Installing starship..."
     curl -sS https://starship.rs/install.sh | sh -s -- -y
 fi
 
 # Download ghostty shaders (gitignored, fetched on install)
-if is_gui; then
+if [ "$BACKGROUND" = 0 ] && is_gui; then
 SHADERS_DIR="$HOME/.config/ghostty/shaders"
 SHADERS_BASE="https://raw.githubusercontent.com/KroneCorylus/ghostty-shader-playground/main/public/shaders"
 mkdir -p "$SHADERS_DIR"

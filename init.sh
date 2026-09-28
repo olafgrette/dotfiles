@@ -81,7 +81,7 @@ if [ "$(distro_id)" = arch ] && grep -qxF "$HOST" "$REPO/personal-hosts"; then
     fi
 fi
 
-require_commands awk bash curl fish git jq
+require_commands awk bash curl fish git jq python3
 (cd "$REPO" && ./install.sh)
 
 cat <<EOF

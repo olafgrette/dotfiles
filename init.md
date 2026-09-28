@@ -6,7 +6,8 @@ README covers what this repository is; this file covers what to type.
 ## Layers
 
 - `install.sh` — the portable `$HOME` layer. Runs on every host: macOS, work,
-  remote, unknown. Degrades safely and never touches the system.
+  remote, unknown. `--background` skips Starship installation, shader downloads,
+  and Linux user lingering. Python 3 is required for the shared installation lock.
 - `aconf.sh` — the Arch system layer: explicit packages, reviewed `/etc`, unit
   enablement. Refuses any host not listed in `personal-hosts`, and any host
   that is not Arch.

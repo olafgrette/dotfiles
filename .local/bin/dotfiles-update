@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""Serialize HOME installation and bounded background updates."""
+
+import argparse
+import fcntl
+import hashlib
+import os
+from pathlib import Path
+import signal
+import socket
+import subprocess
+import sys
+import time
+
+
+ROOT = Path(__file__).resolve().parents[2]
+COOLDOWN = 300
+TIMEOUT = 120
+INPUTS = ("install.sh", ".config", ".local", ".claude", "skills",
+          "UNIVERSAL_AGENT_DIRECTIVES.md", "personal-hosts")
+LOCAL_INPUTS = ("UNIVERSAL_AGENT_DIRECTIVES.local.md", *(
+    f".config/DankMaterialShell/{name}.local.json"
+    for name in ("settings", "clsettings", "plugin_settings")
+))
+
+
+class Runner:
+    def __init__(self, deadline=None):
+        self.deadline = deadline
+
+    def run(self, command, *, interactive=False, env=None):
+        remaining = None if self.deadline is None else self.deadline - time.monotonic()
+        if remaining is not None and remaining <= 0:
+            raise TimeoutError("background update exceeded its time limit")
+        with subprocess.Popen(
+            command, cwd=ROOT, env=env, start_new_session=not interactive,
+            stdin=None if interactive else subprocess.DEVNULL,
+            stdout=None if interactive else subprocess.PIPE,
+            stderr=None if interactive else subprocess.STDOUT,
+        ) as process:
+            try:
+                output, _ = process.communicate(timeout=remaining)
+            except subprocess.TimeoutExpired:
+                # Kill the group, including git's SSH child or installer helpers.
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                process.communicate()
+                raise TimeoutError(f"timed out running {command[0]}") from None
+            text = (output or b"").decode(errors="replace")
+            if process.returncode:
+                raise RuntimeError(f"{command[0]} exited {process.returncode}: {text[-16384:]}")
+            return text.strip()
+
+    def git(self, *arguments):
+        env = dict(os.environ, GIT_TERMINAL_PROMPT="0", SSH_ASKPASS_REQUIRE="never")
+        env.setdefault("GIT_SSH_COMMAND", "ssh -oBatchMode=yes -oConnectTimeout=15")
+        return self.run(["git", *arguments], env=env)
+
+
+def fingerprint(runner):
+    digest = hashlib.sha256()
+    names = runner.git("ls-files", "-z", "--", *INPUTS).split("\0")
+    for name in sorted(set(filter(None, names)) | set(LOCAL_INPUTS)):
+        path = ROOT / name
+        digest.update(os.fsencode(name) + b"\0")
+        digest.update(path.read_bytes() if path.is_file() else b"<absent>")
+        digest.update(b"\0")
+    graphical = bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+                     or sys.platform == "darwin")
+    dms_ready = (Path.home() / ".config/DankMaterialShell/.firstlaunch").is_file()
+    digest.update(f"{socket.gethostname()}:{graphical}:{dms_ready}".encode())
+    return digest.hexdigest()
+
+
+def install(runner, *, interactive=False, background=False):
+    env = dict(os.environ, DOTFILES_INSTALL_LOCKED=str(ROOT))
+    command = ["bash", str(ROOT / "install.sh")]
+    if background:
+        command.append("--background")
+    runner.run(command, interactive=interactive, env=env)
+
+
+def update(runner, applied):
+    # A developer checkout must never be advanced or applied implicitly.
+    if runner.git("status", "--porcelain"):
+        return
+    if runner.git("symbolic-ref", "--quiet", "--short", "HEAD") != "main":
+        return
+    if runner.git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}") != "origin/main":
+        return
+    before = fingerprint(runner)
+    if not applied.exists():
+        # Existing installations have no receipt on upgrade. Do not reset live
+        # preferences merely because this supervisor is running for the first time.
+        applied.write_text(before)
+    runner.git("pull", "--ff-only", "origin", "main")
+    if runner.git("status", "--porcelain"):
+        raise RuntimeError("checkout changed during update; installation skipped")
+    if runner.git("symbolic-ref", "--quiet", "--short", "HEAD") != "main":
+        raise RuntimeError("branch changed during update; installation skipped")
+    desired = fingerprint(runner)
+    if applied.read_text() != desired:
+        install(runner, background=True)
+        applied.write_text(desired)
+    brunnr = Path.home() / ".local/bin/brunnr"
+    if os.access(brunnr, os.X_OK):
+        runner.run([str(brunnr), "update"])
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--install", action="store_true", help="run the foreground installer under the same lock")
+    parser.add_argument("--background", action="store_true", help="skip network and system setup during installation")
+    args = parser.parse_args()
+    if args.background and not args.install:
+        parser.error("--background requires --install")
+    state = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state") / "dotfiles"
+    state.mkdir(parents=True, exist_ok=True, mode=0o700)
+    try:
+        with (state / "lock").open("a") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                if args.install:
+                    raise RuntimeError("another dotfiles install or update is running") from None
+                return 0
+            applied = state / "applied-inputs"
+            if args.install:
+                runner = Runner()
+                install(runner, interactive=True, background=args.background)
+                if (ROOT / ".git").exists():
+                    applied.write_text(fingerprint(runner))
+                return 0
+            attempt = state / "last-attempt"
+            if attempt.exists() and 0 <= time.time() - attempt.stat().st_mtime < COOLDOWN:
+                return 0
+            attempt.touch()
+            runner = Runner(time.monotonic() + TIMEOUT)
+            update(runner, applied)
+    except (OSError, RuntimeError, TimeoutError) as error:
+        message = f"{time.strftime('%Y-%m-%dT%H:%M:%S%z')}: {error}\n"
+        # Keep the last failure even after later successful runs. Never log env.
+        (state / "last-error.log").write_text(message[-16384:])
+        print(f"dotfiles-update: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

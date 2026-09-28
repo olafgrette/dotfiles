@@ -137,15 +137,16 @@ If the repository is already present:
 This will do normal dotfile things such as:
 
 * create symlinks
-* install starship if necessary
 * configure Claude
 * configure Gemini
 * configure OpenCode
 * configure Codex
 * apply desktop settings
-* enable systemd user lingering
 * synchronize agent skills
-* download a ghostty shader from the Internet
+
+It also installs missing Starship, enables systemd user lingering, and downloads
+the Ghostty shader. Automatic convergence uses `./install.sh --background` to
+skip those network and system setup steps. Installation requires Python 3.
 
 You know.
 
