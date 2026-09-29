@@ -178,6 +178,8 @@ background convergence detects changed skills.
   update gating, locking, retry, and timeout behavior with local Git repositories.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_install.py`: installer
   behavior in temporary repository/HOME copies with network and system setup stubbed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_zmux.py`: session startup
+  fallback and saved-session preservation with process stubs.
 - `./aconf.sh lint`: compiles the aconfmgr configuration. Arch personal hosts only.
 - `git diff --check`: whitespace errors.
 
