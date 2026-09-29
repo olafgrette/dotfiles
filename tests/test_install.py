@@ -23,6 +23,8 @@ class InstallTest(unittest.TestCase):
                                  capture_output=True, text=True).stdout.split("\0")
         for name in set(filter(None, tracked)) | {".local/bin/dotfiles-update"}:
             source = ROOT / name
+            if not source.exists():
+                continue  # Reflect tracked deletions before this change is committed.
             target = self.repo / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)

@@ -70,13 +70,15 @@ point. Setup instructions live in `init.md`.
 
 ## Shell configuration and convergence
 
-Fish loads shared configuration from `config.fish`, platform layers from
-`conf.d/{darwin,linux}.fish`, and an optional short-hostname layer from
-`conf.d/hosts/<host>.fish`. Put a host file in Git only when its contents are safe
-and useful on personal machines; work-specific values still belong in local files.
+Fish loads platform and host snippets before `config.fish`, which loads shared
+defaults and then `local.fish` last. A startup migration moves the old
+`conf.d/local.fish` before it can be sourced; if both paths exist, it reports the
+conflict and preserves both. Put a host file in Git only when its contents are
+safe and useful on personal machines; work-specific values belong in local files.
 
-Every interactive shell launches `background-startup` asynchronously. Its Python
-supervisor, `dotfiles-update`, shares a nonblocking lock with foreground installs.
+Every interactive shell launches `background-startup` asynchronously after local
+configuration has loaded. Its Python supervisor, `dotfiles-update`, shares a
+nonblocking lock with foreground installs.
 At most once per five minutes it pulls clean `main` tracking `origin/main`, then
 applies only changed HOME inputs with `install.sh --background`. Failed applies
 retain their receipt for retry.
@@ -93,7 +95,7 @@ and configurations must never appear in this repo.
 
 Currently implemented:
 
-- Fish: `conf.d/local.fish`
+- Fish: `local.fish`, sourced last by `config.fish`
 - tmux: `tmux.local.conf`
 - Ghostty: `ghostty.local.conf` via optional `config-file`
 - DankMaterialShell: `settings.local.json`, merged after the tracked patch
@@ -184,6 +186,8 @@ background convergence detects changed skills.
   behavior in temporary repository/HOME copies with network and system setup stubbed.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_zmux.py`: session startup
   fallback and saved-session preservation with process stubs.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_fish_startup.py`: local
+  override migration, precedence, and background environment in isolated shells.
 - `./aconf.sh lint`: compiles the aconfmgr configuration. Arch personal hosts only.
 - `git diff --check`: whitespace errors.
 

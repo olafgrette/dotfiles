@@ -10,6 +10,7 @@ UNIVERSAL_AGENT_DIRECTIVES.local.md
 .config/fish/fish_variables
 .config/fish/fish_plugins
 .config/fish/conf.d/local.fish
+.config/fish/local.fish
 .config/tmux/tmux.local.conf
 
 # zellij: config plugin writes a .bak on every save
