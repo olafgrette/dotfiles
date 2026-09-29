@@ -74,6 +74,62 @@ esac''')
         self.assertIn("starship.rs", log)
         self.assertIn("cursor_frozen.glsl", log)
 
+    def test_existing_library_directory_and_packages_remain_in_place(self):
+        library = self.home / ".local/lib"
+        package = library / "python/site-packages/example"
+        package.mkdir(parents=True)
+        (package / "data").write_text("local library\n")
+        self.install("--background")
+        self.install("--background")
+        self.assertFalse(library.is_symlink())
+        self.assertEqual((package / "data").read_text(), "local library\n")
+        self.assertEqual((library / "llama-common.sh").resolve(), self.repo / ".local/lib/llama-common.sh")
+        self.assertFalse((self.home / ".local/lib.bak").exists())
+
+    def test_legacy_library_link_migrates_local_entries_without_touching_backup(self):
+        library = self.home / ".local/lib"
+        library.parent.mkdir()
+        library.symlink_to(self.repo / ".local/lib")
+        package = self.repo / ".local/lib/node_modules/example"
+        package.mkdir(parents=True)
+        (package / "data").write_text("installed package\n")
+        (self.repo / ".local/lib/.local-state").write_text("hidden state\n")
+        backup = self.home / ".local/lib.bak"
+        backup.mkdir()
+        (backup / "old-library").write_text("old backup\n")
+        self.install("--background")
+        self.install("--background")
+        self.assertFalse(library.is_symlink())
+        self.assertEqual((library / "node_modules/example/data").read_text(), "installed package\n")
+        self.assertEqual((library / ".local-state").read_text(), "hidden state\n")
+        self.assertFalse(package.exists())
+        self.assertFalse((self.repo / ".local/lib/llama-common.sh").is_symlink())
+        self.assertEqual((backup / "old-library").read_text(), "old backup\n")
+        self.assertFalse((self.home / ".local/lib.dotfiles-link").exists())
+
+    def test_library_migration_resumes_and_refuses_conflicting_local_entries(self):
+        library = self.home / ".local/lib"
+        library.mkdir(parents=True)
+        recovery = self.home / ".local/lib.dotfiles-link"
+        recovery.symlink_to(self.repo / ".local/lib")
+        (library / "already-moved").write_text("preserved\n")
+        source = self.repo / ".local/lib/pending"
+        source.write_text("source\n")
+        conflict = library / "pending"
+        conflict.write_text("destination\n")
+        result = subprocess.run(["bash", str(self.repo / "install.sh"), "--background"],
+                                env=self.env, text=True, capture_output=True, timeout=15)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("both copies preserved", result.stderr)
+        self.assertEqual(source.read_text(), "source\n")
+        self.assertEqual(conflict.read_text(), "destination\n")
+        self.assertTrue(recovery.is_symlink())
+        conflict.rename(library / "resolved-conflict")
+        self.install("--background")
+        self.assertEqual((library / "already-moved").read_text(), "preserved\n")
+        self.assertEqual((library / "pending").read_text(), "source\n")
+        self.assertFalse(recovery.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

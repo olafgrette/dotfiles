@@ -23,6 +23,10 @@ dotfile manager.
 - Use `symlink` for a whole configuration directory or standalone config at the
   mirrored path. Use `symlink_file` when a directory must remain real so tracked,
   generated, local-only, and tool-managed files can coexist.
+- `~/.local/lib` stays real; only `llama-common.sh` is linked. Installation
+  migrates the old whole-directory link and its local packages, retaining a
+  `lib.dotfiles-link` recovery marker until the move completes. Existing
+  `lib.bak` backups remain untouched; conflicting entries stop migration.
 - `install.sh` backs up conflicting destinations, creates links, renders agent
   directives, applies portable DankMaterialShell settings, installs missing
   Starship, fetches the Ghostty shader, and enables Linux linger.

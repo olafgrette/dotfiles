@@ -27,7 +27,7 @@ aconf.local.sh
 aconfmgr/aconfmgr.local
 aconfmgr/99-unsorted.sh
 
-# local npm installs (e.g. @openai/codex) land in symlinked .local/lib
+# Legacy runtime files remain ignored until install.sh migrates the library link.
 .local/lib/node_modules/
 .local/bin/codex
 

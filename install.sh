@@ -94,7 +94,35 @@ symlink .config/helix
 symlink .config/starship.toml
 symlink .config/tmux
 symlink .config/zellij
-symlink .local/lib
+# Older installs linked the entire library directory. Keep a recovery link
+# until every local entry has moved, so an interrupted migration can resume.
+LIB_DIR="$HOME/.local/lib"
+LIB_RECOVERY="$HOME/.local/lib.dotfiles-link"
+if [ -L "$LIB_DIR" ] && [ "$LIB_DIR" -ef "$DOTFILES/.local/lib" ]; then
+    if [ -e "$LIB_RECOVERY" ] || [ -L "$LIB_RECOVERY" ]; then
+        echo "Cannot migrate $LIB_DIR: $LIB_RECOVERY already exists" >&2
+        exit 1
+    fi
+    mv "$LIB_DIR" "$LIB_RECOVERY"
+fi
+if [ -L "$LIB_RECOVERY" ] && [ "$LIB_RECOVERY" -ef "$DOTFILES/.local/lib" ]; then
+    mkdir -p "$LIB_DIR"
+    (
+        shopt -s dotglob nullglob
+        for entry in "$DOTFILES/.local/lib/"*; do
+            # This is the only library file owned by the repository.
+            [ "${entry##*/}" = llama-common.sh ] && continue
+            target="$LIB_DIR/${entry##*/}"
+            if [ -e "$target" ] || [ -L "$target" ]; then
+                echo "Library migration conflict: $target; both copies preserved" >&2
+                exit 1
+            fi
+            mv "$entry" "$target"
+        done
+    )
+    rm "$LIB_RECOVERY"
+fi
+symlink_file .local/lib/llama-common.sh
 symlink_file .local/bin/gemma-serve
 symlink_file .local/bin/muse-glimmer-serve
 symlink_file .local/bin/qwen-fast-serve
