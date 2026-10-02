@@ -156,7 +156,29 @@ function fish_greeting --description "Random ocean-themed greeting"
         "We put the logs in the sea. Now they're a raft." \
         "Captain's log: permission denied." \
         "The abyss returns 200. The abyss always returns 200." \
-        "Here be dragons. See the backlog for details."
+        "Here be dragons. See the backlog for details." \
+        # === opus 5.5 ===
+        "A fish rots from the HEAD." \
+        "X marks the stash." \
+        "An octopus has nine brains and no Raft." \
+        "Remora: the original sidecar." \
+        "A threatened sea cucumber ejects its guts. We call that a core dump." \
+        "Under stress, the immortal jellyfish rolls back to a previous release." \
+        "Male anglerfish fuse permanently to their host. See also: vendor lock-in." \
+        "Carcinization: given enough time, all code becomes Rust." \
+        "Message in a bottle: at-most-once delivery, unbounded latency." \
+        "Every org has a Mary Celeste: still sailing, no owner aboard." \
+        "Davy Jones' locker: orphaned volumes, still billing." \
+        "Moby Disk: /var/lib/docker is 98% full." \
+        "Bulkhead pattern: learned the hard way in 1912." \
+        "Staging is a decompression stop. Skip it and you get the bends." \
+        "Kubernetes is Greek for 'helmsman.' Helm is Greek for 'more YAML.'" \
+        "Logs, logs, everywhere, nor any line to grep." \
+        "Loose .envs sink ships." \
+        "One fish, Twofish, red fish, Blowfish." \
+        "She sells C shells by the seashore. Considered harmful." \
+        "Hermit crabs switch shells too. Nobody demands POSIX compliance." \
+        "Fish out of water: ssh'd into a box with only /bin/sh."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
