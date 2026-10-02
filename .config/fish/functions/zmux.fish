@@ -26,6 +26,33 @@ function __zmux_running --argument-names session
     return 1
 end
 
+function __zmux_exited --argument-names session
+    for line in (zellij list-sessions --no-formatting 2>/dev/null)
+        test (string split -m1 -f1 ' ' -- $line) = "$session"; or continue
+        string match -q '*(EXITED*' -- $line
+        return $status
+    end
+    return 1
+end
+
+function __zmux_ensure --argument-names session
+    __zmux_running $session; and return 0
+    __zmux_start $session; or return 1
+    set -l attempts 0
+    while test $attempts -lt 20
+        if __zmux_running $session
+            # A plugin-only saved layout briefly accepts connections before
+            # exiting. A socket response alone does not mean startup succeeded.
+            sleep 0.5
+            __zmux_running $session
+            return $status
+        end
+        sleep 0.1
+        set attempts (math $attempts + 1)
+    end
+    return 1
+end
+
 function zmux --description 'attach/create persistent zellij session, detaching stale clients'
     # Default to the box's hostname rather than a fixed "main": zellij's
     # tab-bar plugin shows the session name up top, so this is what puts the
@@ -40,18 +67,18 @@ function zmux --description 'attach/create persistent zellij session, detaching 
         return 1
     end
 
-    # Startup failure does not prove a saved layout is corrupt. Keep it intact
-    # for inspection, including when a resurrection exits before becoming ready.
-    if not __zmux_running $session
-        __zmux_start $session
-        set -l attempts 0
-        while not __zmux_running $session
-            if test $attempts -ge 20
-                echo "zmux: could not start session '$session'; saved session retained" >&2
-                return 1
-            end
-            sleep 0.1
-            set attempts (math $attempts + 1)
+    if not __zmux_ensure $session
+        if not __zmux_exited $session
+            echo "zmux: could not start session '$session'; saved session retained" >&2
+            return 1
+        end
+        # A failed resurrection is disposable. Never force deletion: another
+        # client may have started this session since the exited-state check.
+        echo "zmux: clearing failed saved session '$session' and starting fresh" >&2
+        zellij delete-session $session >/dev/null; or return 1
+        __zmux_ensure $session; or begin
+            echo "zmux: could not start fresh session '$session'" >&2
+            return 1
         end
     end
 

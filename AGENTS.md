@@ -11,6 +11,10 @@ composable scripts over frameworks, plugin managers, or a dotfile manager.
 - **Multiplexer**: zellij (`zmux`); tmux remains available as a fallback (`mux`)
 - **Editor**: helix
 
+`zmux` clears an exited saved session if resurrection fails, then retries once
+under the same name. This discards that session's saved layout and scrollback.
+It never forces deletion of a running session.
+
 Tools were chosen for sensible defaults, modern design, and low configuration need — a setup
 that works well out of the box without a plugin ecosystem or framework. If a tool needs a lot
 of config to be usable, reconsider the tool, not add more config. No stow, no chezmoi, no
@@ -186,7 +190,8 @@ background convergence detects changed skills.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_install.py`: installer
   behavior in temporary repository/HOME copies with network and system setup stubbed.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_zmux.py`: session startup
-  fallback and saved-session preservation with process stubs.
+  fallback and failed-session reset with process stubs. Set `ZMUX_INTEGRATION=1`
+  to also exercise real Zellij resurrection and reset in an isolated HOME.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_fish_startup.py`: local
   override migration, precedence, and background environment in isolated shells.
 - `./aconf.sh lint`: compiles the aconfmgr configuration. Arch personal hosts only.
