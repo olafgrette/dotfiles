@@ -75,6 +75,7 @@ esac''')
         self.assertIn("loginctl enable-linger", log)
         self.assertIn("starship.rs", log)
         self.assertIn("cursor_frozen.glsl", log)
+        self.assertIn("zellij-choose-tree.wasm", log)
 
     def test_existing_library_directory_and_packages_remain_in_place(self):
         library = self.home / ".local/lib"
