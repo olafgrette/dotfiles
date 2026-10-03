@@ -17,10 +17,11 @@ they define the host gates, config ownership, local overrides, and checks.
   Inspect Git status and existing diffs before capture so existing work remains
   distinguishable. Check for pending `aconfmgr/99-unsorted.sh` work before a save
   can rewrite it; review that work first.
-- On a declared personal Arch host, run `./aconf.sh save` in the foreground.
-  This captures system drift for review; it does not apply system configuration.
-  If credentials or terminal access prevent completion, ask the user to run it
-  in this checkout and report completion. Continue independent release research
+- On a declared personal Arch host, always ask the user to run `./aconf.sh save`
+  in this checkout and report completion. It requires interactive sudo; do not
+  attempt it from the agent. This captures system drift for review; it does not
+  apply system configuration. If the user is already running it, wait for their
+  completion report without asking again. Continue independent release research
   while waiting. On other hosts, skip the system capture and explain the gap.
 - Inspect the generated declarations, referenced captured files, and tracked
   diff. `aconf.sh diff` excludes packages and is not a substitute for save.
