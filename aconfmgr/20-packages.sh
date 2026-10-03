@@ -62,6 +62,7 @@ AddPackage --foreign onedrive-abraunegg
 AddPackage alsa-utils
 AddPackage cava
 AddPackage gst-plugins-good
+AddPackage gpu-screen-recorder
 AddPackage libva-utils
 AddPackage pipewire
 AddPackage pipewire-alsa
