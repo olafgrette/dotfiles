@@ -69,6 +69,7 @@ AddPackage pipewire-jack
 AddPackage pipewire-pulse
 AddPackage rtkit
 AddPackage vlc
+AddPackage vlc-plugin-ffmpeg
 AddPackage vulkan-tools
 
 # Desktop session.
