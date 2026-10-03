@@ -72,6 +72,10 @@ point. Setup instructions live in `init.md`.
   only additions need an explicit `is_personal` gate; the failure is silent.
 - Nothing starts or restarts services. `apply` takes a Timeshift snapshot first
   and confirms with a default of no.
+- After the snapshot, `apply` bootstraps the signed OpenAI repository and
+  `chatgpt-bin` with the official installer when the repository, sync database,
+  or package is missing. This performs a full system upgrade. Repository config
+  is tracked; signing-key trust stays machine-local.
 
 ## Shell configuration and convergence
 

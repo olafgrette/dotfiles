@@ -68,13 +68,23 @@ Most managed objects are common intent, so a fresh host gets almost all of them
 on the first run. Two are worth knowing about in advance:
 
 - **`/etc/pacman.conf`** is replaced with this repository's copy — the current
-  pacnew with `[multilib]` enabled. Extra repositories configured on the new
-  machine would be overwritten.
+  pacnew with `[multilib]` and the signed OpenAI repository enabled. Extra
+  repositories configured on the new machine would be overwritten.
 - **`/etc/locale.gen`** is reduced to the single `en_US.UTF-8` line. `aconf.sh`
   runs `locale-gen` in its postflight, so the locale is regenerated
   immediately.
 
 `aconfmgr apply` uses its normal prompts to review change groups before applying them.
+
+On a new machine, `aconf.sh apply` downloads and runs the official OpenAI Arch
+installer after confirmation and the Timeshift snapshot, before aconfmgr runs.
+This imports the verified signing key and installs `chatgpt-bin`, with a full
+system upgrade and pacman's normal confirmation. It then refreshes the online
+repository with another full upgrade transaction: the installer uses a temporary
+repository for its verified initial package. Bootstrap is skipped when the
+OpenAI repository, its sync database, and `chatgpt-bin` are already present.
+Failures stop the apply and can be retried. The keyring stays machine-local.
+No separate ChatGPT setup is needed before `init.sh`.
 
 ## Host intent
 

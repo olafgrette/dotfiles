@@ -78,6 +78,25 @@ create_rollback_snapshot() {
     printf 'aconf: created Timeshift snapshot %s\n' "$comment"
 }
 
+bootstrap_chatgpt() (
+    # The vendor installer owns key verification and initial trust. Its first
+    # transaction uses a temporary repository, so refresh the online DB afterward
+    # before aconfmgr classifies packages as native or foreign.
+    if pacman-conf --repo openai-chatgpt Server >/dev/null 2>&1 &&
+        pacman -Sl openai-chatgpt >/dev/null 2>&1 &&
+        pacman -Q chatgpt-bin >/dev/null 2>&1; then
+        return
+    fi
+    local installer
+    installer=$(mktemp)
+    trap 'rm -f -- "$installer"' EXIT
+    echo 'aconf: bootstrapping the signed OpenAI repository and ChatGPT (full system upgrade)'
+    curl --proto '=https' --tlsv1.2 -fL -o "$installer" \
+        https://persistent.oaistatic.com/codex-app-prod/linux/install-arch.sh
+    sudo bash "$installer"
+    sudo pacman -Syu --needed chatgpt-bin
+)
+
 reload_user_manager() {
     local runtime_dir session_bus
     runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$UID}"
@@ -91,10 +110,11 @@ reload_user_manager() {
 apply_system() {
     local host
     [ -t 0 ] && [ -t 1 ] || die "apply requires an interactive terminal"
-    require_commands sudo timeshift date locale-gen systemctl
+    require_commands sudo timeshift date locale-gen systemctl curl mktemp rm pacman pacman-conf
     host="$(short_host)"
     confirm_apply "$host"
     create_rollback_snapshot "$host"
+    bootstrap_chatgpt
     run_aconfmgr apply
 
     sudo locale-gen

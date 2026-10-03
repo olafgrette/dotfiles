@@ -96,6 +96,7 @@ AddPackage --foreign dsearch-bin
 
 # Desktop applications and GTK/Qt integration.
 AddPackage adw-gtk-theme
+AddPackage chatgpt-bin
 AddPackage exo
 AddPackage gnome-disk-utility
 AddPackage kdeconnect

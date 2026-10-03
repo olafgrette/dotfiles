@@ -7,8 +7,10 @@ CopyFile "/etc/locale.gen"
 # Timezone.
 CreateLink "/etc/localtime" "/usr/share/zoneinfo/America/Los_Angeles"
 
-# Pacman — stock pacnew with [multilib] enabled. Mirrors stay unmanaged.
+# Pacman — multilib and OpenAI. aconf.sh bootstraps OpenAI trust before apply.
+# Mirrors and the machine-local keyring stay unmanaged.
 CopyFile "/etc/pacman.conf"
+CopyFile "/etc/pacman.d/openai-chatgpt.conf"
 
 # FUSE — user_allow_other, needed by the rclone and OneDrive mounts.
 CopyFile "/etc/fuse.conf"

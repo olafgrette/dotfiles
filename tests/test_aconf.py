@@ -13,7 +13,10 @@ ROOT = Path(__file__).parents[1]
 ACONF = ROOT / "aconf.sh"
 ACONFMGR_CONFIG = ROOT / "aconfmgr"
 BASE_PREREQUISITES = ("aconfmgr", "yay")
-APPLY_PREREQUISITES = ("sudo", "timeshift", "date", "locale-gen", "systemctl")
+APPLY_PREREQUISITES = (
+    "sudo", "timeshift", "date", "locale-gen", "systemctl", "curl", "mktemp",
+    "rm", "pacman", "pacman-conf",
+)
 SUPPORT = ("bash", "cat", "dirname", "grep", "uname")
 
 
@@ -69,7 +72,9 @@ def write_executable(path, body):
     path.chmod(0o755)
 
 
-def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, user_reload_failure=False):
+def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, user_reload_failure=False,
+                  bootstrap_missing="", download_failure=False, installer_failure=False,
+                  refresh_failure=False):
     env = stub_env(tmp, present=(*BASE_PREREQUISITES, *APPLY_PREREQUISITES))
     bindir = Path(env["PATH"])
     log = Path(tmp) / "commands.log"
@@ -78,6 +83,10 @@ def recording_env(tmp, *, snapshot_failure=False, apply_failure=False, user_relo
         "FAIL_SNAPSHOT": "1" if snapshot_failure else "0",
         "FAIL_APPLY": "1" if apply_failure else "0",
         "FAIL_USER_RELOAD": "1" if user_reload_failure else "0",
+        "BOOTSTRAP_MISSING": bootstrap_missing,
+        "FAIL_DOWNLOAD": "1" if download_failure else "0",
+        "FAIL_INSTALLER": "1" if installer_failure else "0",
+        "FAIL_REFRESH": "1" if refresh_failure else "0",
     })
     write_executable(bindir / "aconfmgr", r'''#!/bin/bash
 printf 'aconfmgr %s\n' "$*" >> "$COMMAND_LOG"
@@ -87,7 +96,21 @@ exit 0
     write_executable(bindir / "sudo", r'''#!/bin/sh
 printf 'sudo %s\n' "$*" >> "$COMMAND_LOG"
 if [ "$1" = timeshift ] && [ "$2" = --create ] && [ "$FAIL_SNAPSHOT" = 1 ]; then exit 1; fi
+if [ "$1" = bash ] && [ "$FAIL_INSTALLER" = 1 ]; then exit 1; fi
+if [ "$1" = pacman ] && [ "$FAIL_REFRESH" = 1 ]; then exit 1; fi
 exit 0
+''')
+    write_executable(bindir / "pacman-conf", '''#!/bin/sh
+[ "$BOOTSTRAP_MISSING" != repository ]
+''')
+    write_executable(bindir / "pacman", '''#!/bin/sh
+if [ "$1" = -Sl ] && [ "$BOOTSTRAP_MISSING" = database ]; then exit 1; fi
+if [ "$1" = -Q ] && [ "$BOOTSTRAP_MISSING" = package ]; then exit 1; fi
+exit 0
+''')
+    write_executable(bindir / "curl", '''#!/bin/sh
+printf 'curl %s\\n' "$*" >> "$COMMAND_LOG"
+[ "$FAIL_DOWNLOAD" != 1 ]
 ''')
     write_executable(bindir / "systemctl", r'''#!/bin/sh
 if [ "$1" = --user ]; then
@@ -137,6 +160,7 @@ class ApplyTest(unittest.TestCase):
             self.assertIn("[y/N]", result.stdout)
             self.assertIn("confirmation refused", result.stdout)
             self.assertFalse(any("timeshift --create" in line for line in log), log)
+            self.assertFalse(any(line.startswith("curl ") for line in log), log)
 
     def test_snapshot_precedes_apply_and_manager_reloads(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -148,6 +172,31 @@ class ApplyTest(unittest.TestCase):
             self.assertLess(pos("sudo locale-gen"), pos("sudo systemctl daemon-reload"))
             self.assertLess(pos("sudo systemctl daemon-reload"), pos("systemctl --user daemon-reload"))
             self.assertFalse(any(" restart " in f" {l} " for l in log), log)
+            self.assertFalse(any(line.startswith("curl ") or line.startswith("sudo bash ") for line in log), log)
+
+    def test_bootstrap_precedes_apply_and_cleans_download(self):
+        for missing in ("repository", "database", "package"):
+            with self.subTest(missing=missing), tempfile.TemporaryDirectory() as tmp:
+                result, log = self.run_apply(tmp, "y\n", bootstrap_missing=missing)
+                self.assertEqual(result.returncode, 0, result.stdout)
+                def pos(fragment): return next(i for i, line in enumerate(log) if fragment in line)
+                self.assertLess(pos("timeshift --create"), pos("curl "))
+                self.assertLess(pos("curl "), pos("sudo bash "))
+                self.assertLess(pos("sudo bash "), pos("sudo pacman -Syu --needed chatgpt-bin"))
+                self.assertLess(pos("sudo pacman "), pos("--color never apply"))
+                installer = log[pos("sudo bash ")].removeprefix("sudo bash ")
+                self.assertFalse(Path(installer).exists())
+
+    def test_bootstrap_failures_stop_apply(self):
+        for failure in ("download_failure", "installer_failure", "refresh_failure"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as tmp:
+                result, log = self.run_apply(tmp, "y\n", bootstrap_missing="repository", **{failure: True})
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertFalse(any(line.startswith("aconfmgr ") for line in log), log)
+                self.assertFalse(any("locale-gen" in line for line in log), log)
+                download = next(line for line in log if line.startswith("curl "))
+                installer = download.split(" -o ")[1].split()[0]
+                self.assertFalse(Path(installer).exists())
 
     def test_snapshot_failure_stops_before_apply(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -155,6 +204,7 @@ class ApplyTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertTrue(any("timeshift --create" in line for line in log), log)
             self.assertFalse(any(line.startswith("aconfmgr ") for line in log), log)
+            self.assertFalse(any(line.startswith("curl ") for line in log), log)
 
     def test_apply_failure_stops_before_postflight(self):
         with tempfile.TemporaryDirectory() as tmp:
