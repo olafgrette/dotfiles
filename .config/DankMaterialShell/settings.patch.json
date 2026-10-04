@@ -15,7 +15,11 @@
       "centerWidgets": [
         "music",
         "clock",
-        "weather"
+        "weather",
+        {
+          "enabled": true,
+          "id": "dankKDEConnect"
+        }
       ],
       "enabled": true,
       "fontScale": 1,
