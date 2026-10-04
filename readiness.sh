@@ -63,7 +63,14 @@ check harper-ls harper-ls
 group "Toolchains"
 check uv uv
 check cargo cargo
-check chruby chruby chruby-exec
+# chruby-fish defines chruby as a fish function, invisible to command -v.
+# --no-config would also empty fish_function_path, so the probe loads config.
+if command -v fish >/dev/null 2>&1 && fish -c 'functions -q chruby' >/dev/null 2>&1; then
+    printf '  \xe2\x9c\x85 %s\n' chruby
+else
+    check chruby chruby-exec
+fi
+check ruby-install ruby-install
 check bun bun
 check node node
 check npm npm
