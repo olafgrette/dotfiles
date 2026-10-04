@@ -148,6 +148,8 @@ AddPackage go
 AddPackage java-runtime-common
 AddPackage jdk-openjdk
 AddPackage lazygit
+# ruby-install Rubies link it at runtime; no other declared package requires it.
+AddPackage libyaml
 AddPackage lua-language-server
 AddPackage markdown-oxide
 AddPackage marksman
@@ -163,9 +165,11 @@ AddPackage ty
 AddPackage typescript-language-server
 AddPackage uv
 AddPackage yaml-language-server
+AddPackage --foreign chruby-fish
 AddPackage --foreign fish-lsp
 AddPackage --foreign jdtls
 AddPackage --foreign kotlin-language-server
+AddPackage --foreign ruby-install
 AddPackage --foreign vscode-langservers-extracted
 
 # Agent and assistant tooling.
