@@ -21,6 +21,11 @@ CopyFile "/etc/security/limits.conf"
 # DMS-launched games inherit its limits; the vendor unit caps nofile below ESYNC's requirement.
 CopyFile "/etc/systemd/user/dms.service.d/nofile.conf"
 
+# XDG autostart. Hyprland's session target does not pull it in, so packaged
+# autostart entries (e.g. kdeconnectd) never run. Entries apply OnlyShowIn and
+# NotShowIn at start; suppress unwanted ones with Hidden=true in ~/.config/autostart.
+CopyFile "/etc/systemd/user/hyprland-session.target.d/xdg-autostart.conf"
+
 # Google Drive. Install and globally enable the user unit, but let its
 # ConditionPathExists gate keep it inert until the user has enrolled rclone.
 # The config and OAuth material remain user-owned state outside aconfmgr.
