@@ -1,5 +1,14 @@
 {
+  "dankGifSearch": {
+    "enabled": true
+  },
   "dankKDEConnect": {
+    "enabled": true
+  },
+  "dankLauncherKeys": {
+    "enabled": true
+  },
+  "dankPomodoroTimer": {
     "enabled": true
   }
 }
