@@ -77,6 +77,20 @@ esac''')
         self.assertIn("cursor_frozen.glsl", log)
         self.assertIn("zellij-choose-tree.wasm", log)
 
+    def test_dms_plugin_restore_runs_only_in_foreground(self):
+        config = self.home / ".config/DankMaterialShell"
+        config.mkdir(parents=True)
+        (config / ".firstlaunch").touch()
+        shared = self.repo / ".config/DankMaterialShell/plugins.lock.json"
+        shared.write_text('{"lockfileVersion": 1, "plugins": {}}\n')
+        self.stub("dms", 'echo "dms $*" >> "$SETUP_LOG"')
+        self.install("--background")
+        self.assertFalse((self.root / "setup.log").exists())
+        self.install()
+        log = (self.root / "setup.log").read_text()
+        self.assertIn("dms plugins restore ", log)
+        self.assertNotIn("--prune", log)
+
     def test_existing_library_directory_and_packages_remain_in_place(self):
         library = self.home / ".local/lib"
         package = library / "python/site-packages/example"

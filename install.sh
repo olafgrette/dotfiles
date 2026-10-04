@@ -150,7 +150,11 @@ if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShel
         # the rest of ~/.config/hypr is DMS-generated state, not configuration.
         symlink_file .config/hypr/monitor-dir.lua
     fi
-    "$DOTFILES/.local/bin/dms-settings" apply
+    dms_args=()
+    if [ "$BACKGROUND" = 1 ]; then
+        dms_args+=(--settings-only)
+    fi
+    "$DOTFILES/.local/bin/dms-settings" apply "${dms_args[@]}"
 fi
 
 # Add statusline config to ~/.claude/settings.json if not already present

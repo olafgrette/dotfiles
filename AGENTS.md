@@ -161,6 +161,19 @@ clipboard contents, caches, and session state are never captured.
   file, tracked patch, and local override are all absent.
 - Clipboard backend preferences take effect when DMS next loads them; applying
   settings does not restart DMS.
+- Capture also exports DMS-managed Git plugins and exact revisions to
+  `plugins.lock.json` beside `--patch`. Apply restores them through `dms plugins
+  restore` before writing settings, without pruning extra installed plugins.
+  Plugin restore may use the network and can partially complete before an error;
+  settings are written only after it succeeds. No shell restart is performed.
+- `plugins.lock.local.json` beside `--local-patch` uses the same DMS lockfile
+  format. Its plugin IDs replace whole shared entries on apply and are excluded
+  from capture; existing shared entries for those IDs are retained. Keep private
+  plugin settings in `plugin_settings.local.json` as well.
+- `--settings-only` skips plugin capture and restore. Background installation
+  uses it to remain network-free; use foreground `dms-settings apply` to restore
+  changed plugin locks. Lockfiles do not cover system plugins or directories
+  without Git provenance. DMS owns the live lockfile; do not symlink it into Git.
 
 DMS's `~/.config/hypr/dms/binds-user.lua` is the narrow exception: it contains
 only user keybind overrides and is linked directly into Git, so Control Center

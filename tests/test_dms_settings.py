@@ -1,6 +1,7 @@
 import importlib.util
 from importlib.machinery import SourceFileLoader
 import json
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -18,6 +19,97 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DmsSettingsTest(unittest.TestCase):
+    def plugin_args(self, root):
+        return SimpleNamespace(
+            live=root / "config/DankMaterialShell/settings.json",
+            patch=root / "shared/settings.patch.json",
+            local_patch=root / "shared/settings.local.json",
+            settings_only=False,
+        )
+
+    def test_plugin_capture_excludes_local_entries_and_keeps_hidden_shared_revision(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.plugin_args(Path(directory))
+            MODULE.atomic_json(args.live, {"preference": True})
+            shared = {"lockfileVersion": 1, "plugins": {"common": {"commit": "old"}}}
+            local = {"lockfileVersion": 1, "plugins": {
+                "common": {"commit": "override"}, "private": {"commit": "private"},
+            }}
+            target = args.patch.with_name("plugins.lock.json")
+            MODULE.atomic_json(target, shared)
+            MODULE.atomic_json(args.local_patch.with_name("plugins.lock.local.json"), local)
+
+            def export(command, **kwargs):
+                self.assertEqual(command[:4], ["dms", "plugins", "lock", "--output"])
+                self.assertEqual(kwargs["env"]["XDG_CONFIG_HOME"], str(args.live.parent.parent))
+                MODULE.atomic_json(Path(command[4]), {"lockfileVersion": 1, "plugins": {
+                    **local["plugins"], "new": {"commit": "new"},
+                }})
+
+            with patch.object(MODULE.subprocess, "run", side_effect=export):
+                MODULE.capture(args)
+            self.assertEqual(MODULE.load_json(target)["plugins"], {
+                "common": {"commit": "old"}, "new": {"commit": "new"},
+            })
+
+    def test_restore_overrides_whole_entries_before_settings_without_pruning(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.plugin_args(Path(directory))
+            MODULE.atomic_json(args.live, {"preference": False})
+            MODULE.atomic_json(args.patch, {"preference": True})
+            MODULE.atomic_json(args.patch.with_name("plugins.lock.json"), {
+                "lockfileVersion": 1, "plugins": {"common": {"path": "old", "repo": "shared"}},
+            })
+            MODULE.atomic_json(args.local_patch.with_name("plugins.lock.local.json"), {
+                "lockfileVersion": 1, "plugins": {"common": {"repo": "local"}},
+            })
+
+            def restore(command, **kwargs):
+                self.assertEqual(command[:3], ["dms", "plugins", "restore"])
+                self.assertEqual(len(command), 4)
+                self.assertEqual(MODULE.load_json(Path(command[3]))["plugins"],
+                                 {"common": {"repo": "local"}})
+                self.assertEqual(MODULE.load_json(args.live), {"preference": False})
+
+            with patch.object(MODULE.subprocess, "run", side_effect=restore) as run:
+                MODULE.apply(args)
+                run.assert_called_once()
+            self.assertEqual(MODULE.load_json(args.live), {"preference": True})
+
+    def test_plugin_failures_preserve_settings_and_shared_lock(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.plugin_args(Path(directory))
+            MODULE.atomic_json(args.live, {"preference": False})
+            MODULE.atomic_json(args.patch, {"preference": True})
+            target = args.patch.with_name("plugins.lock.json")
+            lock = {"lockfileVersion": 1, "plugins": {}}
+            MODULE.atomic_json(target, lock)
+            with patch.object(MODULE.subprocess, "run",
+                              side_effect=subprocess.CalledProcessError(1, ["dms"])):
+                for operation in (MODULE.capture, MODULE.apply):
+                    with self.assertRaises(subprocess.CalledProcessError):
+                        operation(args)
+                    self.assertEqual(MODULE.load_json(args.live), {"preference": False})
+                    self.assertEqual(MODULE.load_json(args.patch), {"preference": True})
+                    self.assertEqual(MODULE.load_json(target), lock)
+            target.write_text('{"lockfileVersion": 2, "plugins": {}}')
+            with self.assertRaisesRegex(ValueError, "version 1"):
+                MODULE.apply(args)
+            self.assertEqual(MODULE.load_json(args.live), {"preference": False})
+
+    def test_settings_only_skips_plugins_and_absent_locks_need_no_dms(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.plugin_args(Path(directory))
+            MODULE.atomic_json(args.live, {})
+            with patch.object(MODULE.subprocess, "run") as run:
+                MODULE.apply(args)
+                args.patch.parent.mkdir(parents=True)
+                args.patch.with_name("plugins.lock.json").write_text("invalid")
+                args.settings_only = True
+                MODULE.capture(args)
+                MODULE.apply(args)
+                run.assert_not_called()
+
     def test_atomic_json_is_stable(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "settings.json"
@@ -40,6 +132,7 @@ class DmsSettingsTest(unittest.TestCase):
             })
             MODULE.atomic_json(local_patch, {"localOnly": 2})
             args = SimpleNamespace(
+                settings_only=True,
                 live=live,
                 patch=patch,
                 local_patch=local_patch,
@@ -55,6 +148,7 @@ class DmsSettingsTest(unittest.TestCase):
             config.mkdir()
             shared.mkdir()
             args = SimpleNamespace(
+                settings_only=True,
                 live=config / "settings.json",
                 patch=shared / "settings.patch.json",
                 local_patch=shared / "settings.local.json",
@@ -87,6 +181,7 @@ class DmsSettingsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             args = SimpleNamespace(
+                settings_only=True,
                 live=root / "settings.json", patch=root / "settings.patch.json",
                 local_patch=root / "settings.local.json",
             )
@@ -106,6 +201,7 @@ class DmsSettingsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             args = SimpleNamespace(
+                settings_only=True,
                 live=root / "settings.json", patch=root / "settings.patch.json",
                 local_patch=root / "settings.local.json",
             )
@@ -117,6 +213,7 @@ class DmsSettingsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             args = SimpleNamespace(
+                settings_only=True,
                 live=root / "settings.json", patch=root / "settings.patch.json",
                 local_patch=root / "settings.local.json",
             )
@@ -165,6 +262,7 @@ class DmsSettingsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             args = SimpleNamespace(
+                settings_only=True,
                 live=root / "settings.json", patch=root / "settings.patch.json",
                 local_patch=root / "settings.local.json",
             )
@@ -178,6 +276,7 @@ class DmsSettingsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             args = SimpleNamespace(
+                settings_only=True,
                 live=root / "settings.json", patch=root / "settings.patch.json",
                 local_patch=root / "settings.local.json",
             )

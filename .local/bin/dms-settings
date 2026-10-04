@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture and apply sparse DankMaterialShell settings."""
+"""Capture and apply sparse DankMaterialShell settings and managed plugins."""
 
 from __future__ import annotations
 
@@ -194,6 +194,63 @@ def settings_files(args: argparse.Namespace):
         ), False
 
 
+def plugin_lock(path: Path) -> dict:
+    lock = load_json(path, missing={"lockfileVersion": 1, "plugins": {}})
+    if lock.get("lockfileVersion") != 1 or not isinstance(lock.get("plugins"), dict):
+        raise ValueError(f"{path}: expected a version 1 DMS plugin lockfile")
+    if not all(isinstance(entry, dict) for entry in lock["plugins"].values()):
+        raise ValueError(f"{path}: expected plugin objects")
+    return lock
+
+
+def run_plugins(args: argparse.Namespace, *command: str) -> None:
+    # DMS resolves plugins through XDG_CONFIG_HOME, not its shell UI --config flag.
+    config = args.live.absolute().parent
+    if config.name != "DankMaterialShell":
+        raise ValueError("plugin operations require --live inside a DankMaterialShell directory; "
+                         "use --settings-only for other paths")
+    subprocess.run(["dms", "plugins", *command], check=True,
+                   env={**os.environ, "XDG_CONFIG_HOME": str(config.parent)})
+
+
+def capture_plugins(args: argparse.Namespace) -> tuple[Path, dict]:
+    target = args.patch.with_name("plugins.lock.json")
+    shared = plugin_lock(target)
+    local = plugin_lock(args.local_patch.with_name("plugins.lock.local.json"))
+    with tempfile.TemporaryDirectory(prefix="dms-plugins-") as directory:
+        exported = Path(directory) / "plugins.lock.json"
+        run_plugins(args, "lock", "--output", str(exported))
+        if not exported.exists():
+            raise FileNotFoundError(exported)
+        captured = plugin_lock(exported)
+    # Keep private plugins out of Git and preserve shared revisions hidden locally.
+    captured["plugins"] = {
+        key: value for key, value in captured["plugins"].items()
+        if key not in local["plugins"]
+    }
+    captured["plugins"].update({
+        key: value for key, value in shared["plugins"].items()
+        if key in local["plugins"]
+    })
+    return target, captured
+
+
+def restore_plugins(args: argparse.Namespace) -> None:
+    target = args.patch.with_name("plugins.lock.json")
+    local = args.local_patch.with_name("plugins.lock.local.json")
+    if not target.exists() and not local.exists():
+        return
+    shared = plugin_lock(target)
+    overrides = plugin_lock(local)
+    # Replace whole entries: a local repo must not inherit a shared monorepo path.
+    desired = {**shared, "plugins": {**shared["plugins"], **overrides["plugins"]}}
+    with tempfile.TemporaryDirectory(prefix="dms-plugins-") as directory:
+        merged = Path(directory) / "plugins.lock.json"
+        atomic_json(merged, desired)
+        # Extra installed plugins remain local. DMS validates and restores revisions.
+        run_plugins(args, "restore", str(merged))
+
+
 def capture(args: argparse.Namespace) -> int:
     captures = []
     for paths, primary in settings_files(args):
@@ -215,10 +272,13 @@ def capture(args: argparse.Namespace) -> int:
         patch.update({key: value for key, value in shared.items() if key in local_patch})
         captures.append((paths.patch, patch))
 
+    if not args.settings_only:
+        captures.append(capture_plugins(args))
+
     # Validate every source before changing any tracked file.
     for path, patch in captures:
         changed = atomic_json(path, patch)
-        print(f"Captured {len(patch)} DMS settings in {path.name}"
+        print(f"Captured {path.name}"
               + ("" if changed else " (unchanged)"))
     for path, _ in captures:
         offer_commit(Path(__file__).resolve().parents[2], path)
@@ -249,6 +309,9 @@ def apply(args: argparse.Namespace) -> int:
     for paths, primary in files:
         for path in (paths.patch, paths.local_patch, paths.live):
             load_json(path, missing={})
+    # Leave settings untouched if plugin validation or restoration fails.
+    if not args.settings_only:
+        restore_plugins(args)
     for paths, primary in files:
         apply_file(paths, primary)
     return 0
@@ -256,16 +319,19 @@ def apply(args: argparse.Namespace) -> int:
 
 def parser() -> argparse.ArgumentParser:
     repo = Path(__file__).resolve().parents[2]
-    config = Path.home() / ".config/DankMaterialShell"
+    config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "DankMaterialShell"
     result = argparse.ArgumentParser(
         description=__doc__,
         epilog="Apply replaces portable settings with the tracked patches and local overrides. "
                "Capture writes current portable settings back to the patches. Also handles sibling "
-               "clsettings and plugin_settings files. Does not restart DMS.",
+               "clsettings, plugin_settings and plugins.lock files. Plugin restore may use the "
+               "network and retains extra installed plugins. Does not restart DMS.",
     )
     result.add_argument("--live", type=Path, default=config / "settings.json")
     result.add_argument("--patch", type=Path, default=repo / ".config/DankMaterialShell/settings.patch.json")
     result.add_argument("--local-patch", type=Path, default=repo / ".config/DankMaterialShell/settings.local.json")
+    result.add_argument("--settings-only", action="store_true",
+                        help="skip plugin lock capture/restore (used by background installation)")
     result.add_argument("command", choices=("apply", "capture"))
     return result
 
