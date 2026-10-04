@@ -1,0 +1,10 @@
+{
+  "lockfileVersion": 1,
+  "plugins": {
+    "dankKDEConnect": {
+      "commit": "e774a9756f2a50499c37a5513f28bee4ebe81d73",
+      "path": "DankKDEConnect",
+      "repo": "https://github.com/AvengeMedia/dms-plugins"
+    }
+  }
+}
