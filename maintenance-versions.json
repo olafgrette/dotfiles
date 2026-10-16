@@ -3,7 +3,7 @@
     "fish": {
       "upstream": "https://github.com/fish-shell/fish-shell",
       "reviewedThrough": "4.9.3",
-      "reviewedOn": "2026-10-02",
+      "reviewedOn": "2026-10-16",
       "source": "https://fishshell.com/docs/current/relnotes.html",
       "commands": [
         "fish"
@@ -28,13 +28,13 @@
       },
       "status": "reviewed",
       "reviewedThrough": "1.26.0",
-      "reviewedOn": "2026-10-02",
+      "reviewedOn": "2026-10-16",
       "notes": "Initial baseline: 1.26.0 release notes only. Timezone handling changed; no migration needed for the tracked local %H:%M format. Older releases not reviewed."
     },
     "ghostty": {
       "upstream": "https://github.com/ghostty-org/ghostty",
       "reviewedThrough": "1.3.1",
-      "reviewedOn": "2026-10-02",
+      "reviewedOn": "2026-10-16",
       "source": "https://ghostty.org/docs/install/release-notes/1-3-1",
       "commands": [
         "ghostty"
@@ -49,7 +49,7 @@
     "zellij": {
       "upstream": "https://github.com/zellij-org/zellij",
       "reviewedThrough": "0.45.1",
-      "reviewedOn": "2026-10-02",
+      "reviewedOn": "2026-10-16",
       "source": "https://github.com/zellij-org/zellij/blob/main/CHANGELOG.md",
       "commands": [
         "zellij"
@@ -63,7 +63,7 @@
     },
     "tmux": {
       "upstream": "https://github.com/tmux/tmux",
-      "source": "https://raw.githubusercontent.com/tmux/tmux/3.7c/CHANGES",
+      "source": "https://raw.githubusercontent.com/tmux/tmux/3.8/CHANGES",
       "commands": [
         "tmux"
       ],
@@ -73,9 +73,9 @@
         ]
       },
       "status": "reviewed",
-      "reviewedThrough": "3.7c",
-      "reviewedOn": "2026-10-02",
-      "notes": "Initial baseline: 3.7 through 3.7c and the 3.7 release notes. No required config changes; copy-mode line numbers are optional. Older releases not reviewed."
+      "reviewedThrough": "3.8",
+      "reviewedOn": "2026-10-16",
+      "notes": "Initial baseline: 3.7 through 3.7c and the 3.7 release notes. No required config changes; copy-mode line numbers are optional. Older releases not reviewed. Reviewed 3.7c to 3.8: new theme defaults, floating panes, event hooks and copy-mode behavior. No required migration found in tracked bindings. Retain explicit mouse on for older hosts. Installed 3.7c; 3.8 runtime behavior remains untested. The previous report incorrectly excluded 3.8 as a release candidate; current upstream lists it as stable."
     },
     "helix": {
       "upstream": "https://github.com/helix-editor/helix",
@@ -91,7 +91,7 @@
       },
       "status": "reviewed",
       "reviewedThrough": "25.07.1",
-      "reviewedOn": "2026-10-02",
+      "reviewedOn": "2026-10-16",
       "notes": "Initial baseline: 25.07.1 release notes plus 25.07 upgrade notes. Tracked keymaps do not use changed command-mode syntax. Markdown and extracted HTML/CSS/JSON servers are installed and found by health checks. Selected JavaScript/TypeScript, Java, Kotlin, Python, Fish, Bash, Lua, TOML and YAML servers are declared and found by post-apply Helix health checks. These checks confirm executable discovery, not project-level LSP operation. User prefers one server per configured language, selecting the first Helix default: ty for Python, taplo for TOML, yaml-language-server for YAML and vscode-html-language-server for HTML. Markdown intentionally retains marksman, markdown-oxide and harper-ls. Extra Python, TOML and Ansible package declarations were removed. User otherwise prefers Helix defaults; Kotlin default is deprecated upstream and its AUR package requires Java 11. After user installed the rustup component, rust-analyzer --version succeeds (1.88.0). Rustfmt works; lldb-dap is absent. Older releases not reviewed."
     },
     "hyprland": {
@@ -107,7 +107,7 @@
       },
       "status": "reviewed",
       "reviewedThrough": "v0.56.2",
-      "reviewedOn": "2026-10-02",
+      "reviewedOn": "2026-10-16",
       "notes": "Initial baseline: v0.56.2 patch notes, with v0.56.0 upgrade notes and v0.56.1 Lua module-loading fixes inspected. Tracked bindings already use Lua. No demonstrated native replacement for monitor-dir.lua; retain it. Older releases not reviewed."
     },
     "greetd": {
@@ -138,9 +138,9 @@
     },
     "dankmaterialshell": {
       "upstream": "https://github.com/AvengeMedia/DankMaterialShell",
-      "reviewedThrough": "v1.6.2",
-      "reviewedOn": "2026-10-02",
-      "source": "https://github.com/AvengeMedia/DankMaterialShell/releases/tag/v1.6.2",
+      "reviewedThrough": "v1.6.3",
+      "reviewedOn": "2026-10-16",
+      "source": "https://github.com/AvengeMedia/DankMaterialShell/releases/tag/v1.6.3",
       "commands": [
         "dms"
       ],
@@ -150,7 +150,7 @@
         ]
       },
       "status": "reviewed",
-      "notes": "Reviewed v1.6.1 to v1.6.2. Clipboard, display and focused-monitor fixes need no tracked settings migration. User chose to retain nofile.conf at 524288 for both limits; removing it would lower the soft limit to the vendor value of 16384 (vendor hard limit: infinity). Global bar shadows remain disabled by our patch."
+      "notes": "Reviewed v1.6.1 to v1.6.2. Clipboard, display and focused-monitor fixes need no tracked settings migration. User chose to retain nofile.conf at 524288 for both limits; removing it would lower the soft limit to the vendor value of 16384 (vendor hard limit: infinity). Global bar shadows remain disabled by our patch. Reviewed v1.6.2 to v1.6.3: external-edit preservation, lock-screen display selection, monitor wake after automatic lock, refresh rate after resume and generated Hyprland target ordering fixes. No tracked settings migration identified. Recommend upgrade and manual lock/suspend/resume checks, including interaction with lockScreenPowerOffMonitorsOnLock. Installed 1.6.2; new behavior remains untested."
     },
     "quickshell": {
       "upstream": "https://git.outfoxxed.me/quickshell/quickshell",
@@ -213,10 +213,10 @@
       },
       "upstream": "https://github.com/rclone/rclone",
       "status": "reviewed",
-      "reviewedThrough": "v1.75.1",
-      "reviewedOn": "2026-10-02",
-      "source": "https://rclone.org/changelog/#v1-75-1-2026-09-04",
-      "notes": "Initial baseline: v1.75.1 patch notes only. Bisync empty-file accounting, crypt directory names and VFS fixes are relevant; no required wrapper or mount changes identified. Older releases not reviewed."
+      "reviewedThrough": "v1.75.2",
+      "reviewedOn": "2026-10-16",
+      "source": "https://rclone.org/changelog/#v1-75-2-2026-10-09",
+      "notes": "Initial baseline: v1.75.1 patch notes only. Bisync empty-file accounting, crypt directory names and VFS fixes are relevant; no required wrapper or mount changes identified. Older releases not reviewed. Reviewed v1.75.1 to v1.75.2: security fixes and VFS cached-read, modtime and shutdown fixes. Recommend upgrade, especially for the full-cache Drive mount. No required mount-unit or bisync wrapper changes identified. Installed 1.75.1; upgraded runtime behavior remains untested."
     },
     "bitwarden-cli": {
       "commands": [
@@ -229,10 +229,10 @@
       },
       "upstream": "https://github.com/bitwarden/clients",
       "status": "reviewed",
-      "reviewedThrough": "cli-v2026.9.1",
-      "reviewedOn": "2026-10-02",
-      "source": "https://github.com/bitwarden/clients/releases/tag/cli-v2026.9.1",
-      "notes": "Initial baseline: CLI v2026.2.0; older releases not reviewed. Reviewed subsequent published releases 2026.3.0, 2026.4.1, 2026.4.2, 2026.5.0, 2026.6.0, 2026.7.0, 2026.8.0, 2026.9.0 and 2026.9.1. Recommend upgrading for API-key local-storage and other security fixes. Login password-reset flows were removed; SDK login/unlock/sync handling changed. The get-item visibility fix redacts protected values when viewPassword is false; sync helpers require access to the stored secrets and already reject missing values. No required command-syntax change identified. Upgrade and live-vault validation of unlock, sync, get item and lock remain follow-up work; no live vault was accessed."
+      "reviewedThrough": "cli-v2026.10.0",
+      "reviewedOn": "2026-10-16",
+      "source": "https://github.com/bitwarden/clients/releases/tag/cli-v2026.10.0",
+      "notes": "Initial baseline: CLI v2026.2.0; older releases not reviewed. Reviewed subsequent published releases 2026.3.0, 2026.4.1, 2026.4.2, 2026.5.0, 2026.6.0, 2026.7.0, 2026.8.0, 2026.9.0 and 2026.9.1. Recommend upgrading for API-key local-storage and other security fixes. Login password-reset flows were removed; SDK login/unlock/sync handling changed. The get-item visibility fix redacts protected values when viewPassword is false; sync helpers require access to the stored secrets and already reject missing values. No required command-syntax change identified. Upgrade and live-vault validation of unlock, sync, get item and lock remain follow-up work; no live vault was accessed. Reviewed cli-v2026.9.1 to cli-v2026.10.0: SDK decryption changes, dependency security updates and flag-gated desktop biometric unlock. No required syntax change identified for the sync helpers. Installed CLI remains 2026.2.0. Upgrade and live-vault validation remain outstanding; biometric integration is optional and not implemented."
     }
   }
 }
