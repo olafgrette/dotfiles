@@ -15,6 +15,10 @@
       "commit": "e774a9756f2a50499c37a5513f28bee4ebe81d73",
       "path": "DankLauncherKeys",
       "repo": "https://github.com/AvengeMedia/dms-plugins"
+    },
+    "screenRecorderYS": {
+      "commit": "e3014914bd0efae92ba525dff52919eea39b58c3",
+      "repo": "https://github.com/smithyyang/dms-screen-recorder"
     }
   }
 }
