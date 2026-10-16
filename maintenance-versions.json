@@ -233,6 +233,18 @@
       "reviewedOn": "2026-10-16",
       "source": "https://github.com/bitwarden/clients/releases/tag/cli-v2026.10.0",
       "notes": "Initial baseline: CLI v2026.2.0; older releases not reviewed. Reviewed subsequent published releases 2026.3.0, 2026.4.1, 2026.4.2, 2026.5.0, 2026.6.0, 2026.7.0, 2026.8.0, 2026.9.0 and 2026.9.1. Recommend upgrading for API-key local-storage and other security fixes. Login password-reset flows were removed; SDK login/unlock/sync handling changed. The get-item visibility fix redacts protected values when viewPassword is false; sync helpers require access to the stored secrets and already reject missing values. No required command-syntax change identified. Upgrade and live-vault validation of unlock, sync, get item and lock remain follow-up work; no live vault was accessed. Reviewed cli-v2026.9.1 to cli-v2026.10.0: SDK decryption changes, dependency security updates and flag-gated desktop biometric unlock. No required syntax change identified for the sync helpers. Installed CLI remains 2026.2.0. Upgrade and live-vault validation remain outstanding; biometric integration is optional and not implemented."
+    },
+    "udiskie": {
+      "commands": [
+        "udiskie"
+      ],
+      "packages": {
+        "arch": [
+          "udiskie"
+        ]
+      },
+      "upstream": "https://github.com/coldfix/udiskie",
+      "status": "pending"
     }
   }
 }

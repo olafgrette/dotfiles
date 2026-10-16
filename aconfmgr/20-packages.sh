@@ -93,6 +93,9 @@ AddPackage brightnessctl
 AddPackage dgop
 AddPackage matugen
 AddPackage nwg-displays
+AddPackage udiskie
+# AppIndicator tray support for udiskie under Wayland.
+AddPackage libappindicator-gtk3
 AddPackage --foreign dankcalendar-bin
 AddPackage --foreign dsearch-bin
 

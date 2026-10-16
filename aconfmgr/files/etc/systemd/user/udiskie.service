@@ -1,0 +1,15 @@
+[Unit]
+Description=Removable media automount and tray controls
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+# udiskie reads the user's untracked ~/.config/udiskie/config.yml by default.
+# Local service overrides: ~/.config/systemd/user/udiskie.service.d/override.local.conf
+ExecStart=/usr/bin/udiskie --tray --appindicator
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

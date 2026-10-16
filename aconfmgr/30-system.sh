@@ -26,6 +26,10 @@ CopyFile "/etc/systemd/user/dms.service.d/nofile.conf"
 # NotShowIn at start; suppress unwanted ones with Hidden=true in ~/.config/autostart.
 CopyFile "/etc/systemd/user/hyprland-session.target.d/xdg-autostart.conf"
 
+# Removable-media automount and tray controls, limited to graphical sessions.
+CopyFile "/etc/systemd/user/udiskie.service"
+CreateLink "/etc/systemd/user/graphical-session.target.wants/udiskie.service" "/etc/systemd/user/udiskie.service"
+
 # Google Drive. Install and globally enable the user unit, but let its
 # ConditionPathExists gate keep it inert until the user has enrolled rclone.
 # The config and OAuth material remain user-owned state outside aconfmgr.
