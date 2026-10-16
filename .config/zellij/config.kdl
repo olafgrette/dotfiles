@@ -170,6 +170,8 @@ keybinds clear-defaults=true {
         bind "Alt o" { MoveTab "right"; }
         bind "Alt p" { TogglePaneInGroup; }
         bind "Alt Shift p" { ToggleGroupMarking; }
+    }
+    normal {
         // Fetched and version-pinned by install.sh. A remote https: location
         // did not load reliably.
         bind "w" {
