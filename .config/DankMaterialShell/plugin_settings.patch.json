@@ -3,12 +3,13 @@
     "enabled": true
   },
   "dankKDEConnect": {
-    "enabled": true
+    "enabled": true,
+    "selectedDeviceId": "d5cf3d348a2b40499432f4065df9683e"
   },
   "dankLauncherKeys": {
     "enabled": true
   },
-  "dankPomodoroTimer": {
+  "screenRecorderYS": {
     "enabled": true
   }
 }
