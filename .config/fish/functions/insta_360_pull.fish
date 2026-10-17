@@ -4,8 +4,8 @@ function insta_360_pull --description 'Copy Insta360 recordings and proxies into
         printf '%s\n' \
             'Usage: insta_360_pull [--dry-run] [--source MOUNT] [--destination DIR]' \
             'Copies VID .insv files and paired LRV .lrv files. Never deletes source files.' \
-            'Folders use the camera filename timestamp, truncated to minutes (no timezone conversion).' \
-            'Copies compare checksums; dry runs compare size and modification time for speed.' \
+            'Folders use YYYY-MM-DDTHH-MM from the camera filename (no timezone conversion).' \
+            'Existing files with the same name and size are skipped (no content check).' \
             'Stop recording before running.'
         return 0
     end
@@ -19,7 +19,7 @@ function insta_360_pull --description 'Copy Insta360 recordings and proxies into
         printf 'Camera DCIM directory not found: %s\n' "$source/DCIM" >&2
         return 1
     end
-    # Absolute paths keep the colon in HH:MM from being read as a remote host.
+    # Resolve relative destinations before constructing recording paths.
     set destination (path resolve -- "$destination"); or return 1
     set -l files "$source"/DCIM/**/*.insv "$source"/DCIM/**/*.lrv
     if test (count $files) -eq 0
@@ -50,7 +50,7 @@ function insta_360_pull --description 'Copy Insta360 recordings and proxies into
                 return 1
             end
         end
-        set -l stamp (string replace -r '^(VID|LRV)_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2}).*$' '$2-$3-$4T$5:$6' -- "$name")
+        set -l stamp (string replace -r '^(VID|LRV)_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2}).*$' '$2-$3-$4T$5-$6' -- "$name")
         set -l target "$destination/$stamp/$name"
         if contains -- "$target" $targets
             printf 'Multiple source files map to: %s\n' "$target" >&2
@@ -60,18 +60,16 @@ function insta_360_pull --description 'Copy Insta360 recordings and proxies into
     end
 
     printf 'Ready: %d recordings, %d files -> %s\n' (count $recordings) (count $files) "$destination"
-    set -l options --times --partial-dir=.rsync-partial --no-whole-file --mkpath --human-readable --itemize-changes --info=progress2 --outbuf=L
+    set -l options --times --size-only --partial-dir=.rsync-partial --no-whole-file --mkpath --human-readable --itemize-changes --info=progress2 --outbuf=L
     if set -q _flag_dry_run
         set -a options --dry-run
-    else
-        set -a options --checksum
     end
     for index in (seq (count $files))
         printf '\n[%d/%d] %s\n' $index (count $files) (path basename -- "$files[$index]")
         if set -q _flag_dry_run
-            echo 'Previewing changes (size and modification time)...'
+            echo 'Previewing changes (filename and size)...'
         else
-            echo 'Reading checksums, then copying if needed. Large files can take minutes before transfer progress appears.'
+            echo 'Checking filename and size, then copying if needed...'
         end
         command rsync $options -- "$files[$index]" "$targets[$index]"
         set -l result $status
