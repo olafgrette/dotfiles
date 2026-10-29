@@ -74,12 +74,12 @@ AddPackage vlc-plugin-ffmpeg
 AddPackage vulkan-tools
 
 # Desktop session.
-AddPackage dms-shell
+AddPackage dux-shell
 AddPackage quickshell
 AddPackage hyprland
 AddPackage greetd
 AddPackage uwsm
-AddPackage --foreign greetd-dms-greeter-git
+AddPackage --foreign dux-greeter-bin
 
 # Resolve virtual desktop dependencies without interactive provider prompts.
 AddPackage gnome-keyring
@@ -90,14 +90,14 @@ AddPackage xdg-desktop-portal-hyprland
 
 # Desktop shell and display configuration.
 AddPackage brightnessctl
-AddPackage dgop
+AddPackage dux-gop
 AddPackage matugen
 AddPackage nwg-displays
 AddPackage udiskie
 # AppIndicator tray support for udiskie under Wayland.
-AddPackage libappindicator-gtk3
-AddPackage --foreign dankcalendar-bin
-AddPackage --foreign dsearch-bin
+AddPackage libappindicator
+AddPackage --foreign dux-calendar-bin
+AddPackage --foreign dux-search-bin
 
 # Desktop applications and GTK/Qt integration.
 AddPackage adw-gtk-theme
@@ -109,7 +109,7 @@ AddPackage kimageformats
 AddPackage nautilus
 AddPackage shotwell
 
-# DMS generates KDE color schemes for Qt applications.
+# Dux Shell generates KDE color schemes for Qt applications.
 AddPackage --foreign qt6ct-kde
 
 # Terminal environment.
@@ -188,6 +188,7 @@ AddPackage discord
 AddPackage firefox
 AddPackage firefoxpwa # A tool to install, manage and use Progressive Web Apps (PWAs) in Mozilla Firefox (native component)
 AddPackage signal-desktop
+AddPackage torbrowser-launcher
 AddPackage --foreign google-chrome
 # Zoom, with the Qt runtimes it optionally loads.
 AddPackage --foreign zoom
@@ -200,6 +201,8 @@ AddPackage lib32-harfbuzz
 AddPackage lib32-libpulse
 AddPackage lutris
 AddPackage steam
+AddPackage wine
+AddPackage winetricks
 AddPackage --foreign minecraft-launcher
 AddPackage --foreign protonplus
 

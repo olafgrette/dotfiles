@@ -18,7 +18,7 @@ CopyFile "/etc/fuse.conf"
 # PAM login limits — raise the hard nofile ceiling for PAM sessions.
 CopyFile "/etc/security/limits.conf"
 
-# DMS-launched games inherit its limits; the vendor unit caps nofile below ESYNC's requirement.
+# Dux-launched games inherit its limits; the vendor unit caps nofile below ESYNC's requirement.
 CopyFile "/etc/systemd/user/dms.service.d/nofile.conf"
 
 # XDG autostart. Hyprland's session target does not pull it in, so packaged
@@ -66,7 +66,7 @@ CreateLink "/etc/systemd/system/multi-user.target.wants/NetworkManager.service" 
 CreateLink "/etc/systemd/system/network-online.target.wants/NetworkManager-wait-online.service" "/usr/lib/systemd/system/NetworkManager-wait-online.service"
 CreateLink "/etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service" "/usr/lib/systemd/system/NetworkManager-dispatcher.service"
 
-# Display manager — vendor greetd runs DMS on Hyprland as the generic greeter account.
+# Display manager — vendor greetd runs Dux Greeter on Hyprland as the generic greeter account.
 CopyFile "/etc/greetd/config.toml"
 CopyFile "/etc/tmpfiles.d/dms-greeter-session.conf"
 CreateLink "/etc/systemd/system/display-manager.service" "/usr/lib/systemd/system/greetd.service"
