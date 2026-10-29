@@ -74,7 +74,7 @@ if [ "$(distro_id)" = arch ] && grep -qxF "$HOST" "$REPO/personal-hosts"; then
             die "Hyprland configuration is absent, but Ghostty is linked into the repo; move that link aside and run dms setup manually"
         fi
         command -v dms >/dev/null 2>&1 ||
-            die "missing prerequisite: dms; aconf.sh apply should install dms-shell"
+            die "missing prerequisite: dms; aconf.sh apply should install dux-shell"
         dms setup || die "dms setup failed or was aborted"
         [ -d "$HOME/.config/hypr" ] ||
             die "dms setup completed without creating a Hyprland configuration"

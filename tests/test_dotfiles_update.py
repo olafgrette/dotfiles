@@ -75,6 +75,21 @@ class UpdateTest(unittest.TestCase):
         self.assertFalse(self.marker.exists())
         self.assertEqual((self.repo / "README.md").read_text(), "new documentation\n")
 
+    def test_dux_readiness_and_local_overrides_trigger_convergence(self):
+        config = self.home / "xdg-config"
+        with patch.dict(os.environ, {"XDG_CONFIG_HOME": str(config)}):
+            runner = update.Runner()
+            initial = update.fingerprint(runner)
+            marker = config / "dms/.firstlaunch"
+            marker.parent.mkdir(parents=True)
+            marker.touch()
+            ready = update.fingerprint(runner)
+            self.assertNotEqual(ready, initial)
+            local = self.repo / ".config/dms/settings.local.json"
+            local.parent.mkdir(parents=True)
+            local.write_text('{"preference": true}')
+            self.assertNotEqual(update.fingerprint(runner), ready)
+
     def test_changed_inputs_apply_once_and_local_overlay_changes_apply(self):
         self.assertEqual(self.run_update(), 0)
         self.change(".config/example", "new setting\n")

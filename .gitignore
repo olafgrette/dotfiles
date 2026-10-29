@@ -18,7 +18,8 @@ UNIVERSAL_AGENT_DIRECTIVES.local.md
 # zellij: third-party plugin wasm, fetched by install.sh
 .config/zellij/plugins/
 
-# DankMaterialShell: machine-specific overrides layered after the shared patch
+# Dux Shell: machine-specific overrides, including pre-2.0 checkout paths
+.config/dms/*.local.json
 .config/DankMaterialShell/*.local.json
 
 # opencode: pure local state, AGENTS.md is generated into $HOME by install.sh

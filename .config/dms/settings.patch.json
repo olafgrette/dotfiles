@@ -1,0 +1,179 @@
+{
+  "acLockTimeout": 300,
+  "acMonitorTimeout": 600,
+  "animationDuration": 4,
+  "barConfigs": [
+    {
+      "attachToScreenEdge": true,
+      "autoHide": false,
+      "autoHideDelay": 250,
+      "borderColor": "surfaceText",
+      "borderEnabled": false,
+      "borderOpacity": 1,
+      "borderThickness": 1,
+      "bottomGap": 0,
+      "centerWidgets": [
+        "music",
+        "clock",
+        "weather",
+        {
+          "enabled": true,
+          "id": "dankKDEConnect"
+        }
+      ],
+      "enabled": true,
+      "followInterfaceStyle": true,
+      "fontScale": 1,
+      "gothCornerRadiusOverride": false,
+      "gothCornerRadiusValue": 12,
+      "gothCornersEnabled": false,
+      "id": "default",
+      "innerPadding": 4,
+      "island": false,
+      "leftWidgets": [
+        {
+          "enabled": true,
+          "id": "launcherButton",
+          "launcherLogoMode": "os"
+        },
+        {
+          "enabled": true,
+          "id": "workspaceSwitcher",
+          "showWorkspaceApps": true,
+          "showWorkspaceIndex": true,
+          "showWorkspacePadding": true,
+          "workspaceFollowFocus": true
+        },
+        "focusedWindow"
+      ],
+      "name": "Main Bar",
+      "noBackground": false,
+      "openOnOverview": false,
+      "popupGapsAuto": true,
+      "popupGapsManual": 4,
+      "position": 0,
+      "rightWidgets": [
+        "systemTray",
+        "clipboard",
+        "cpuUsage",
+        "memUsage",
+        "notificationButton",
+        "battery",
+        "controlCenterButton"
+      ],
+      "spacing": 0,
+      "squareCorners": false,
+      "transparency": 1,
+      "visible": true,
+      "widgetFollowInterfaceStyle": true,
+      "widgetTransparency": 1
+    }
+  ],
+  "barElevationEnabled": false,
+  "batteryLockTimeout": 300,
+  "batteryMonitorTimeout": 300,
+  "builtInPluginSettings": {
+    "dms_clipboard_search": {
+      "trigger": "cb"
+    },
+    "dms_power": {
+      "trigger": "pw"
+    },
+    "dms_qr_generator": {
+      "trigger": "qrg"
+    },
+    "dms_settings_search": {
+      "trigger": "?"
+    }
+  },
+  "calendarBackend": "dankcal",
+  "clipboardClickToPaste": true,
+  "clipboardEnterToPaste": true,
+  "clockFormat": "24h",
+  "currentThemeCategory": "dynamic",
+  "currentThemeName": "dynamic",
+  "dockConfigs": [
+    {
+      "autoHide": false,
+      "borderColor": "surfaceText",
+      "borderEnabled": false,
+      "borderOpacity": 1,
+      "borderThickness": 1,
+      "bottomGap": 0,
+      "editOnRightClick": false,
+      "enabled": false,
+      "followInterfaceStyle": true,
+      "groupByApp": false,
+      "iconSize": 40,
+      "id": "dock",
+      "indicatorStyle": "circle",
+      "isolateDisplays": false,
+      "itemSpacing": 4,
+      "launcherEnabled": false,
+      "launcherLogoBrightness": 0.5,
+      "launcherLogoColorOverride": "",
+      "launcherLogoContrast": 1,
+      "launcherLogoCustomPath": "",
+      "launcherLogoMode": "dank",
+      "launcherLogoSizeOffset": 0,
+      "magnification": false,
+      "magnificationExpand": false,
+      "magnificationProfile": "parabolic",
+      "magnificationScale": 130,
+      "margin": 0,
+      "maxVisibleApps": 0,
+      "maxVisibleRunningApps": 0,
+      "mode": "compact",
+      "name": "Dock",
+      "openOnOverview": false,
+      "order": [],
+      "position": 1,
+      "restoreSpecialWorkspaceOnClick": false,
+      "separatePinnedAndRunningApps": false,
+      "showOnFullscreen": false,
+      "showOverflowBadge": true,
+      "showTrash": false,
+      "smartAutoHide": false,
+      "spacing": 4,
+      "taskbarAlign": "center",
+      "transparency": 1,
+      "trashCustomCommand": "",
+      "trashFileManager": "default",
+      "useOverlayLayer": false,
+      "widgetExpansion": "popout",
+      "widgets": [
+        {
+          "enabled": true,
+          "id": "dock_launcher",
+          "widgetId": "dockLauncher"
+        },
+        {
+          "enabled": true,
+          "id": "dock_apps",
+          "widgetId": "appsDock"
+        },
+        {
+          "enabled": true,
+          "id": "dock_trash",
+          "widgetId": "dockTrash"
+        }
+      ]
+    }
+  ],
+  "enableRippleEffects": false,
+  "hyprlandLayoutBorderSize": 2,
+  "hyprlandLayoutGapsOutOverride": 0,
+  "hyprlandLayoutGapsOverride": 0,
+  "hyprlandLayoutRadiusOverride": 0,
+  "hyprlandResizeOnBorder": true,
+  "lockBeforeSuspend": true,
+  "lockScreenPowerOffMonitorsOnLock": true,
+  "matugenScheme": "scheme-monochrome",
+  "matugenTemplateGhostty": false,
+  "monoFontFamily": "RecMonoCasual Nerd Font Mono",
+  "muxType": "zellij",
+  "networkPreference": "wifi",
+  "reduceMotion": true,
+  "useAutoLocation": true,
+  "useFahrenheit": true
+}

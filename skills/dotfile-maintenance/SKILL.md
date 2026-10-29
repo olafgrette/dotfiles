@@ -26,7 +26,7 @@ they define the host gates, config ownership, local overrides, and checks.
 - Inspect the generated declarations, referenced captured files, and tracked
   diff. `aconf.sh diff` excludes packages and is not a substitute for save.
   The `/etc` allowlist also means save is not an inventory of every system change.
-- Review HOME-layer drift through each tool's actual ownership model. For DMS,
+- Review HOME-layer drift through each tool's actual ownership model. For Dux Shell (DMS),
   use `dms-settings capture` when capturing GUI preferences is in scope. Its
   capture command can offer commits: defer those until the grouped review below
   (noninteractive stdin suppresses its commit prompts). Keep session state and
@@ -80,7 +80,7 @@ For each relevant tool:
 
 1. Use the inventory's command/package mapping to establish the installed
    version and relevant configuration paths. Keep upstream projects distinct even
-   when they share branding: `dms-shell` provides `dms`; the greeter is separate.
+   when they share branding: `dux-shell` provides `dms`; the greeter is separate.
    Missing local installations are coverage gaps, not completed reviews.
 2. Read the last reviewed version from `maintenance-versions.json` at the repo
    root, including unresolved notes and findings in the checkpoint commit body.

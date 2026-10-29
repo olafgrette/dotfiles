@@ -88,7 +88,7 @@ No separate ChatGPT setup is needed before `init.sh`.
 
 ## Host intent
 
-At boot, systemd-tmpfiles seeds DMS Greeter's session memory with
+At boot, systemd-tmpfiles seeds Dux Greeter's session memory with
 `hyprland-uwsm.desktop` if the memory file is absent. Fresh machines default to
 UWSM-managed Hyprland; existing session selections remain unchanged.
 

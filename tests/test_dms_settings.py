@@ -19,9 +19,33 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DmsSettingsTest(unittest.TestCase):
+    def test_legacy_local_overrides_move_without_overwriting_conflicts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            old = repo / ".config/DankMaterialShell"
+            new = repo / ".config/dms"
+            old.mkdir(parents=True)
+            new.mkdir()
+            settings = '{"privatePreference": true}\n'
+            (old / "settings.local.json").write_text(settings)
+            (old / "plugins.lock.local.json").write_text('{"plugins": {}}\n')
+            (new / "plugins.lock.local.json").write_text('{"plugins": {"local": {}}}\n')
+            with self.assertRaisesRegex(ValueError, "migration conflict"):
+                MODULE.migrate_local_overrides(repo)
+            self.assertEqual((old / "settings.local.json").read_text(), settings)
+            self.assertFalse((new / "settings.local.json").exists())
+            self.assertEqual((new / "plugins.lock.local.json").read_text(),
+                             '{"plugins": {"local": {}}}\n')
+            (new / "plugins.lock.local.json").unlink()
+            MODULE.migrate_local_overrides(repo)
+            MODULE.migrate_local_overrides(repo)
+            self.assertEqual((new / "settings.local.json").read_text(), settings)
+            self.assertEqual((new / "plugins.lock.local.json").read_text(), '{"plugins": {}}\n')
+            self.assertEqual(list(old.iterdir()), [])
+
     def plugin_args(self, root):
         return SimpleNamespace(
-            live=root / "config/DankMaterialShell/settings.json",
+            live=root / "config/dms/settings.json",
             patch=root / "shared/settings.patch.json",
             local_patch=root / "shared/settings.local.json",
             settings_only=False,
@@ -74,7 +98,7 @@ class DmsSettingsTest(unittest.TestCase):
             with patch.object(MODULE.subprocess, "run", side_effect=restore) as run:
                 MODULE.apply(args)
                 run.assert_called_once()
-            self.assertEqual(MODULE.load_json(args.live), {"preference": True})
+            self.assertEqual(MODULE.effective_settings(args), {"preference": True})
 
     def test_plugin_failures_preserve_settings_and_shared_lock(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -117,6 +141,34 @@ class DmsSettingsTest(unittest.TestCase):
             first = path.read_bytes()
             self.assertFalse(MODULE.atomic_json(path, {"a": 1, "b": 2}))
             self.assertEqual(path.read_bytes(), first)
+
+    def test_native_precedence_and_private_drop_ins_are_preserved(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.plugin_args(Path(directory))
+            args.settings_only = True
+            MODULE.atomic_json(args.live, {"preference": "base", "newGuiSetting": True})
+            MODULE.atomic_json(args.patch, {"preference": "shared", "nested": {"shared": True}})
+            MODULE.atomic_json(args.local_patch, {"nested": {"local": True}})
+            other = args.live.parent / "config.d/99-work.local.json"
+            MODULE.atomic_json(other, {"preference": "private", "privateOnly": True})
+            MODULE.apply(args)
+            self.assertEqual(MODULE.effective_settings(args), {
+                "preference": "private", "nested": {"local": True},
+                "privateOnly": True, "newGuiSetting": True,
+            })
+            MODULE.capture(args)
+            self.assertEqual(MODULE.load_json(args.patch), {
+                "preference": "shared", "nested": {"shared": True}, "newGuiSetting": True,
+            })
+            self.assertEqual(MODULE.load_json(other), {"preference": "private", "privateOnly": True})
+            before = args.live.read_bytes()
+            other.write_text("invalid")
+            with patch.object(MODULE.subprocess, "run") as run:
+                for operation in (MODULE.capture, MODULE.apply):
+                    with self.assertRaises(ValueError):
+                        operation(args)
+                run.assert_not_called()
+            self.assertEqual(args.live.read_bytes(), before)
 
     def test_capture_reads_sparse_json_without_shell_or_defaults(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -209,52 +261,46 @@ class DmsSettingsTest(unittest.TestCase):
             self.assertFalse((root / "clsettings.json").exists())
             self.assertFalse((root / "plugin_settings.json").exists())
 
-    def test_apply_replaces_portable_settings_and_capture_round_trips(self):
+    def test_native_migration_gui_capture_and_shared_key_removal(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            args = SimpleNamespace(
-                settings_only=True,
-                live=root / "settings.json", patch=root / "settings.patch.json",
-                local_patch=root / "settings.local.json",
-            )
+            args = self.plugin_args(root)
+            args.settings_only = True
             shared = {"muxType": "zellij", "acLockTimeout": 300,
-                      "barConfigs": [{"id": "default", "spacing": 4}],
                       "nested": {"shared": True}, "localSetting": "shared"}
             MODULE.atomic_json(args.patch, shared)
             MODULE.atomic_json(args.local_patch, {"localSetting": "override"})
             MODULE.atomic_json(args.live, {
-                "configVersion": 18, "displayProfiles": {"machine": {}},
-                "barConfigs": [{"id": "default", "spacing": 0,
-                                "screenPreferences": ["local-output"]}],
-                "showSeconds": True, "nested": {"extra": True},
+                "configVersion": 42, "displayProfiles": {"machine": {}},
+                "muxType": "tmux", "acLockTimeout": 200,
+                "showSeconds": True, "nested": {"obsolete": True},
             })
             MODULE.apply(args)
-            expected = {**shared, "configVersion": 18, "displayProfiles": {"machine": {}},
-                        "localSetting": "override", "barConfigs": [
-                            {"id": "default", "spacing": 4,
-                             "screenPreferences": ["local-output"]}]}
-            self.assertEqual(MODULE.load_json(args.live), expected)
-            first_stat = args.live.stat()
+            base = {"configVersion": 42, "displayProfiles": {"machine": {}}, "showSeconds": True}
+            self.assertEqual(MODULE.load_json(args.live), base)
+            self.assertEqual(MODULE.effective_settings(args),
+                             {**base, **shared, "localSetting": "override"})
+            shared_live = args.live.parent / "config.d" / MODULE.SHARED_DROPIN
+            before = shared_live.stat()
             MODULE.apply(args)
-            self.assertEqual(args.live.stat().st_ino, first_stat.st_ino)
-            self.assertEqual(args.live.stat().st_mtime_ns, first_stat.st_mtime_ns)
-            MODULE.capture(args)
-            self.assertEqual(MODULE.load_json(args.patch), shared)
-            # Capture includes GUI additions, edits, and resets to default.
-            gui = MODULE.load_json(args.live)
-            del gui["acLockTimeout"]
+            self.assertEqual(shared_live.stat().st_ino, before.st_ino)
+            self.assertEqual(shared_live.stat().st_mtime_ns, before.st_mtime_ns)
+            # Dux writes edits to the last file owning each top-level key.
+            gui = MODULE.load_json(shared_live)
             gui["muxType"] = "tmux"
-            gui["showSeconds"] = True
-            MODULE.atomic_json(args.live, gui)
+            del gui["acLockTimeout"]
+            MODULE.atomic_json(shared_live, gui)
             MODULE.capture(args)
             captured = {**shared, "muxType": "tmux", "showSeconds": True}
             del captured["acLockTimeout"]
             self.assertEqual(MODULE.load_json(args.patch), captured)
-            # Removing portable keys in Git resets them, even with live GUI edits.
+            MODULE.apply(args)
+            # An adopted base preference now belongs to the native shared file.
+            self.assertNotIn("showSeconds", MODULE.load_json(args.live))
             MODULE.atomic_json(args.patch, {})
             MODULE.apply(args)
-            self.assertEqual(MODULE.load_json(args.live), {
-                "configVersion": 18, "displayProfiles": {"machine": {}},
+            self.assertEqual(MODULE.effective_settings(args), {
+                "configVersion": 42, "displayProfiles": {"machine": {}},
                 "localSetting": "override",
             })
 
@@ -275,16 +321,15 @@ class DmsSettingsTest(unittest.TestCase):
     def test_nested_machine_fields_stay_local_across_capture_and_apply(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            args = SimpleNamespace(
-                settings_only=True,
-                live=root / "settings.json", patch=root / "settings.patch.json",
-                local_patch=root / "settings.local.json",
-            )
+            args = self.plugin_args(root)
+            args.settings_only = True
             live = {
-                "configVersion": 17,
+                "configVersion": 42, "dmsWindowsFloatingSeeded": ["hyprland"],
                 "displayProfiles": {"local": {}},
                 "barConfigs": [{"id": "main", "spacing": 4,
                                 "screenPreferences": ["local-output"], "showOnLastDisplay": False}],
+                "dockConfigs": [{"id": "dock", "enabled": False,
+                                 "screenPreferences": ["local-output"], "showOnLastDisplay": True}],
                 "desktopWidgetInstances": [{"id": "monitor", "positions": {"local-output": {}},
                                             "config": {"displayPreferences": ["local-output"],
                                                        "gpuPciId": "local-gpu", "showCpu": True}}],
@@ -294,19 +339,28 @@ class DmsSettingsTest(unittest.TestCase):
             captured = MODULE.load_json(args.patch)
             self.assertEqual(captured, {
                 "barConfigs": [{"id": "main", "spacing": 4}],
+                "dockConfigs": [{"id": "dock", "enabled": False}],
                 "desktopWidgetInstances": [{"id": "monitor", "config": {"showCpu": True}}],
             })
             MODULE.apply(args)
-            self.assertEqual(MODULE.load_json(args.live), live)
-            # Local monitor changes must not block a shared appearance update.
-            live["barConfigs"][0]["screenPreferences"] = ["another-output"]
-            MODULE.atomic_json(args.live, live)
+            self.assertEqual(MODULE.effective_settings(args), live)
+            shared_live = args.live.parent / "config.d" / MODULE.SHARED_DROPIN
+            gui = MODULE.load_json(shared_live)
+            gui["barConfigs"][0]["screenPreferences"] = ["another-output"]
+            MODULE.atomic_json(shared_live, gui)
             captured["barConfigs"].insert(0, {"id": "extra", "spacing": 2})
             captured["barConfigs"][1]["spacing"] = 8
+            captured["dockConfigs"].insert(0, {"id": "extra", "enabled": False})
+            captured["dockConfigs"][1]["enabled"] = True
             captured["desktopWidgetInstances"][0]["config"]["showCpu"] = False
             MODULE.atomic_json(args.patch, captured)
             MODULE.apply(args)
-            updated = MODULE.load_json(args.live)
+            updated = MODULE.effective_settings(args)
+            self.assertEqual(updated["dockConfigs"], [
+                {"id": "extra", "enabled": False},
+                {"id": "dock", "enabled": True, "screenPreferences": ["local-output"],
+                 "showOnLastDisplay": True},
+            ])
             self.assertEqual(updated["barConfigs"], [
                 {"id": "extra", "spacing": 2},
                 {"id": "main", "spacing": 8, "screenPreferences": ["another-output"],
@@ -315,33 +369,18 @@ class DmsSettingsTest(unittest.TestCase):
             self.assertEqual(updated["desktopWidgetInstances"][0]["config"], {
                 "displayPreferences": ["local-output"], "gpuPciId": "local-gpu", "showCpu": False,
             })
-            # Local appearance overrides also retain existing monitor assignments.
-            MODULE.atomic_json(args.local_patch, {"barConfigs": [
-                {"id": "main", "spacing": 6},
-            ]})
+            # A native local override replaces the entire array, as Dux specifies.
+            override = [{"id": "main", "spacing": 6, "screenPreferences": ["override-output"]}]
+            MODULE.atomic_json(args.local_patch, {"barConfigs": override})
             MODULE.apply(args)
-            self.assertEqual(MODULE.load_json(args.live)["barConfigs"], [
-                {"id": "main", "spacing": 6, "screenPreferences": ["another-output"],
-                 "showOnLastDisplay": False},
-            ])
-            # Explicit local overrides can still select a monitor.
-            MODULE.atomic_json(args.local_patch, {"barConfigs": [
-                {"id": "main", "spacing": 8, "screenPreferences": ["override-output"]},
-            ]})
-            MODULE.apply(args)
-            self.assertEqual(MODULE.load_json(args.live)["barConfigs"][0]["screenPreferences"],
-                             ["override-output"])
-            gui = MODULE.load_json(args.live)
-            gui["barConfigs"][0]["screenPreferences"] = ["gui-output"]
-            MODULE.atomic_json(args.live, gui)
-            MODULE.apply(args)
-            self.assertEqual(MODULE.load_json(args.live)["barConfigs"][0]["screenPreferences"],
-                             ["override-output"])
-            # A new host receives portable instances, never this host's selectors.
-            args.live = root / "fresh/settings.json"
+            self.assertEqual(MODULE.effective_settings(args)["barConfigs"], override)
+            MODULE.capture(args)
+            self.assertEqual(MODULE.load_json(args.patch)["barConfigs"], captured["barConfigs"])
+            # A fresh host receives portable instances without this host's selectors.
+            args.live = root / "fresh/dms/settings.json"
             args.local_patch = root / "fresh/settings.local.json"
             MODULE.apply(args)
-            self.assertEqual(MODULE.load_json(args.live), captured)
+            self.assertEqual(MODULE.effective_settings(args), captured)
 
     def test_offer_commit_stages_and_commits_only_patch(self):
         completed = type("Completed", (), {"stdout": " M settings.patch.json\n"})()

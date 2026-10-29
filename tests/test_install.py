@@ -19,7 +19,7 @@ class InstallTest(unittest.TestCase):
         self.home = self.root / "home"
         self.home.mkdir()
         self.repo = self.root / "repo"
-        tracked = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, check=True,
+        tracked = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=ROOT, check=True,
                                  capture_output=True, text=True).stdout.split("\0")
         for name in set(filter(None, tracked)) | {".local/bin/dotfiles-update"}:
             source = ROOT / name
@@ -78,18 +78,34 @@ esac''')
         self.assertIn("zellij-choose-tree.wasm", log)
 
     def test_dms_plugin_restore_runs_only_in_foreground(self):
-        config = self.home / ".config/DankMaterialShell"
+        config = self.home / ".config/dms"
         config.mkdir(parents=True)
         (config / ".firstlaunch").touch()
-        shared = self.repo / ".config/DankMaterialShell/plugins.lock.json"
+        shared = self.repo / ".config/dms/plugins.lock.json"
         shared.write_text('{"lockfileVersion": 1, "plugins": {}}\n')
         self.stub("dms", 'echo "dms $*" >> "$SETUP_LOG"')
-        self.install("--background")
-        self.assertFalse((self.root / "setup.log").exists())
         self.install()
         log = (self.root / "setup.log").read_text()
         self.assertIn("dms plugins restore ", log)
         self.assertNotIn("--prune", log)
+        (self.root / "setup.log").unlink()
+        self.install("--background")
+        self.assertFalse((self.root / "setup.log").exists())
+        self.assertTrue((config / "config.d/10-dotfiles.json").is_file())
+        self.assertFalse((self.home / ".config/DankMaterialShell").exists())
+
+    def test_background_refuses_first_native_migration_without_changing_settings(self):
+        config = self.home / ".config/dms"
+        config.mkdir(parents=True)
+        (config / ".firstlaunch").touch()
+        settings = '{"existingPreference": true}\n'
+        (config / "settings.json").write_text(settings)
+        result = subprocess.run(["bash", str(self.repo / "install.sh"), "--background"],
+                                env=self.env, text=True, capture_output=True, timeout=15)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("foreground migration", result.stderr)
+        self.assertEqual((config / "settings.json").read_text(), settings)
+        self.assertFalse((config / "config.d").exists())
 
     def test_existing_library_directory_and_packages_remain_in_place(self):
         library = self.home / ".local/lib"

@@ -132,10 +132,10 @@ symlink_file .local/bin/private-sync
 symlink_file .local/bin/dotfiles-update
 symlink_file .claude/statusline-command.sh
 
-# DMS 1.6 writes sparse settings. Merge shared preferences while keeping GUI
-# edits and machine-specific settings local.
-if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShell/.firstlaunch" ]; then
-    # dms-shell owns the unit. DMS setup enables it, and convergence restores
+# Dux Shell 2.0 loads native drop-ins. Publish writable shared and local copies
+# while keeping GUI edits and machine-specific settings out of Git.
+if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/dms/.firstlaunch" ]; then
+    # dux-shell owns the unit. DMS setup enables it, and convergence restores
     # that package-owned service link if local state removes it later.
     mkdir -p "$HOME/.config/systemd/user/graphical-session.target.wants"
     ln -sfn /usr/lib/systemd/user/dms.service \
@@ -152,7 +152,7 @@ if [ "$(uname -s)" = "Linux" ] && is_gui && [ -f "$HOME/.config/DankMaterialShel
     fi
     dms_args=()
     if [ "$BACKGROUND" = 1 ]; then
-        dms_args+=(--settings-only)
+        dms_args+=(--settings-only --no-migrate)
     fi
     "$DOTFILES/.local/bin/dms-settings" apply "${dms_args[@]}"
 fi

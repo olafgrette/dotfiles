@@ -32,7 +32,7 @@ dotfile manager.
   `lib.dotfiles-link` recovery marker until the move completes. Existing
   `lib.bak` backups remain untouched; conflicting entries stop migration.
 - `install.sh` backs up conflicting destinations, creates links, renders agent
-  directives, applies portable DankMaterialShell settings, installs missing
+  directives, applies portable Dux Shell settings, installs missing
   Starship, fetches the Ghostty shader and zellij plugins, and enables Linux
   linger.
   `install.sh --background` skips network setup and linger changes.
@@ -107,7 +107,7 @@ Currently implemented:
 - Fish: `local.fish`, sourced last by `config.fish`
 - tmux: `tmux.local.conf`
 - Ghostty: `ghostty.local.conf` via optional `config-file`
-- DankMaterialShell: `settings.local.json`, merged after the tracked patch
+- Dux Shell: `settings.local.json`, merged after the tracked patch
 - Agent directives: `UNIVERSAL_AGENT_DIRECTIVES.local.md`, appended during rendering
 - `aconf.sh`: `aconf.local.sh`, sourced before dispatch
 - aconfmgr: `aconfmgr/aconfmgr.local`, for temporary or experimental packages
@@ -134,55 +134,66 @@ four per-machine rather than symlinking — the repo holds no copy under a vendo
   after the rendered directives. This is where actual proprietary work instructions go —
   they never enter git history.
 
-## DankMaterialShell settings
+## Dux Shell settings
 
-DMS 1.6 owns a sparse, writable `~/.config/DankMaterialShell/settings.json`; do not symlink
-that file into Git. `.config/DankMaterialShell/settings.patch.json` contains only
-portable preferences captured from that file. DMS handles default suppression;
-we do not parse its source or require a running shell to capture. Serialized color
-objects are retained as DMS writes them. `clsettings.patch.json` and
-`plugin_settings.patch.json` capture clipboard and plugin preferences in full;
-clipboard contents, caches, and session state are never captured.
+Dux Shell 2.0 owns writable `~/.config/dms/settings.json` and native `config.d/`
+drop-ins. Do not symlink these live JSON files into Git: GUI writes can include
+machine fields. `.config/dms/settings.patch.json` holds captured portable intent.
 
-- `dms-settings apply` replaces portable live settings with the tracked patches
-  plus local overrides. Settings absent from both reset to the DMS default.
-  There is no merge baseline. Capture GUI changes before the next apply,
-  including apply from background startup, or they will be overwritten.
-- `dms-settings capture` regenerates the tracked patch from non-default live settings,
-  shows its Git diff, and offers to commit each changed file. Push remains explicit.
-- Display identifiers, usage histories, GPU selection, and other machine/runtime keys
-  are excluded from capture, including nested bar and desktop-widget selectors.
-  Apply preserves those nested machine fields by instance ID.
-- Each patch has an ignored `<name>.local.json` final per-machine overlay. Its
-  top-level keys are excluded from shared capture; existing shared values for
-  those keys are retained. Auxiliary files use the same replacement contract.
+- `dms-settings apply` publishes that patch to `config.d/10-dotfiles.json` and
+  the ignored `settings.local.json` overlay to `config.d/90-dotfiles.local.json`.
+  Dux loads the base first, then drop-ins in lexical order. Later values replace
+  entire top-level objects and arrays; main settings do not use recursive merging.
+- Apply removes duplicate managed keys from the base, including keys removed
+  from the previous shared drop-in. Unmanaged base settings and other drop-ins
+  remain intact. New GUI settings in the base are candidates for explicit capture.
+- Dux writes GUI edits to the last file that owns a setting. Capture those edits
+  before applying repository changes, including background convergence, or the
+  managed drop-ins will be replaced by repository intent.
+- `dms-settings capture` reads the effective native settings and offers to commit
+  each changed patch. Keys owned by local overrides or other drop-ins stay out
+  of shared capture; existing shared values hidden by them are retained.
+- Display identifiers, histories, GPU selection, and migration state are excluded
+  from capture. Apply preserves nested bar, dock, and desktop-widget machine
+  fields by instance ID in the writable shared drop-in. A local array override
+  replaces the whole array and must include its own display selections.
+- Creating `config.d` requires one DMS restart for discovery. Apply does not
+  restart the shell. For the first migration, run `dms-settings apply` followed
+  by `dms restart` in the foreground. Background installation uses `--no-migrate`
+  and records a retryable failure until that migration is done. Later edits
+  reload through Dux's watchers.
+- `clsettings.patch.json` and `plugin_settings.patch.json` remain separate:
+  native shell drop-ins do not cover them. Apply replaces their portable settings
+  and recursively merges each ignored `<name>.local.json` overlay. Capture retains
+  shared values hidden by local top-level keys. Clipboard contents and runtime
+  state never enter Git; KDE Connect device selection belongs in the local overlay.
 - Auxiliary live files sit beside `--live`; patches and local overrides sit beside
   `--patch` and `--local-patch`. An auxiliary family is skipped only when its live
-  file, tracked patch, and local override are all absent.
-- Clipboard backend preferences take effect when DMS next loads them; applying
-  settings does not restart DMS.
-- Capture also exports DMS-managed Git plugins and exact revisions to
-  `plugins.lock.json` beside `--patch`. Apply restores them through `dms plugins
-  restore` before writing settings, without pruning extra installed plugins.
-  Plugin restore may use the network and can partially complete before an error;
-  settings are written only after it succeeds. No shell restart is performed.
-- `plugins.lock.local.json` beside `--local-patch` uses the same DMS lockfile
-  format. Its plugin IDs replace whole shared entries on apply and are excluded
-  from capture; existing shared entries for those IDs are retained. Keep private
-  plugin settings in `plugin_settings.local.json` as well.
-- `--settings-only` skips plugin capture and restore. Background installation
-  uses it to remain network-free; use foreground `dms-settings apply` to restore
-  changed plugin locks. Lockfiles do not cover system plugins or directories
-  without Git provenance. DMS owns the live lockfile; do not symlink it into Git.
+  file, tracked patch, and local override are all absent. Clipboard backend
+  preferences take effect when DMS next loads them.
+- Capture exports managed Git plugins and exact revisions to `plugins.lock.json`
+  beside `--patch`. Apply restores them through `dms plugins restore` before
+  writing settings, without pruning extra installed plugins. Restore may use the
+  network and partially complete before an error; settings remain untouched if
+  it fails. Plugin revisions are not upgraded implicitly.
+- `plugins.lock.local.json` beside `--local-patch` replaces whole shared entries
+  by plugin ID on apply. Those IDs are excluded from capture, preserving their
+  existing shared entries. Keep private plugin settings in the local overlay too.
+- `--settings-only` skips plugin capture and restore. Background installation uses
+  it to stay network-free. Lockfiles exclude system plugins and directories
+  without Git provenance. DMS owns its live lockfile; never symlink it into Git.
+- Dux migrates live `DankMaterialShell` directories to `dms`, leaving compatibility
+  symlinks. The helper moves ignored checkout overrides from the old path before
+  capture or apply and stops on conflicts. The installer requires the new
+  `dms/.firstlaunch` marker, so older desktops do not receive 2.0 settings.
 
-DMS's `~/.config/hypr/dms/binds-user.lua` is the narrow exception: it contains
-only user keybind overrides and is linked directly into Git, so Control Center
+DMS's `~/.config/hypr/dms/binds-user.lua` remains a narrow exception: it contains
+only user keybind overrides and is linked directly into Git. Control Center
 edits intentionally dirty the repository. Keep it to `hl.bind`/`hl.unbind`
-statements — Control Center rewrites the file — and put any logic those binds
-need in a tracked module beside it, as `.config/hypr/monitor-dir.lua` does.
+statements; put logic in a tracked module such as `.config/hypr/monitor-dir.lua`.
 
-Settings capture is explicit; background startup applies repository changes but
-never writes back to the repository.
+Settings capture is explicit. Background startup applies repository changes but
+never writes shared preferences back to the repository.
 
 ## Agent skills
 
@@ -196,8 +207,8 @@ background convergence detects changed skills.
 - `./readiness.sh`: read-only inventory of expected commands and platform dependencies.
 - `bash -n install.sh`: installer syntax.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_private_sync.py tests/test_secret_sync.py`: personal-host gates, local secret materialization, and encrypted sync preservation (temporary local rclone backend; no vault or cloud access).
-- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dms_settings.py`: DMS replacement,
-  capture, parser, and atomic-write behavior.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dms_settings.py`: Dux native precedence,
+  capture, local migration, auxiliary replacement, and atomic-write behavior.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_aconf.py`: system-layer
   gating, apply ordering, and configuration scope regressions.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_init.py`: fresh-machine

@@ -30,7 +30,7 @@ Current winners include:
 * terminal multiplexer: **zellij**
 * editor: **helix**
 * window manager: **hyprland**
-* desktop environment: **DankMaterialShell**
+* desktop environment: **Dux Shell (DMS)**
 * an increasingly unreasonable number of AI agent harnesses
 
 ## Architecture

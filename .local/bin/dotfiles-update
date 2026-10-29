@@ -19,7 +19,8 @@ TIMEOUT = 120
 INPUTS = ("install.sh", ".config", ".local", ".claude", "skills",
           "UNIVERSAL_AGENT_DIRECTIVES.md", "personal-hosts")
 LOCAL_INPUTS = ("UNIVERSAL_AGENT_DIRECTIVES.local.md", *(
-    f".config/DankMaterialShell/{name}.local.json"
+    f".config/{directory}/{name}.local.json"
+    for directory in ("dms", "DankMaterialShell")
     for name in ("settings", "clsettings", "plugin_settings")
 ))
 
@@ -69,7 +70,8 @@ def fingerprint(runner):
         digest.update(b"\0")
     graphical = bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
                      or sys.platform == "darwin")
-    dms_ready = (Path.home() / ".config/DankMaterialShell/.firstlaunch").is_file()
+    config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    dms_ready = (config / "dms/.firstlaunch").is_file()
     digest.update(f"{socket.gethostname()}:{graphical}:{dms_ready}".encode())
     return digest.hexdigest()
 

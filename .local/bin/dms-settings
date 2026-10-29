@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture and apply sparse DankMaterialShell settings and managed plugins."""
+"""Capture and apply sparse Dux Shell settings and managed plugins."""
 
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ from types import SimpleNamespace
 
 
 REQUIRED = object()
+SHARED_DROPIN = "10-dotfiles.json"
+LOCAL_DROPIN = "90-dotfiles.local.json"
 BLOCKED = {
     "activeDisplayProfile",
     "browserUsageHistory",
@@ -23,6 +25,7 @@ BLOCKED = {
     "desktopClockDisplayPreferences",
     "displayProfiles",
     "displayPreviousRefreshModes",
+    "dmsWindowsFloatingSeeded",
     "enabledGpuPciIds",
     "filePickerUsageHistory",
     "frameScreenPreferences",
@@ -82,10 +85,11 @@ def deep_overlay(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any
     return result
 
 
-# These lists remain in settings.json in DMS 1.6. Keep their machine fields
+# These lists remain in settings.json in Dux Shell 2.0. Keep their machine fields
 # local while allowing the rest of each instance to travel between hosts.
 INSTANCE_FIELDS = {
     "barConfigs": {"screenPreferences": None, "showOnLastDisplay": None},
+    "dockConfigs": {"screenPreferences": None, "showOnLastDisplay": None},
     "desktopWidgetInstances": {
         "positions": None,
         "config": {"displayPreferences": None, "gpuPciId": None},
@@ -206,8 +210,8 @@ def plugin_lock(path: Path) -> dict:
 def run_plugins(args: argparse.Namespace, *command: str) -> None:
     # DMS resolves plugins through XDG_CONFIG_HOME, not its shell UI --config flag.
     config = args.live.absolute().parent
-    if config.name != "DankMaterialShell":
-        raise ValueError("plugin operations require --live inside a DankMaterialShell directory; "
+    if config.name != "dms":
+        raise ValueError("plugin operations require --live inside a dms directory; "
                          "use --settings-only for other paths")
     subprocess.run(["dms", "plugins", *command], check=True,
                    env={**os.environ, "XDG_CONFIG_HOME": str(config.parent)})
@@ -251,25 +255,49 @@ def restore_plugins(args: argparse.Namespace) -> None:
         run_plugins(args, "restore", str(merged))
 
 
+def settings_dropins(args: argparse.Namespace):
+    return sorted((args.live.parent / "config.d").glob("*.json"))
+
+
+def effective_settings(args: argparse.Namespace) -> dict:
+    # Match Dux's native top-level precedence, including whole arrays/objects.
+    settings = load_json(args.live, missing={})
+    for path in settings_dropins(args):
+        settings.update(load_json(path))
+    return settings
+
+
+def local_settings_keys(args: argparse.Namespace) -> set[str]:
+    keys = set(load_json(args.local_patch, missing={}))
+    for path in settings_dropins(args):
+        if path.name != SHARED_DROPIN:
+            keys.update(load_json(path))
+    return keys
+
+
 def capture(args: argparse.Namespace) -> int:
     captures = []
     for paths, primary in settings_files(args):
         if not primary and not paths.live.exists():
             continue
-        live = load_json(paths.live)
         if primary:
-            live = portable(live)
-        local_patch = load_json(paths.local_patch, missing={})
+            if not paths.live.exists() and not settings_dropins(paths):
+                raise FileNotFoundError(paths.live)
+            live = portable(effective_settings(paths))
+            local_keys = local_settings_keys(paths)
+        else:
+            live = load_json(paths.live)
+            local_keys = set(load_json(paths.local_patch, missing={}))
         shared = load_json(paths.patch, missing={})
         if primary:
             shared = portable(shared)
         patch = {
             key: value
             for key, value in live.items()
-            if key not in local_patch
+            if key not in local_keys
         }
         # This machine cannot capture shared values hidden by local overrides.
-        patch.update({key: value for key, value in shared.items() if key in local_patch})
+        patch.update({key: value for key, value in shared.items() if key in local_keys})
         captures.append((paths.patch, patch))
 
     if not args.settings_only:
@@ -290,18 +318,33 @@ def apply_file(args: argparse.Namespace, primary: bool = True) -> int:
     local_patch = load_json(args.local_patch, missing={})
     live = load_json(args.live, missing={})
     if primary:
+        directory = args.live.parent / "config.d"
+        shared_path = directory / SHARED_DROPIN
+        local_path = directory / LOCAL_DROPIN
         shared = portable(shared)
-        shared = {**{key: value for key, value in live.items() if key in BLOCKED}, **shared}
-    desired = deep_overlay(shared, local_patch)
-    if primary:
-        desired = localize_instances(desired, live)
-    live_changed = atomic_json(args.live, desired)
+        # Native precedence cannot merge individual bar/dock instances. Keep
+        # their machine fields in the writable live copy, never the Git source.
+        desired = localize_instances(shared, effective_settings(args))
+        owned = (set(load_json(shared_path, missing={})) | set(shared)
+                 | set(load_json(local_path, missing={})) | set(local_patch))
+        # Remove duplicate owned values from the base so deleting a shared key
+        # cannot expose an obsolete pre-migration value. Other base keys stay local.
+        base = {key: value for key, value in live.items() if key not in owned}
+        atomic_json(shared_path, desired)
+        atomic_json(local_path, local_patch)
+        atomic_json(args.live, base)
+        print(f"Applied DMS native drop-ins to {directory}")
+        return 0
+    live_changed = atomic_json(args.live, deep_overlay(shared, local_patch))
     if live_changed:
         print(f"Applied DMS settings to {args.live}")
     return 0
 
 
-def apply(args: argparse.Namespace) -> int:
+def apply(args: argparse.Namespace, *, allow_migration: bool = True) -> int:
+    if not allow_migration and not (args.live.parent / "config.d" / SHARED_DROPIN).is_file():
+        raise ValueError("native Dux drop-ins need foreground migration: "
+                         "run dms-settings apply, then dms restart")
     files = [(paths, primary) for paths, primary in settings_files(args)
              if primary or paths.patch.exists() or paths.local_patch.exists()
              or paths.live.exists()]
@@ -309,6 +352,7 @@ def apply(args: argparse.Namespace) -> int:
     for paths, primary in files:
         for path in (paths.patch, paths.local_patch, paths.live):
             load_json(path, missing={})
+    effective_settings(args)
     # Leave settings untouched if plugin validation or restoration fails.
     if not args.settings_only:
         restore_plugins(args)
@@ -319,27 +363,49 @@ def apply(args: argparse.Namespace) -> int:
 
 def parser() -> argparse.ArgumentParser:
     repo = Path(__file__).resolve().parents[2]
-    config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "DankMaterialShell"
+    config = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "dms"
     result = argparse.ArgumentParser(
         description=__doc__,
-        epilog="Apply replaces portable settings with the tracked patches and local overrides. "
+        epilog="Apply publishes native config.d drop-ins from shared settings and local overrides. "
                "Capture writes current portable settings back to the patches. Also handles sibling "
                "clsettings, plugin_settings and plugins.lock files. Plugin restore may use the "
-               "network and retains extra installed plugins. Does not restart DMS.",
+               "network and retains extra installed plugins. Restart DMS once after creating config.d.",
     )
     result.add_argument("--live", type=Path, default=config / "settings.json")
-    result.add_argument("--patch", type=Path, default=repo / ".config/DankMaterialShell/settings.patch.json")
-    result.add_argument("--local-patch", type=Path, default=repo / ".config/DankMaterialShell/settings.local.json")
+    result.add_argument("--patch", type=Path, default=repo / ".config/dms/settings.patch.json")
+    result.add_argument("--local-patch", type=Path, default=repo / ".config/dms/settings.local.json")
     result.add_argument("--settings-only", action="store_true",
                         help="skip plugin lock capture/restore (used by background installation)")
+    result.add_argument("--no-migrate", action="store_true",
+                        help="refuse initial native drop-in migration (background installation)")
     result.add_argument("command", choices=("apply", "capture"))
     return result
+
+
+def migrate_local_overrides(repo: Path) -> None:
+    # Git moves the shared patches, but ignored overrides stay at the old path
+    # on other checkouts. Validate all destinations before moving any override.
+    moves = []
+    for name in ("settings", "clsettings", "plugin_settings", "plugins.lock"):
+        source = repo / f".config/DankMaterialShell/{name}.local.json"
+        target = repo / f".config/dms/{name}.local.json"
+        if not source.exists() and not source.is_symlink():
+            continue
+        if target.exists() or target.is_symlink():
+            raise ValueError(f"local override migration conflict: {source} and {target}; both preserved")
+        moves.append((source, target))
+    for source, target in moves:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        source.rename(target)
 
 
 def main() -> int:
     args = parser().parse_args()
     try:
-        return capture(args) if args.command == "capture" else apply(args)
+        repo = Path(__file__).resolve().parents[2]
+        if args.local_patch == repo / ".config/dms/settings.local.json":
+            migrate_local_overrides(repo)
+        return capture(args) if args.command == "capture" else apply(args, allow_migration=not args.no_migrate)
     except (OSError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as error:
         print(f"dms-settings: {error}", file=sys.stderr)
         return 1
