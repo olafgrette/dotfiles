@@ -17,7 +17,7 @@
     },
     "starship": {
       "upstream": "https://github.com/starship/starship",
-      "source": "https://github.com/starship/starship/releases/tag/v1.26.0",
+      "source": "https://github.com/starship/starship/releases/tag/v1.27.0",
       "commands": [
         "starship"
       ],
@@ -27,15 +27,15 @@
         ]
       },
       "status": "reviewed",
-      "reviewedThrough": "1.26.0",
-      "reviewedOn": "2026-10-16",
-      "notes": "Initial baseline: 1.26.0 release notes only. Timezone handling changed; no migration needed for the tracked local %H:%M format. Older releases not reviewed."
+      "reviewedThrough": "1.27.0",
+      "reviewedOn": "2026-10-28",
+      "notes": "Reviewed 1.26.0 to 1.27.0. Installed 1.27.0 includes security fixes for untrusted Git execution and unbounded reads. Directory symlink rendering and SSH hostname detection fixes need no tracked configuration changes. New Jujutsu modules and Bash right-prompt support are optional; the tracked prompt uses Git and Fish. Older baseline coverage remains 1.26.0 only."
     },
     "ghostty": {
       "upstream": "https://github.com/ghostty-org/ghostty",
-      "reviewedThrough": "1.3.1",
-      "reviewedOn": "2026-10-16",
-      "source": "https://ghostty.org/docs/install/release-notes/1-3-1",
+      "reviewedThrough": "1.4.0",
+      "reviewedOn": "2026-10-28",
+      "source": "https://ghostty.org/docs/install/release-notes/1-4-0",
       "commands": [
         "ghostty"
       ],
@@ -44,7 +44,8 @@
           "ghostty"
         ]
       },
-      "status": "reviewed"
+      "status": "reviewed",
+      "notes": "Reviewed 1.3.1 to 1.4.0. Installed 1.3.1 remains behind; recommend upgrading for terminal-output, paste and macOS link-handling security fixes. Existing ssh-env and ssh-terminfo settings now use ghostty +ssh and preserve SSH SetEnv. No required tracked configuration change identified. New macOS selection and Cmd-arrow defaults and GTK Ctrl-Shift-arrow bindings need user runtime review. The tracked config does not set deprecated copy-on-select or scrollback-limit keys. GTK now requires GTK 4.18, libadwaita 1.7 and working EGL; fractional scaling and memory behavior improve. Linux upgrade, shader/rendering checks, SSH checks and macOS validation remain outstanding."
     },
     "zellij": {
       "upstream": "https://github.com/zellij-org/zellij",
@@ -75,7 +76,7 @@
       "status": "reviewed",
       "reviewedThrough": "3.8",
       "reviewedOn": "2026-10-16",
-      "notes": "Initial baseline: 3.7 through 3.7c and the 3.7 release notes. No required config changes; copy-mode line numbers are optional. Older releases not reviewed. Reviewed 3.7c to 3.8: new theme defaults, floating panes, event hooks and copy-mode behavior. No required migration found in tracked bindings. Retain explicit mouse on for older hosts. Installed 3.7c; 3.8 runtime behavior remains untested. The previous report incorrectly excluded 3.8 as a release candidate; current upstream lists it as stable."
+      "notes": "Initial baseline: 3.7 through 3.7c and the 3.7 release notes. No required config changes; copy-mode line numbers are optional. Older releases not reviewed. Reviewed 3.7c to 3.8: new theme defaults, floating panes, event hooks and copy-mode behavior. No required migration found in tracked bindings. Retain explicit mouse on for older hosts. Installed 3.7c; 3.8 runtime behavior remains untested. The previous report incorrectly excluded 3.8 as a release candidate; current upstream lists it as stable. October 28: installed 3.8; the package upgrade is complete, but runtime keybinding and copy-mode behavior were not tested in this pass."
     },
     "helix": {
       "upstream": "https://github.com/helix-editor/helix",
@@ -96,7 +97,7 @@
     },
     "hyprland": {
       "upstream": "https://github.com/hyprwm/Hyprland",
-      "source": "https://github.com/hyprwm/Hyprland/releases/tag/v0.56.2",
+      "source": "https://github.com/hyprwm/Hyprland/releases/tag/v0.57.0",
       "commands": [
         "Hyprland"
       ],
@@ -106,9 +107,9 @@
         ]
       },
       "status": "reviewed",
-      "reviewedThrough": "v0.56.2",
-      "reviewedOn": "2026-10-16",
-      "notes": "Initial baseline: v0.56.2 patch notes, with v0.56.0 upgrade notes and v0.56.1 Lua module-loading fixes inspected. Tracked bindings already use Lua. No demonstrated native replacement for monitor-dir.lua; retain it. Older releases not reviewed."
+      "reviewedThrough": "v0.57.0",
+      "reviewedOn": "2026-10-28",
+      "notes": "Reviewed v0.56.2 to v0.57.0. Installed 0.57.0. Legacy configuration support is removed; tracked overrides already use Lua. New compositor session target is shipped by the package. Existing XDG-autostart drop-in remains useful: the vendor target does not pull in xdg-desktop-autostart.target. DMS service enablement and nofile override are retained. Stricter dispatcher validation and additional Lua APIs require no demonstrated change to tracked binds. No native replacement for monitor-dir.lua was established. Generated compositor config remains Dux-owned. Fresh-login, multi-monitor and rendering behavior remain untested."
     },
     "greetd": {
       "upstream": "https://git.sr.ht/~kennylevinsen/greetd",
@@ -121,7 +122,7 @@
         ]
       },
       "status": "excluded",
-      "reason": "Review DMS patch notes for the desktop stack; no separate routine review."
+      "reason": "Review Dux Shell patch notes for the desktop stack; no separate routine review."
     },
     "uwsm": {
       "upstream": "https://github.com/Vladimir-csp/uwsm",
@@ -134,23 +135,23 @@
         ]
       },
       "status": "excluded",
-      "reason": "Review DMS patch notes for the desktop stack; no separate routine review."
+      "reason": "Review Dux Shell patch notes for the desktop stack; no separate routine review."
     },
-    "dankmaterialshell": {
-      "upstream": "https://github.com/AvengeMedia/DankMaterialShell",
-      "reviewedThrough": "v1.6.3",
-      "reviewedOn": "2026-10-16",
-      "source": "https://github.com/AvengeMedia/DankMaterialShell/releases/tag/v1.6.3",
+    "dux-shell": {
+      "upstream": "https://github.com/duxlabs-dev/dux-shell",
+      "reviewedThrough": "v2.0.0",
+      "reviewedOn": "2026-10-28",
+      "source": "https://github.com/duxlabs-dev/dux-shell/releases/tag/v2.0.0",
       "commands": [
         "dms"
       ],
       "packages": {
         "arch": [
-          "dms-shell"
+          "dux-shell"
         ]
       },
       "status": "reviewed",
-      "notes": "Reviewed v1.6.1 to v1.6.2. Clipboard, display and focused-monitor fixes need no tracked settings migration. User chose to retain nofile.conf at 524288 for both limits; removing it would lower the soft limit to the vendor value of 16384 (vendor hard limit: infinity). Global bar shadows remain disabled by our patch. Reviewed v1.6.2 to v1.6.3: external-edit preservation, lock-screen display selection, monitor wake after automatic lock, refresh rate after resume and generated Hyprland target ordering fixes. No tracked settings migration identified. Recommend upgrade and manual lock/suspend/resume checks, including interaction with lockScreenPowerOffMonitorsOnLock. Installed 1.6.2; new behavior remains untested."
+      "notes": "Reviewed v1.6.3 to v2.0.0, including the rebrand announcement and directory/drop-in migration docs. Installed 2.0.0. Live XDG directories migrate to dms with legacy compatibility symlinks; binary and service names remain dms. Updated checkout paths, readiness checks, package declarations and documentation. Capture uses the migrated animation, bar-widget and dock schemas; dock display selectors and compositor migration markers stay local. Ignored checkout overrides migrate without overwriting conflicts. Existing KDE Connect device selection moved to a local plugin overlay. Adopted native config.d: writable 10-dotfiles.json and 90-dotfiles.local.json, with top-level native precedence. GUI edits stay in live files until explicit filtered capture. Other drop-ins remain local and unchanged. Apply removes duplicate managed base keys so deleted shared settings cannot revive stale values; unowned base keys remain. Clipboard settings and plugin preferences retain the auxiliary replacement contract. First native migration is foreground-only; background apply logs a retryable failure until the managed drop-in exists. One DMS restart is required after creating config.d; live native migration has not yet run. Verified unchanged effective settings and idempotence using a temporary copy of live configuration, and verified native precedence/write routing against the exact upstream JavaScript functions. Plugin revisions remain unchanged; deprecated QML wrappers remain available, but interactive plugin behavior is untested. Keep the existing nofile override: vendor soft limit is still 16384. Keep current package repositories until the announced 2.0.1 migration ships. Companion declarations now use dux-calendar-bin, dux-search-bin and the user-selected stable dux-greeter-bin; those replacements are not installed yet. Lock/suspend/resume and fresh-login checks remain outstanding. Dux Files and other new UI features are optional and were not enabled."
     },
     "quickshell": {
       "upstream": "https://git.outfoxxed.me/quickshell/quickshell",
@@ -163,7 +164,7 @@
         ]
       },
       "status": "excluded",
-      "reason": "Review DMS patch notes for the desktop stack; no separate routine review."
+      "reason": "Review Dux Shell patch notes for the desktop stack; no separate routine review."
     },
     "aconfmgr": {
       "upstream": "https://github.com/CyberShadow/aconfmgr",
@@ -186,12 +187,12 @@
       ],
       "packages": {
         "arch": [
-          "greetd-dms-greeter-git"
+          "dux-greeter-bin"
         ]
       },
       "status": "excluded",
-      "reason": "Review DMS patch notes for the desktop stack; no separate routine review.",
-      "upstream": "https://github.com/AvengeMedia/dank-greeter"
+      "reason": "Review Dux Shell patch notes for the desktop stack; no separate routine review.",
+      "upstream": "https://github.com/duxlabs-dev/dux-greeter"
     },
     "llama.cpp": {
       "commands": [
@@ -216,7 +217,7 @@
       "reviewedThrough": "v1.75.2",
       "reviewedOn": "2026-10-16",
       "source": "https://rclone.org/changelog/#v1-75-2-2026-10-09",
-      "notes": "Initial baseline: v1.75.1 patch notes only. Bisync empty-file accounting, crypt directory names and VFS fixes are relevant; no required wrapper or mount changes identified. Older releases not reviewed. Reviewed v1.75.1 to v1.75.2: security fixes and VFS cached-read, modtime and shutdown fixes. Recommend upgrade, especially for the full-cache Drive mount. No required mount-unit or bisync wrapper changes identified. Installed 1.75.1; upgraded runtime behavior remains untested."
+      "notes": "Initial baseline: v1.75.1 patch notes only. Bisync empty-file accounting, crypt directory names and VFS fixes are relevant; no required wrapper or mount changes identified. Older releases not reviewed. Reviewed v1.75.1 to v1.75.2: security fixes and VFS cached-read, modtime and shutdown fixes. Recommend upgrade, especially for the full-cache Drive mount. No required mount-unit or bisync wrapper changes identified. Installed 1.75.1; upgraded runtime behavior remains untested. October 28: installed 1.75.2; the upgrade is complete, but mount/bisync runtime validation was not performed in this pass."
     },
     "bitwarden-cli": {
       "commands": [
@@ -244,7 +245,11 @@
         ]
       },
       "upstream": "https://github.com/coldfix/udiskie",
-      "status": "pending"
+      "status": "reviewed",
+      "reviewedThrough": "2.7.0",
+      "reviewedOn": "2026-10-28",
+      "source": "https://github.com/coldfix/udiskie/blob/master/CHANGES.rst",
+      "notes": "Initial baseline: 2.7.0 changelog, with 2.6.0 and 2.6.1 tray/AppIndicator notes inspected. Installed 2.7.0. Null-config handling and ignoring systemd extensions need no service changes. Native user config remains local. Arch renamed libappindicator-gtk3 to libappindicator; installed package provides and replaces the old name. Updated the explicit declaration to preserve tray support. Older releases are not fully reviewed; removable-media runtime behavior was not tested."
     }
   }
 }
