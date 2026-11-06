@@ -206,6 +206,8 @@ background convergence detects changed skills.
 
 - `./readiness.sh`: read-only inventory of expected commands and platform dependencies.
 - `bash -n install.sh`: installer syntax.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_build_cursors.py`:
+  deterministic cursor builds, pixel scaling, hotspots, and animation preservation.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_artifacts.py`:
   download integrity, atomic replacement, and safe deployment staging.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_private_sync.py tests/test_secret_sync.py`: personal-host gates, local secret materialization, and encrypted sync preservation (temporary local rclone backend; no vault or cloud access).

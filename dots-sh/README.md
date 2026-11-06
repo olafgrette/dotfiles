@@ -15,7 +15,7 @@ write to `~/.local/bin/starship` without sudo.
 
 The mirror covers Starship's Unix release archives, zellij-choose-tree, the
 Ghostty shader, the OpenAI Arch bootstrap script, and CORVIAN's Brood War
-cursor pack for Linux (version 1.0). License notices accompany
+cursor pack for Linux (version 1.0, with locally built larger sizes). License notices accompany
 the open-source assets. The OpenAI script still uses the vendor's signed package
 repository. Git clones, Dux plugin Git repositories, OS packages, and GitHub
 itself remain external dependencies. Foreground Linux GUI installs place the
@@ -25,6 +25,33 @@ repeated downloads. Replacements preserve the previous theme as `broodwar.bak`;
 an existing backup stops replacement until resolved. Its original archive is
 preserved intact in the mirror. KDE Store tags it `mit-license`, but the archive
 contains no standalone license notice.
+
+## Cursor sizes
+
+The selected cursor archive retains the original frames and adds nominal sizes
+48, 64, 96, and 128. Nearest-neighbor scaling preserves packed ARGB pixels;
+hotspots scale with each image and animation delays remain unchanged. The
+original 32 px shapes and 41 px busy animation remain available. This is still
+an Xcursor theme named `broodwar`; no Hyprcursor-only configuration is needed.
+
+`build_cursors.py` creates the derivative reproducibly with Python's standard
+library. Its manifest entry records `derived_from`, the original archive entry.
+Restore that original with `artifacts.py stage`, verify its recorded SHA-256,
+then build outside Git:
+
+```sh
+python3 dots-sh/build_cursors.py ORIGINAL.tar.gz /tmp/broodwar-multisize.tar.gz
+```
+
+Record the generated SHA-256 and a new immutable mirror path before staging and
+deploying. The derivative's `source` is its mirror URL; `stage --upstream` does
+not rebuild it. If the mirror copy is unavailable, rebuild from the retained
+original and verify the derivative hash before staging. Clients only download
+and verify the completed archive; they do not need image conversion tools.
+
+After a foreground install, choose the desired size in Dux Shell. Applications
+may need to reload their cursors. Installation does not select a size or restart
+the desktop.
 
 ## Deploy
 
