@@ -48,16 +48,26 @@ class InstallTest(unittest.TestCase):
             member = tarfile.TarInfo("starship")
             member.size = len(content)
             tar.addfile(member, io.BytesIO(content))
+        cursor_archive = self.root / "cursors.tar.gz"
+        with tarfile.open(cursor_archive, "w:gz") as tar:
+            for name, content in (("broodwar/index.theme", b"[Icon Theme]\nName=broodwar\n"),
+                                  ("broodwar/cursors/left_ptr", b"Xcur fixture")):
+                member = tarfile.TarInfo(name)
+                member.size = len(content)
+                tar.addfile(member, io.BytesIO(content))
         manifest = self.repo / "dots-sh/artifacts.json"
         data = json.loads(manifest.read_text())
         for entry in data["files"].values():
             content = archive.read_bytes() if entry["path"].endswith(".tar.gz") else b"fixture\n"
+            if entry["path"].endswith("broodwar_linux_cursor.tar.gz"):
+                content = cursor_archive.read_bytes()
             entry["sha256"] = hashlib.sha256(content).hexdigest()
         manifest.write_text(json.dumps(data))
         self.stub("curl", '''echo "curl $*" >> "$SETUP_LOG"
 args="$*"
 while [ "$1" != -o ]; do shift; done
 case "$args" in
+    *broodwar_linux_cursor.tar.gz) cat "$CURSOR_FIXTURE" > "$2" ;;
     *.tar.gz) cat "$STARSHIP_FIXTURE" > "$2" ;;
     *) printf 'fixture\\n' > "$2" ;;
 esac''')
@@ -67,7 +77,7 @@ esac''')
                         XDG_CACHE_HOME=str(self.home / ".cache"),
                         XDG_STATE_HOME=str(self.home / ".local/state"),
                         DISPLAY=":fixture", SETUP_LOG=str(self.root / "setup.log"),
-                        STARSHIP_FIXTURE=str(archive))
+                        STARSHIP_FIXTURE=str(archive), CURSOR_FIXTURE=str(cursor_archive))
         self.env.pop("DOTFILES_INSTALL_LOCKED", None)
 
     def stub(self, name, body):
@@ -96,6 +106,24 @@ esac''')
         self.assertTrue(os.access(self.home / ".local/bin/starship", os.X_OK))
         self.assertIn("cursor_frozen.glsl", log)
         self.assertIn("zellij-choose-tree.wasm", log)
+        self.assertIn("dots.oag.sh/assets/broodwar-cursors/", log)
+        self.assertTrue((self.home / ".local/share/icons/broodwar/index.theme").is_file())
+
+    def test_cursor_install_honors_xdg_data_home(self):
+        self.env["XDG_DATA_HOME"] = str(self.root / "data")
+        self.install()
+        self.assertTrue((self.root / "data/icons/broodwar/index.theme").is_file())
+        self.assertFalse((self.home / ".local/share/icons/broodwar").exists())
+
+    def test_cursor_install_skips_headless_and_macos(self):
+        for system, display in (("Linux", ""), ("Darwin", ":fixture")):
+            with self.subTest(system=system):
+                self.stub("uname", f'case "$1" in -n) echo unknown-test-host ;; *) echo {system} ;; esac')
+                self.env["DISPLAY"] = display
+                self.env.pop("WAYLAND_DISPLAY", None)
+                self.install()
+                self.assertNotIn("broodwar", (self.root / "setup.log").read_text())
+                self.assertFalse((self.home / ".local/share/icons/broodwar").exists())
 
     def test_verified_downloads_are_reused_and_corruption_is_repaired(self):
         self.install()

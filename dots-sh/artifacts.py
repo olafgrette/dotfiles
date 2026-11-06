@@ -125,6 +125,60 @@ def install_starship(data, destination):
         os.replace(binary, destination)
 
 
+def install_cursors(data, destination):
+    entry = data["files"][data["current"]["broodwar-cursors"]]
+    destination = Path(destination)
+    receipt = destination / ".dotfiles-sha256"
+    if (receipt.is_file() and receipt.read_text().strip() == entry["sha256"]
+            and (destination / "index.theme").is_file() and (destination / "cursors").is_dir()):
+        return
+    exists = destination.exists() or destination.is_symlink()
+    backup = destination.with_name(destination.name + ".bak")
+    if exists and (backup.exists() or backup.is_symlink()):
+        raise ValueError(f"cursor backup already exists: {backup}; resolve before replacing {destination}")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=destination.parent) as temporary:
+        temporary = Path(temporary)
+        archive = temporary / "cursors.tar.gz"
+        fetch(entry, archive)
+        theme = temporary / "broodwar"
+        (theme / "cursors").mkdir(parents=True)
+        # Copy only theme metadata and flat cursor entries. Do not trust archive
+        # paths, ownership, modes, or links when extracting into HOME.
+        with tarfile.open(archive) as tar:
+            for member in tar.getmembers():
+                name = member.name.rstrip("/")
+                if member.isdir() and name in ("broodwar", "broodwar/cursors"):
+                    continue
+                parts = name.split("/")
+                cursor = len(parts) == 3 and parts[:2] == ["broodwar", "cursors"] and parts[2] not in ("", ".", "..")
+                if name != "broodwar/index.theme" and not cursor:
+                    raise ValueError(f"unexpected cursor archive entry: {name}")
+                target = temporary / name
+                if target.exists() or target.is_symlink():
+                    raise ValueError(f"duplicate cursor archive entry: {name}")
+                if member.isfile():
+                    with tar.extractfile(member) as source, target.open("wb") as output:
+                        shutil.copyfileobj(source, output)
+                elif member.issym() and cursor and member.linkname not in ("", ".", "..") and "/" not in member.linkname:
+                    target.symlink_to(member.linkname)
+                else:
+                    raise ValueError(f"unsupported cursor archive entry: {name}")
+        if not (theme / "index.theme").is_file() or not any((theme / "cursors").iterdir()):
+            raise ValueError("cursor archive is missing its theme metadata or cursors")
+        if any(path.is_symlink() and not path.is_file() for path in (theme / "cursors").iterdir()):
+            raise ValueError("cursor archive contains a broken link")
+        (theme / ".dotfiles-sha256").write_text(entry["sha256"] + "\n")
+        if exists:
+            destination.rename(backup)
+        try:
+            theme.rename(destination)
+        except OSError:
+            if exists:
+                backup.rename(destination)
+            raise
+
+
 def stage(data, upstream=False):
     public = ROOT / "public"
     expected = {entry["path"] for entry in data["files"].values()} | {"init.sh", "_headers", "_redirects"}
@@ -162,6 +216,8 @@ def main():
     get.add_argument("destination", type=Path)
     starship = commands.add_parser("starship", help="install the approved platform binary")
     starship.add_argument("destination", type=Path)
+    cursors = commands.add_parser("cursors", help="install the approved Brood War cursor theme")
+    cursors.add_argument("destination", type=Path)
     build = commands.add_parser("stage", help="stage all retained versions for deployment")
     build.add_argument("--upstream", action="store_true", help="fetch missing files from recorded upstreams")
     commands.add_parser("verify", help="verify every live file against this checkout")
@@ -172,6 +228,8 @@ def main():
             fetch(data["files"][data["current"][args.name]], args.destination)
         elif args.command == "starship":
             install_starship(data, args.destination)
+        elif args.command == "cursors":
+            install_cursors(data, args.destination)
         elif args.command == "stage":
             stage(data, args.upstream)
         else:

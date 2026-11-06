@@ -18,10 +18,13 @@ Ghostty shader, the OpenAI Arch bootstrap script, and CORVIAN's Brood War
 cursor pack for Linux (version 1.0). License notices accompany
 the open-source assets. The OpenAI script still uses the vendor's signed package
 repository. Git clones, Dux plugin Git repositories, OS packages, and GitHub
-itself remain external dependencies. The cursor pack is mirrored only; the
-installer does not install it or select a theme. Its original archive is
-preserved intact. KDE Store tags it `mit-license`, but the archive contains no
-standalone license notice.
+itself remain external dependencies. Foreground Linux GUI installs place the
+cursor pack at `${XDG_DATA_HOME:-$HOME/.local/share}/icons/broodwar` without selecting
+it. Background, headless, and macOS installs skip it. A hash receipt avoids
+repeated downloads. Replacements preserve the previous theme as `broodwar.bak`;
+an existing backup stops replacement until resolved. Its original archive is
+preserved intact in the mirror. KDE Store tags it `mit-license`, but the archive
+contains no standalone license notice.
 
 ## Deploy
 

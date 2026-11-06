@@ -203,5 +203,10 @@ if [ "$BACKGROUND" = 0 ]; then
         echo "Checking Ghostty shader: cursor_frozen.glsl"
         python3 "$DOTFILES/dots-sh/artifacts.py" fetch cursor-frozen \
             "$HOME/.config/ghostty/shaders/cursor_frozen.glsl"
+        if [ "$(uname -s)" = "Linux" ]; then
+            echo "Checking cursor theme: broodwar"
+            python3 "$DOTFILES/dots-sh/artifacts.py" cursors \
+                "${XDG_DATA_HOME:-$HOME/.local/share}/icons/broodwar"
+        fi
     fi
 fi

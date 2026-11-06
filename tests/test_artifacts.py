@@ -2,10 +2,12 @@
 
 import hashlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import subprocess
 import tempfile
+import tarfile
 import unittest
 from unittest.mock import patch
 
@@ -124,6 +126,65 @@ class ArtifactsTest(unittest.TestCase):
                     patch.object(artifacts.sys, "maxsize", 2**63 - 1):
                 self.assertEqual(artifacts.starship_target(), expected)
                 self.assertIn("starship-" + expected, artifacts.catalog()["current"])
+
+    def cursor_archive(self, extra=None):
+        output = io.BytesIO()
+        with tarfile.open(fileobj=output, mode="w:gz") as tar:
+            for name, content in (("broodwar/index.theme", b"[Icon Theme]\nName=broodwar\n"),
+                                  ("broodwar/cursors/left_ptr", b"Xcur fixture")):
+                member = tarfile.TarInfo(name)
+                member.size = len(content)
+                tar.addfile(member, io.BytesIO(content))
+            link = tarfile.TarInfo("broodwar/cursors/default")
+            link.type = tarfile.SYMTYPE
+            link.linkname = "left_ptr"
+            tar.addfile(link)
+            if extra:
+                tar.addfile(extra)
+        content = output.getvalue()
+        entry = dict(self.entry, sha256=hashlib.sha256(content).hexdigest())
+        data = {"files": {"cursors": entry}, "current": {"broodwar-cursors": "cursors"}}
+        return content, data
+
+    def test_cursor_install_backs_up_existing_theme_and_is_idempotent(self):
+        content, data = self.cursor_archive()
+        destination = self.root / "icons/broodwar"
+        destination.mkdir(parents=True)
+        (destination / "custom").write_text("preserved")
+        with self.download(content) as run:
+            artifacts.install_cursors(data, destination)
+            artifacts.install_cursors(data, destination)
+        run.assert_called_once()
+        self.assertEqual((destination.parent / "broodwar.bak/custom").read_text(), "preserved")
+        self.assertTrue((destination / "index.theme").is_file())
+        self.assertTrue((destination / "cursors/default").is_symlink())
+        self.assertEqual((destination / "cursors/default").read_bytes(), b"Xcur fixture")
+
+    def test_cursor_replacement_refuses_to_overwrite_backup(self):
+        content, data = self.cursor_archive()
+        destination = self.root / "broodwar"
+        destination.mkdir()
+        (self.root / "broodwar.bak").mkdir()
+        with self.download(content) as run, self.assertRaisesRegex(ValueError, "backup already exists"):
+            artifacts.install_cursors(data, destination)
+        run.assert_not_called()
+
+    def test_bad_cursor_archives_leave_existing_theme_intact(self):
+        traversal = tarfile.TarInfo("broodwar/../../escape")
+        link = tarfile.TarInfo("broodwar/cursors/escape")
+        link.type = tarfile.SYMTYPE
+        link.linkname = "../../escape"
+        for extra in (traversal, link):
+            with self.subTest(name=extra.name):
+                content, data = self.cursor_archive(extra)
+                destination = self.root / "broodwar"
+                destination.mkdir(exist_ok=True)
+                (destination / "custom").write_text("preserved")
+                with self.download(content), self.assertRaises(ValueError):
+                    artifacts.install_cursors(data, destination)
+                self.assertEqual((destination / "custom").read_text(), "preserved")
+                self.assertFalse((self.root / "broodwar.bak").exists())
+                self.assertFalse((self.root / "escape").exists())
 
 
 if __name__ == "__main__":
