@@ -41,3 +41,6 @@ __pycache__/
 # wrangler: local build cache and deploy state
 .wrangler/
 node_modules/
+
+# Downloaded deployment payloads stay outside Git.
+dots-sh/public/

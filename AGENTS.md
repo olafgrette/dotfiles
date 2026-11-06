@@ -206,6 +206,8 @@ background convergence detects changed skills.
 
 - `./readiness.sh`: read-only inventory of expected commands and platform dependencies.
 - `bash -n install.sh`: installer syntax.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_artifacts.py`:
+  download integrity, atomic replacement, and safe deployment staging.
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_private_sync.py tests/test_secret_sync.py`: personal-host gates, local secret materialization, and encrypted sync preservation (temporary local rclone backend; no vault or cloud access).
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests/test_dms_settings.py`: Dux native precedence,
   capture, local migration, auxiliary replacement, and atomic-write behavior.
@@ -237,8 +239,14 @@ machine, no plugin state to manage or accidentally commit.
 **fish_variables not tracked**: mixes runtime state with config and can contain secrets
 via `set -U`. Anything worth persisting lives in explicit config files.
 
-**Shaders fetched, not tracked**: third-party GLSL we don't own. Fetching on install
-avoids vendoring.
+**Third-party assets are mirrored, not tracked**: `dots-sh/artifacts.json` pins
+installer downloads by SHA-256. `dots-sh/artifacts.py` fetches them from
+`dots.oag.sh/assets/`, verifies before atomic replacement, and stages the ignored
+`dots-sh/public/` deployment. Preserve old manifest entries and immutable paths.
+Deploy and verify new assets before publishing client changes. The endpoint is
+static-only; `init.sh` changes require deployment too. See `dots-sh/README.md`.
+Background installation never fetches assets. Git and package repositories remain
+upstream dependencies.
 
 **DMS settings are sparse patches**: the GUI remains the editor, machine state remains
 local, and Git records only intentional deviations from upstream defaults.

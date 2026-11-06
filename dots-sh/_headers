@@ -1,0 +1,10 @@
+/*
+  X-Content-Type-Options: nosniff
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=60
+/init.sh
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=60

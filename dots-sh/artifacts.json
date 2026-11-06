@@ -1,0 +1,104 @@
+{
+  "current": {
+    "starship-aarch64-apple-darwin": "starship-aarch64-apple-darwin-v1.27.0",
+    "starship-aarch64-unknown-linux-musl": "starship-aarch64-unknown-linux-musl-v1.27.0",
+    "starship-arm-unknown-linux-musleabihf": "starship-arm-unknown-linux-musleabihf-v1.27.0",
+    "starship-i686-unknown-linux-musl": "starship-i686-unknown-linux-musl-v1.27.0",
+    "starship-riscv64gc-unknown-linux-musl": "starship-riscv64gc-unknown-linux-musl-v1.27.0",
+    "starship-x86_64-apple-darwin": "starship-x86_64-apple-darwin-v1.27.0",
+    "starship-x86_64-unknown-freebsd": "starship-x86_64-unknown-freebsd-v1.27.0",
+    "starship-x86_64-unknown-linux-gnu": "starship-x86_64-unknown-linux-gnu-v1.27.0",
+    "starship-x86_64-unknown-linux-musl": "starship-x86_64-unknown-linux-musl-v1.27.0",
+    "choose-tree": "choose-tree-v0.4.2",
+    "cursor-frozen": "cursor-frozen-7295ebf717f236f114912ec5de0d8ce91661448f",
+    "openai-arch": "openai-arch-fa51a6ac83a122d56740523f702a8dac6ed0c6b5953b3787e196e18d16b27a62",
+    "broodwar-cursors": "broodwar-cursors-v1.0-052290058dd2478af55edf16066f446c5ebf5bae787411cbf0ecf10601d04370"
+  },
+  "files": {
+    "starship-aarch64-apple-darwin-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-aarch64-apple-darwin.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-aarch64-apple-darwin.tar.gz",
+      "sha256": "5362da8cb2928f98f3ce0ffda697cf0f8de70081db000dae316d6d3a404f6cf0"
+    },
+    "starship-aarch64-unknown-linux-musl-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-aarch64-unknown-linux-musl.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-aarch64-unknown-linux-musl.tar.gz",
+      "sha256": "341f5cbf24699fa0b27ec88965ad25f862ea09e15d35a543fd6ffdff1d2aa00d"
+    },
+    "starship-arm-unknown-linux-musleabihf-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-arm-unknown-linux-musleabihf.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-arm-unknown-linux-musleabihf.tar.gz",
+      "sha256": "33531a104304e8f36e1f78657039246ebb730e4c53a7ccdf8c94c0e3630bf6b4"
+    },
+    "starship-i686-unknown-linux-musl-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-i686-unknown-linux-musl.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-i686-unknown-linux-musl.tar.gz",
+      "sha256": "3ccbd2aca8e8189f13272e71d51549001694bceb82191b28d009efe1ef597f7f"
+    },
+    "starship-riscv64gc-unknown-linux-musl-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-riscv64gc-unknown-linux-musl.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-riscv64gc-unknown-linux-musl.tar.gz",
+      "sha256": "4cbf07f29f7610f4d031263bca5f5552b8bcbcf69c43e2ad225960b8082a0adb"
+    },
+    "starship-x86_64-apple-darwin-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-x86_64-apple-darwin.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-x86_64-apple-darwin.tar.gz",
+      "sha256": "344e4d38787e0aa86dd522ae5462e6fb6da1227691f81a79ffed480a4563ccb3"
+    },
+    "starship-x86_64-unknown-freebsd-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-x86_64-unknown-freebsd.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-x86_64-unknown-freebsd.tar.gz",
+      "sha256": "2d0c8e495069a6f481aba2d7558645e1955c796db48529b796483cbe3f41848b"
+    },
+    "starship-x86_64-unknown-linux-gnu-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-x86_64-unknown-linux-gnu.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "3b94758850901717eb36aa1b53f8492c1322506ec6d41273bc6151e79ed8e4a1"
+    },
+    "starship-x86_64-unknown-linux-musl-v1.27.0": {
+      "path": "assets/starship/v1.27.0/starship-x86_64-unknown-linux-musl.tar.gz",
+      "source": "https://github.com/starship/starship/releases/download/v1.27.0/starship-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "10c8eb4cb3b761d9bf59ea828444c2dab36c900b7d69a69e08814b286969df89"
+    },
+    "choose-tree-v0.4.2": {
+      "path": "assets/zellij-choose-tree/v0.4.2/zellij-choose-tree.wasm",
+      "source": "https://github.com/laperlej/zellij-choose-tree/releases/download/v0.4.2/zellij-choose-tree.wasm",
+      "sha256": "3861cbcc233dc20d022e6e524abddb98495c722048a9a99a9508e0913bb301e8"
+    },
+    "cursor-frozen-7295ebf717f236f114912ec5de0d8ce91661448f": {
+      "path": "assets/ghostty-shaders/7295ebf717f236f114912ec5de0d8ce91661448f/cursor_frozen.glsl",
+      "source": "https://raw.githubusercontent.com/KroneCorylus/ghostty-shader-playground/7295ebf717f236f114912ec5de0d8ce91661448f/public/shaders/cursor_frozen.glsl",
+      "sha256": "26a9e88b8dcfbadd6b9c82637c0630594447c0f114ca9ce4e2ea2177a5b38eda"
+    },
+    "openai-arch-fa51a6ac83a122d56740523f702a8dac6ed0c6b5953b3787e196e18d16b27a62": {
+      "path": "assets/openai/fa51a6ac83a122d56740523f702a8dac6ed0c6b5953b3787e196e18d16b27a62/install-arch.sh",
+      "source": "https://persistent.oaistatic.com/codex-app-prod/linux/install-arch.sh",
+      "sha256": "fa51a6ac83a122d56740523f702a8dac6ed0c6b5953b3787e196e18d16b27a62"
+    },
+    "starship-license-v1.27.0": {
+      "path": "assets/starship/v1.27.0/LICENSE",
+      "source": "https://raw.githubusercontent.com/starship/starship/v1.27.0/LICENSE",
+      "sha256": "2587580d0ec4ddc43d1534745a19ffeec0b63186497c2ed4bc36832da91b13e2"
+    },
+    "choose-license-v0.4.2": {
+      "path": "assets/zellij-choose-tree/v0.4.2/LICENSE",
+      "source": "https://raw.githubusercontent.com/laperlej/zellij-choose-tree/v0.4.2/LICENSE",
+      "sha256": "15a980c7087b0aa82b5df974e4b28ce2c107cd4f342280b9e6e39be38a763cd9"
+    },
+    "shader-license-7295ebf717f236f114912ec5de0d8ce91661448f": {
+      "path": "assets/ghostty-shaders/7295ebf717f236f114912ec5de0d8ce91661448f/LICENSE",
+      "source": "https://raw.githubusercontent.com/KroneCorylus/ghostty-shader-playground/7295ebf717f236f114912ec5de0d8ce91661448f/LICENSE",
+      "sha256": "e1ee2195cc584952b0d53f9cb4981549084da5951c1855f23525547e91a5820c"
+    },
+    "broodwar-cursors-v1.0-052290058dd2478af55edf16066f446c5ebf5bae787411cbf0ecf10601d04370": {
+      "path": "assets/broodwar-cursors/052290058dd2478af55edf16066f446c5ebf5bae787411cbf0ecf10601d04370/broodwar_linux_cursor.tar.gz",
+      "source": "https://api.kde-look.org/ocs/v1/content/data/1680392",
+      "source_type": "ocs",
+      "sha256": "052290058dd2478af55edf16066f446c5ebf5bae787411cbf0ecf10601d04370",
+      "upstream_page": "https://store.kde.org/p/1680392",
+      "version": "1.0",
+      "author": "corvian",
+      "license_note": "KDE Store metadata tags this pack mit-license; the original archive contains no standalone license notice."
+    }
+  }
+}

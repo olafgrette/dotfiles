@@ -91,8 +91,7 @@ bootstrap_chatgpt() (
     installer=$(mktemp)
     trap 'rm -f -- "$installer"' EXIT
     echo 'aconf: bootstrapping the signed OpenAI repository and ChatGPT (full system upgrade)'
-    curl --proto '=https' --tlsv1.2 -fL -o "$installer" \
-        https://persistent.oaistatic.com/codex-app-prod/linux/install-arch.sh
+    python3 "$REPO/dots-sh/artifacts.py" fetch openai-arch "$installer"
     sudo bash "$installer"
     sudo pacman -Syu --needed chatgpt-bin
 )
@@ -110,7 +109,7 @@ reload_user_manager() {
 apply_system() {
     local host
     [ -t 0 ] && [ -t 1 ] || die "apply requires an interactive terminal"
-    require_commands sudo timeshift date locale-gen systemctl curl mktemp rm pacman pacman-conf
+    require_commands sudo timeshift date locale-gen systemctl curl python3 mktemp rm pacman pacman-conf
     host="$(short_host)"
     confirm_apply "$host"
     create_rollback_snapshot "$host"

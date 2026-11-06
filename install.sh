@@ -190,35 +190,18 @@ fi
 # Avoid user startup hooks while installing, including agent prompts.
 fish --no-config -c 'source $argv[1]; skill-sync' "$DOTFILES/.config/fish/functions/skill-sync.fish"
 
-if [ "$BACKGROUND" = 0 ] && ! command -v starship &>/dev/null; then
-    echo "Installing starship..."
-    curl -sS https://starship.rs/install.sh | sh -s -- -y
-fi
-
-# Download zellij plugins (gitignored, fetched on install). The path stays
-# fixed for config.kdl; a stamp records the fetched version so a bump here
-# replaces the file on the next run.
-ZELLIJ_PLUGINS_DIR="$HOME/.config/zellij/plugins"
-CHOOSE_TREE_VERSION="v0.4.2"
-CHOOSE_TREE_WASM="$ZELLIJ_PLUGINS_DIR/zellij-choose-tree.wasm"
-if [ "$BACKGROUND" = 0 ] && { [ ! -f "$CHOOSE_TREE_WASM" ] || [ "$(cat "$CHOOSE_TREE_WASM.version" 2>/dev/null)" != "$CHOOSE_TREE_VERSION" ]; }; then
-    echo "Downloading zellij plugin: zellij-choose-tree $CHOOSE_TREE_VERSION"
-    mkdir -p "$ZELLIJ_PLUGINS_DIR"
-    curl -sfL "https://github.com/laperlej/zellij-choose-tree/releases/download/$CHOOSE_TREE_VERSION/zellij-choose-tree.wasm" \
-        -o "$CHOOSE_TREE_WASM.part" \
-        && mv "$CHOOSE_TREE_WASM.part" "$CHOOSE_TREE_WASM" \
-        && echo "$CHOOSE_TREE_VERSION" > "$CHOOSE_TREE_WASM.version"
-fi
-
-# Download ghostty shaders (gitignored, fetched on install)
-if [ "$BACKGROUND" = 0 ] && is_gui; then
-SHADERS_DIR="$HOME/.config/ghostty/shaders"
-SHADERS_BASE="https://raw.githubusercontent.com/KroneCorylus/ghostty-shader-playground/main/public/shaders"
-mkdir -p "$SHADERS_DIR"
-for shader in cursor_frozen.glsl; do
-    if [ ! -f "$SHADERS_DIR/$shader" ]; then
-        echo "Downloading shader: $shader"
-        curl -sfL "$SHADERS_BASE/$shader" -o "$SHADERS_DIR/$shader"
+# Download only approved, hash-checked artifacts. Background applies stay offline.
+if [ "$BACKGROUND" = 0 ]; then
+    if ! command -v starship &>/dev/null; then
+        echo "Installing starship..."
+        python3 "$DOTFILES/dots-sh/artifacts.py" starship "$HOME/.local/bin/starship"
     fi
-done
+    echo "Checking zellij plugin: zellij-choose-tree"
+    python3 "$DOTFILES/dots-sh/artifacts.py" fetch choose-tree \
+        "$HOME/.config/zellij/plugins/zellij-choose-tree.wasm"
+    if is_gui; then
+        echo "Checking Ghostty shader: cursor_frozen.glsl"
+        python3 "$DOTFILES/dots-sh/artifacts.py" fetch cursor-frozen \
+            "$HOME/.config/ghostty/shaders/cursor_frozen.glsl"
+    fi
 fi

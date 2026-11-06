@@ -162,7 +162,10 @@ curl -fsSL dots.oag.sh | sh
 
 Yes, `curl | sh`.
 
-It fetches `init.sh` from this repository through a Cloudflare Worker whose source also lives in this repository.
+It downloads a deployed copy of `init.sh` from Cloudflare Workers Static Assets.
+The same endpoint serves approved installer downloads at `dots.oag.sh/assets/`.
+Clients verify their SHA-256 hashes against the tracked manifest.
+See [artifact maintenance and deployment](dots-sh/README.md).
 
 This dotfile repository.
 

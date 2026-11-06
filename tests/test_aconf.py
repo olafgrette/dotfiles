@@ -1,5 +1,7 @@
 """Black-box tests for aconf.sh."""
 
+import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -15,7 +17,7 @@ ACONFMGR_CONFIG = ROOT / "aconfmgr"
 BASE_PREREQUISITES = ("aconfmgr", "yay")
 APPLY_PREREQUISITES = (
     "sudo", "timeshift", "date", "locale-gen", "systemctl", "curl", "mktemp",
-    "rm", "pacman", "pacman-conf",
+    "rm", "pacman", "pacman-conf", "python3",
 )
 SUPPORT = ("bash", "cat", "dirname", "grep", "uname")
 
@@ -24,6 +26,12 @@ def fake_repo(tmp, *, personal=("testhost",), bypass_scope=True):
     repo = Path(tmp) / "dotfiles"
     repo.mkdir()
     shutil.copy(ACONF, repo / "aconf.sh")
+    (repo / "dots-sh").mkdir()
+    shutil.copy(ROOT / "dots-sh/artifacts.py", repo / "dots-sh/artifacts.py")
+    manifest = json.loads((ROOT / "dots-sh/artifacts.json").read_text())
+    key = manifest["current"]["openai-arch"]
+    manifest["files"][key]["sha256"] = hashlib.sha256(b"fixture\n").hexdigest()
+    (repo / "dots-sh/artifacts.json").write_text(json.dumps(manifest))
     shutil.copytree(
         ACONFMGR_CONFIG, repo / "aconfmgr",
         ignore=shutil.ignore_patterns("aconfmgr.local", "99-unsorted.sh"),
@@ -110,7 +118,9 @@ exit 0
 ''')
     write_executable(bindir / "curl", '''#!/bin/sh
 printf 'curl %s\\n' "$*" >> "$COMMAND_LOG"
-[ "$FAIL_DOWNLOAD" != 1 ]
+[ "$FAIL_DOWNLOAD" != 1 ] || exit 1
+while [ "$1" != -o ]; do shift; done
+printf 'fixture\\n' > "$2"
 ''')
     write_executable(bindir / "systemctl", r'''#!/bin/sh
 if [ "$1" = --user ]; then

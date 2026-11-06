@@ -1,10 +1,14 @@
 """Run the installer only in temporary HOME/repository copies with setup stubs."""
 
+import hashlib
+import io
+import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import tarfile
 import unittest
 
 
@@ -38,17 +42,32 @@ class InstallTest(unittest.TestCase):
         self.stub("uname", 'case "$1" in -n) echo unknown-test-host ;; *) echo Linux ;; esac')
         self.stub("loginctl", 'echo "loginctl $*" >> "$SETUP_LOG"\n'
                   'if [ "$1" = show-user ]; then echo no; fi')
+        archive = self.root / "starship.tar.gz"
+        with tarfile.open(archive, "w:gz") as tar:
+            content = b"#!/bin/sh\nexit 0\n"
+            member = tarfile.TarInfo("starship")
+            member.size = len(content)
+            tar.addfile(member, io.BytesIO(content))
+        manifest = self.repo / "dots-sh/artifacts.json"
+        data = json.loads(manifest.read_text())
+        for entry in data["files"].values():
+            content = archive.read_bytes() if entry["path"].endswith(".tar.gz") else b"fixture\n"
+            entry["sha256"] = hashlib.sha256(content).hexdigest()
+        manifest.write_text(json.dumps(data))
         self.stub("curl", '''echo "curl $*" >> "$SETUP_LOG"
-case "$*" in
-    *starship.rs*) printf '#!/bin/sh\\nexit 0\\n' ;;
-    *) while [ "$1" != -o ]; do shift; done; echo shader > "$2" ;;
+args="$*"
+while [ "$1" != -o ]; do shift; done
+case "$args" in
+    *.tar.gz) cat "$STARSHIP_FIXTURE" > "$2" ;;
+    *) printf 'fixture\\n' > "$2" ;;
 esac''')
         self.env = dict(os.environ, HOME=str(self.home), PATH=str(self.bin),
                         XDG_CONFIG_HOME=str(self.home / ".config"),
                         XDG_DATA_HOME=str(self.home / ".local/share"),
                         XDG_CACHE_HOME=str(self.home / ".cache"),
                         XDG_STATE_HOME=str(self.home / ".local/state"),
-                        DISPLAY=":fixture", SETUP_LOG=str(self.root / "setup.log"))
+                        DISPLAY=":fixture", SETUP_LOG=str(self.root / "setup.log"),
+                        STARSHIP_FIXTURE=str(archive))
         self.env.pop("DOTFILES_INSTALL_LOCKED", None)
 
     def stub(self, name, body):
@@ -73,9 +92,21 @@ esac''')
         self.install()
         log = (self.root / "setup.log").read_text()
         self.assertIn("loginctl enable-linger", log)
-        self.assertIn("starship.rs", log)
+        self.assertIn("dots.oag.sh/assets/starship/", log)
+        self.assertTrue(os.access(self.home / ".local/bin/starship", os.X_OK))
         self.assertIn("cursor_frozen.glsl", log)
         self.assertIn("zellij-choose-tree.wasm", log)
+
+    def test_verified_downloads_are_reused_and_corruption_is_repaired(self):
+        self.install()
+        self.env["PATH"] += os.pathsep + str(self.home / ".local/bin")
+        (self.root / "setup.log").unlink()
+        self.install()
+        self.assertNotIn("curl ", (self.root / "setup.log").read_text())
+        shader = self.home / ".config/ghostty/shaders/cursor_frozen.glsl"
+        shader.write_text("corrupt")
+        self.install()
+        self.assertEqual(shader.read_text(), "fixture\n")
 
     def test_dms_plugin_restore_runs_only_in_foreground(self):
         config = self.home / ".config/dms"

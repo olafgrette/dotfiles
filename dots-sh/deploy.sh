@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy the dots.oag.sh Worker.
+# Deploy the dots.oag.sh static assets.
 #
 # wrangler is fetched by npx and never installed: this repository is shell and
 # Python, and one Worker does not justify a node_modules. The major version is
@@ -10,42 +10,21 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 WRANGLER=(npx --yes wrangler@4)
-URL=https://dots.oag.sh
 
 usage() {
     cat >&2 <<'EOF'
-usage: deploy.sh {deploy|check|verify|tail}
+usage: deploy.sh {deploy|check|verify}
 
-  deploy   build and publish the Worker (asks for login on first run)
+  deploy   stage, publish, and verify static assets (requires Wrangler login)
   check    build without publishing
-  verify   fetch the live URL and confirm it serves init.sh
-  tail     stream live logs
+  verify   verify the live bootstrap and every retained asset hash
 EOF
     exit 2
 }
 
-verify() {
-    # Compare against the source of truth rather than just checking for a 200:
-    # a stale or wrong-origin response would still return 200.
-    local served expected
-    served=$(curl -fsSL --max-time 15 "$URL") ||
-        { echo "verify: $URL did not serve a script" >&2; return 1; }
-    expected=$(curl -fsSL --max-time 15 \
-        https://raw.githubusercontent.com/olafgrette/dotfiles/main/init.sh) ||
-        { echo "verify: could not read init.sh from GitHub to compare" >&2; return 1; }
-
-    if [ "$served" = "$expected" ]; then
-        printf 'verify: %s serves init.sh (%s bytes)\n' "$URL" "${#served}"
-    else
-        echo "verify: $URL served something other than init.sh" >&2
-        return 1
-    fi
-}
-
 case "${1-deploy}" in
-    deploy) "${WRANGLER[@]}" deploy ;;
-    check)  "${WRANGLER[@]}" deploy --dry-run --outdir "$(mktemp -d)" ;;
-    verify) verify ;;
-    tail)   "${WRANGLER[@]}" tail ;;
+    deploy) python3 artifacts.py stage; "${WRANGLER[@]}" deploy; python3 artifacts.py verify ;;
+    check)  python3 artifacts.py stage; "${WRANGLER[@]}" deploy --dry-run ;;
+    verify) python3 artifacts.py verify ;;
     *)      usage ;;
 esac

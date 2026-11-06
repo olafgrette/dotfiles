@@ -143,6 +143,28 @@ and implementation changes. Push it under the existing publishing authorization.
 For review-only requests, report proposed checkpoint updates without writing or
 publishing them.
 
+## Maintain mirrored installer assets
+
+During artifact maintenance, read `dots-sh/README.md`, `dots-sh/artifacts.json`,
+and the installer call sites. Review the current Starship archives,
+zellij-choose-tree, Ghostty shader, and OpenAI Arch bootstrap script as applicable.
+A release review alone does not authorize an update or deployment; use the
+session's existing implementation and target-specific deployment authorization.
+
+For an authorized update, review upstream changes and redistribution terms,
+check published upstream digests where available, and record the source and
+SHA-256 in a new immutable manifest entry. Retain previous entries and their
+license notices. Downloaded payloads belong only in ignored `dots-sh/public/`.
+Use `artifacts.py stage` to restore missing retained files from the mirror;
+use `stage --upstream` for approved new files. Never silently accept a changed
+upstream hash. Test the affected installer behavior and run `deploy.sh check`.
+Deploy and verify all live hashes before committing or pushing a manifest that
+selects the new files, under the session's publishing authorization. Report any
+validation gaps. Cloudflare authentication is the local Wrangler login; no
+upload credential goes in Git or on client machines. Keep the endpoint static
+and do not enable optional Workers Cache. Redeploy reviewed `init.sh` changes
+when the matching repository changes are available to fresh clones.
+
 ## Propose follow-up changes
 
 Rank proposals as compatibility fixes, simplifications, or optional features.
