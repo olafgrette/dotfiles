@@ -92,6 +92,25 @@
   "clockFormat": "24h",
   "currentThemeCategory": "dynamic",
   "currentThemeName": "dynamic",
+  "cursorSettings": {
+    "dwl": {
+      "cursorHideTimeout": 0
+    },
+    "hyprland": {
+      "hideOnKeyPress": false,
+      "hideOnTouch": false,
+      "inactiveTimeout": 0
+    },
+    "mango": {
+      "cursorHideTimeout": 0
+    },
+    "niri": {
+      "hideAfterInactiveMs": 0,
+      "hideWhenTyping": false
+    },
+    "size": 32,
+    "theme": "broodwar"
+  },
   "dockConfigs": [
     {
       "autoHide": false,
