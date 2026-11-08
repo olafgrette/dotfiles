@@ -97,7 +97,7 @@
     },
     "hyprland": {
       "upstream": "https://github.com/hyprwm/Hyprland",
-      "source": "https://github.com/hyprwm/Hyprland/releases/tag/v0.57.0",
+      "source": "https://github.com/hyprwm/Hyprland/releases/tag/v0.57.1",
       "commands": [
         "Hyprland"
       ],
@@ -107,9 +107,9 @@
         ]
       },
       "status": "reviewed",
-      "reviewedThrough": "v0.57.0",
-      "reviewedOn": "2026-10-28",
-      "notes": "Reviewed v0.56.2 to v0.57.0. Installed 0.57.0. Legacy configuration support is removed; tracked overrides already use Lua. New compositor session target is shipped by the package. Existing XDG-autostart drop-in remains useful: the vendor target does not pull in xdg-desktop-autostart.target. DMS service enablement and nofile override are retained. Stricter dispatcher validation and additional Lua APIs require no demonstrated change to tracked binds. No native replacement for monitor-dir.lua was established. Generated compositor config remains Dux-owned. Fresh-login, multi-monitor and rendering behavior remain untested."
+      "reviewedThrough": "v0.57.1",
+      "reviewedOn": "2026-11-07",
+      "notes": "Reviewed v0.56.2 to v0.57.0. Installed 0.57.0. Legacy configuration support is removed; tracked overrides already use Lua. New compositor session target is shipped by the package. Existing XDG-autostart drop-in remains useful: the vendor target does not pull in xdg-desktop-autostart.target. DMS service enablement and nofile override are retained. Stricter dispatcher validation and additional Lua APIs require no demonstrated change to tracked binds. No native replacement for monitor-dir.lua was established. Generated compositor config remains Dux-owned. Fresh-login, multi-monitor and rendering behavior remain untested. Reviewed v0.57.0 to v0.57.1. Installed remains 0.57.0. Backported fixes cover chord consumption, mouse inputs, removed outputs during session lock, NVIDIA black screens, rendering and Lua validation. Recommend upgrading; no required migration or replacement for the directional monitor helper appears in these notes. Existing Lua bindings and session integration remain unchanged; upgraded runtime behavior is untested."
     },
     "greetd": {
       "upstream": "https://git.sr.ht/~kennylevinsen/greetd",
@@ -139,9 +139,9 @@
     },
     "dux-shell": {
       "upstream": "https://github.com/duxlabs-dev/dux-shell",
-      "reviewedThrough": "v2.0.0",
-      "reviewedOn": "2026-10-28",
-      "source": "https://github.com/duxlabs-dev/dux-shell/releases/tag/v2.0.0",
+      "reviewedThrough": "v2.1.1",
+      "reviewedOn": "2026-11-07",
+      "source": "https://github.com/duxlabs-dev/dux-shell/releases/tag/v2.1.1",
       "commands": [
         "dms"
       ],
@@ -151,7 +151,7 @@
         ]
       },
       "status": "reviewed",
-      "notes": "Reviewed v1.6.3 to v2.0.0, including the rebrand announcement and directory/drop-in migration docs. Installed 2.0.0. Live XDG directories migrate to dms with legacy compatibility symlinks; binary and service names remain dms. Updated checkout paths, readiness checks, package declarations and documentation. Capture uses the migrated animation, bar-widget and dock schemas; dock display selectors and compositor migration markers stay local. Ignored checkout overrides migrate without overwriting conflicts. Existing KDE Connect device selection moved to a local plugin overlay. Adopted native config.d: writable 10-dotfiles.json and 90-dotfiles.local.json, with top-level native precedence. GUI edits stay in live files until explicit filtered capture. Other drop-ins remain local and unchanged. Apply removes duplicate managed base keys so deleted shared settings cannot revive stale values; unowned base keys remain. Clipboard settings and plugin preferences retain the auxiliary replacement contract. First native migration is foreground-only; background apply logs a retryable failure until the managed drop-in exists. One DMS restart is required after creating config.d; live native migration has not yet run. Verified unchanged effective settings and idempotence using a temporary copy of live configuration, and verified native precedence/write routing against the exact upstream JavaScript functions. Plugin revisions remain unchanged; deprecated QML wrappers remain available, but interactive plugin behavior is untested. Keep the existing nofile override: vendor soft limit is still 16384. Keep current package repositories until the announced 2.0.1 migration ships. Companion declarations now use dux-calendar-bin, dux-search-bin and the user-selected stable dux-greeter-bin; those replacements are not installed yet. Lock/suspend/resume and fresh-login checks remain outstanding. Dux Files and other new UI features are optional and were not enabled."
+      "notes": "Reviewed v1.6.3 to v2.0.0, including the rebrand announcement and directory/drop-in migration docs. Installed 2.0.0. Live XDG directories migrate to dms with legacy compatibility symlinks; binary and service names remain dms. Updated checkout paths, readiness checks, package declarations and documentation. Capture uses the migrated animation, bar-widget and dock schemas; dock display selectors and compositor migration markers stay local. Ignored checkout overrides migrate without overwriting conflicts. Existing KDE Connect device selection moved to a local plugin overlay. Adopted native config.d: writable 10-dotfiles.json and 90-dotfiles.local.json, with top-level native precedence. GUI edits stay in live files until explicit filtered capture. Other drop-ins remain local and unchanged. Apply removes duplicate managed base keys so deleted shared settings cannot revive stale values; unowned base keys remain. Clipboard settings and plugin preferences retain the auxiliary replacement contract. First native migration is foreground-only; background apply logs a retryable failure until the managed drop-in exists. One DMS restart is required after creating config.d; November 7: both managed native drop-ins are present and capture is unchanged; the one-time restart was not independently verified. Verified unchanged effective settings and idempotence using a temporary copy of live configuration, and verified native precedence/write routing against the exact upstream JavaScript functions. Plugin revisions remain unchanged; deprecated QML wrappers remain available, but interactive plugin behavior is untested. Keep the existing nofile override: vendor soft limit is still 16384. The previously deferred repository migration is resolved by the 2.1 guidance: Arch has no repositories to migrate; AUR replacements remain manual. Companion declarations now use dux-calendar-bin, dux-search-bin and the user-selected stable dux-greeter-bin; those replacements are not installed yet. Lock/suspend/resume and fresh-login checks remain outstanding. Dux Files and other new UI features are optional and were not enabled. Reviewed v2.0.0 through v2.1.0 and v2.1.1, including upgrade notes. Installed shell remains 2.0.0. Recommend upgrading for settings persistence, concurrent-session clipboard preservation, lock/suspend, Hyprland screenshot and tray fixes. Existing Lua overrides satisfy the removal of legacy conf support. Dux Search HTTP is now opt-in; no tracked HTTP client was found. The 2.1.1 service orders itself before tray.target but retains the 16384 soft nofile limit, so keep the existing limit override and XDG autostart integration. No required tracked configuration change or replacement for monitor-dir.lua was identified. Keep plugin pins unchanged; new versions and interactive behavior are untested. Interface density and Classic styling are optional GUI choices, not enabled by this pass. The user retained the three dux companion declarations and cleared their six inverse package entries; live replacements remain outstanding."
     },
     "quickshell": {
       "upstream": "https://git.outfoxxed.me/quickshell/quickshell",
@@ -214,10 +214,10 @@
       },
       "upstream": "https://github.com/rclone/rclone",
       "status": "reviewed",
-      "reviewedThrough": "v1.75.2",
-      "reviewedOn": "2026-10-16",
-      "source": "https://rclone.org/changelog/#v1-75-2-2026-10-09",
-      "notes": "Initial baseline: v1.75.1 patch notes only. Bisync empty-file accounting, crypt directory names and VFS fixes are relevant; no required wrapper or mount changes identified. Older releases not reviewed. Reviewed v1.75.1 to v1.75.2: security fixes and VFS cached-read, modtime and shutdown fixes. Recommend upgrade, especially for the full-cache Drive mount. No required mount-unit or bisync wrapper changes identified. Installed 1.75.1; upgraded runtime behavior remains untested. October 28: installed 1.75.2; the upgrade is complete, but mount/bisync runtime validation was not performed in this pass."
+      "reviewedThrough": "v1.76.0",
+      "reviewedOn": "2026-11-07",
+      "source": "https://rclone.org/changelog/#v1-76-0-2026-11-06",
+      "notes": "Initial baseline: v1.75.1 patch notes only. Bisync empty-file accounting, crypt directory names and VFS fixes are relevant; no required wrapper or mount changes identified. Older releases not reviewed. Reviewed v1.75.1 to v1.75.2: security fixes and VFS cached-read, modtime and shutdown fixes. Recommend upgrade, especially for the full-cache Drive mount. No required mount-unit or bisync wrapper changes identified. Installed 1.75.1; upgraded runtime behavior remains untested. October 28: installed 1.75.2; the upgrade is complete, but mount/bisync runtime validation was not performed in this pass. Reviewed v1.75.2 to v1.76.0. Installed remains 1.75.2. Recommend upgrading for local symlink boundary and redirect security fixes, bisync conflict/listing correctness, VFS rename/truncate fixes and uploads delayed by continued reads. Environment-defined remotes no longer write configuration back to disk, relevant to private-sync. No required flag or configuration changes identified for the full-cache Drive mount or encrypted bisync wrapper. HTTPS downgrades now fail by default; retain that default. OneDrive Business/SharePoint requires 1.76+ before April 1, 2027, but no such backend is declared by these wrappers. New-version local regression checks and live mount/bisync validation remain pending."
     },
     "bitwarden-cli": {
       "commands": [
@@ -230,10 +230,10 @@
       },
       "upstream": "https://github.com/bitwarden/clients",
       "status": "reviewed",
-      "reviewedThrough": "cli-v2026.10.0",
-      "reviewedOn": "2026-10-16",
-      "source": "https://github.com/bitwarden/clients/releases/tag/cli-v2026.10.0",
-      "notes": "Initial baseline: CLI v2026.2.0; older releases not reviewed. Reviewed subsequent published releases 2026.3.0, 2026.4.1, 2026.4.2, 2026.5.0, 2026.6.0, 2026.7.0, 2026.8.0, 2026.9.0 and 2026.9.1. Recommend upgrading for API-key local-storage and other security fixes. Login password-reset flows were removed; SDK login/unlock/sync handling changed. The get-item visibility fix redacts protected values when viewPassword is false; sync helpers require access to the stored secrets and already reject missing values. No required command-syntax change identified. Upgrade and live-vault validation of unlock, sync, get item and lock remain follow-up work; no live vault was accessed. Reviewed cli-v2026.9.1 to cli-v2026.10.0: SDK decryption changes, dependency security updates and flag-gated desktop biometric unlock. No required syntax change identified for the sync helpers. Installed CLI remains 2026.2.0. Upgrade and live-vault validation remain outstanding; biometric integration is optional and not implemented."
+      "reviewedThrough": "cli-v2026.10.1",
+      "reviewedOn": "2026-11-07",
+      "source": "https://github.com/bitwarden/clients/releases/tag/cli-v2026.10.1",
+      "notes": "Initial baseline: CLI v2026.2.0; older releases not reviewed. Reviewed subsequent published releases 2026.3.0, 2026.4.1, 2026.4.2, 2026.5.0, 2026.6.0, 2026.7.0, 2026.8.0, 2026.9.0 and 2026.9.1. Recommend upgrading for API-key local-storage and other security fixes. Login password-reset flows were removed; SDK login/unlock/sync handling changed. The get-item visibility fix redacts protected values when viewPassword is false; sync helpers require access to the stored secrets and already reject missing values. No required command-syntax change identified. Upgrade and live-vault validation of unlock, sync, get item and lock remain follow-up work; no live vault was accessed. Reviewed cli-v2026.9.1 to cli-v2026.10.0: SDK decryption changes, dependency security updates and flag-gated desktop biometric unlock. No required syntax change identified for the sync helpers. Installed CLI remains 2026.2.0. Upgrade and live-vault validation remain outstanding; biometric integration is optional and not implemented. Reviewed cli-v2026.10.0 to cli-v2026.10.1. Installed remains 2026.2.0. New notes cover importer and KDF safeguards, dependency security fixes, export corrections, biometric IPC and SDK decryption changes. No required syntax change identified for unlock --raw, sync, get item or lock. Upgrade remains recommended; new-version regression checks and live-vault validation are still outstanding. No vault was accessed."
     },
     "udiskie": {
       "commands": [
@@ -249,7 +249,7 @@
       "reviewedThrough": "2.7.0",
       "reviewedOn": "2026-10-28",
       "source": "https://github.com/coldfix/udiskie/blob/master/CHANGES.rst",
-      "notes": "Initial baseline: 2.7.0 changelog, with 2.6.0 and 2.6.1 tray/AppIndicator notes inspected. Installed 2.7.0. Null-config handling and ignoring systemd extensions need no service changes. Native user config remains local. Arch renamed libappindicator-gtk3 to libappindicator; installed package provides and replaces the old name. Updated the explicit declaration to preserve tray support. Older releases are not fully reviewed; removable-media runtime behavior was not tested."
+      "notes": "Initial baseline: 2.7.0 changelog, with 2.6.0 and 2.6.1 tray/AppIndicator notes inspected. Installed 2.7.0. Null-config handling and ignoring systemd extensions need no service changes. Native user config remains local. Arch renamed libappindicator-gtk3 to libappindicator; installed package provides and replaces the old name. Updated the explicit declaration to preserve tray support. Older releases are not fully reviewed; removable-media runtime behavior was not tested. November 7: libappindicator is installed as a dependency, explaining the saved inverse removal from explicit intent. User retained the shared explicit declaration to preserve tray support independently of other packages and cleared that inverse entry. No new upstream release was found."
     }
   }
 }
