@@ -1,4 +1,8 @@
 {
+  "calculator": {
+    "enabled": true,
+    "trigger": "="
+  },
   "dankGifSearch": {
     "enabled": true
   },
@@ -6,6 +10,9 @@
     "enabled": true
   },
   "dankLauncherKeys": {
+    "enabled": true
+  },
+  "emojiLauncher": {
     "enabled": true
   },
   "screenRecorderYS": {
