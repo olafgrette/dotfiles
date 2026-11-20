@@ -142,6 +142,7 @@
       "margin": 0,
       "maxVisibleApps": 0,
       "maxVisibleRunningApps": 0,
+      "middleClickAction": "close",
       "mode": "compact",
       "name": "Dock",
       "openOnOverview": false,
@@ -193,6 +194,9 @@
   "muxType": "zellij",
   "networkPreference": "wifi",
   "reduceMotion": true,
+  "spotlightSectionViewModes": {
+    "plugin_calculator": "list"
+  },
   "useAutoLocation": true,
   "useFahrenheit": true
 }
