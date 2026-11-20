@@ -1,6 +1,10 @@
 {
   "lockfileVersion": 1,
   "plugins": {
+    "calculator": {
+      "commit": "a27b80ad8c3dd42da11af83461674fb362817515",
+      "repo": "https://github.com/rochacbruno/DankCalculator"
+    },
     "dankGifSearch": {
       "commit": "e774a9756f2a50499c37a5513f28bee4ebe81d73",
       "path": "DankGifSearch",
@@ -15,6 +19,10 @@
       "commit": "e774a9756f2a50499c37a5513f28bee4ebe81d73",
       "path": "DankLauncherKeys",
       "repo": "https://github.com/AvengeMedia/dms-plugins"
+    },
+    "emojiLauncher": {
+      "commit": "cd7bbba76c0d9b8da65337de5125659846e1ce5c",
+      "repo": "https://github.com/devnullvoid/dms-emoji-launcher"
     },
     "screenRecorderYS": {
       "commit": "e3014914bd0efae92ba525dff52919eea39b58c3",
