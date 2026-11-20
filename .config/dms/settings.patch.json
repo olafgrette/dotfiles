@@ -66,12 +66,17 @@
       "transparency": 1,
       "visible": true,
       "widgetFollowInterfaceStyle": true,
+      "widgetPadding": 5,
       "widgetTransparency": 1
     }
   ],
   "barElevationEnabled": false,
   "batteryLockTimeout": 300,
   "batteryMonitorTimeout": 300,
+  "blurBorderEnabled": true,
+  "blurBorderSeeded": true,
+  "blurEnabled": false,
+  "blurLayerOutlineOpacity": 0.12,
   "builtInPluginSettings": {
     "dms_clipboard_search": {
       "trigger": "cb"
@@ -111,6 +116,7 @@
     "size": 32,
     "theme": "broodwar"
   },
+  "density": "dense",
   "dockConfigs": [
     {
       "autoHide": false,
@@ -181,11 +187,13 @@
     }
   ],
   "enableRippleEffects": false,
+  "fixedRadius": 7,
   "hyprlandLayoutBorderSize": 2,
   "hyprlandLayoutGapsOutOverride": 0,
   "hyprlandLayoutGapsOverride": 0,
   "hyprlandLayoutRadiusOverride": 0,
   "hyprlandResizeOnBorder": true,
+  "interfaceStyle": "classic",
   "lockBeforeSuspend": true,
   "lockScreenPowerOffMonitorsOnLock": true,
   "matugenScheme": "scheme-monochrome",
@@ -194,9 +202,12 @@
   "muxType": "zellij",
   "networkPreference": "wifi",
   "reduceMotion": true,
+  "sectionDividerOpacity": 0.05,
   "spotlightSectionViewModes": {
     "plugin_calculator": "list"
   },
+  "textRenderType": 1,
+  "touchpadNaturalScroll": false,
   "useAutoLocation": true,
   "useFahrenheit": true
 }
