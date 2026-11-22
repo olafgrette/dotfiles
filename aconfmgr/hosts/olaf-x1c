@@ -25,3 +25,6 @@ AddPackage bolt
 AddPackage iwd
 CopyFileTo "/hosts/olaf-x1c/etc/NetworkManager/conf.d/wifi_backend.conf" \
     "/etc/NetworkManager/conf.d/wifi_backend.conf"
+
+# Cloudflare WARP.
+AddPackage --foreign cloudflare-warp-bin
