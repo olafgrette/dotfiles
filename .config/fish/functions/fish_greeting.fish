@@ -178,7 +178,27 @@ function fish_greeting --description "Random ocean-themed greeting"
         "One fish, Twofish, red fish, Blowfish." \
         "She sells C shells by the seashore. Considered harmful." \
         "Hermit crabs switch shells too. Nobody demands POSIX compliance." \
-        "Fish out of water: ssh'd into a box with only /bin/sh."
+        "Fish out of water: ssh'd into a box with only /bin/sh." \
+        # === gemini 4 neon ===
+        "Give a man a fish and he eats for a day. Give him fish(1) and every pasted bash snippet breaks." \
+        "Load testing finds test depth. Production finds crush depth." \
+        "Flotsam is wreckage. Jetsam is load shedding." \
+        "Clock drift sank ships long before it broke consensus." \
+        "A rogue wave is what happens when the ocean forgets to add jitter." \
+        "Your serverless cloud is glass fibers lying in the mud at 4,000 meters." \
+        "The Bermuda Triangle is just asymmetric routing through a stateful firewall." \
+        "Active sonar is ping, except the remote host shoots back." \
+        "The 52-hertz whale: still multicasting to a group nobody joined." \
+        "The Vasa added a second gun deck after feature freeze and sank in the harbor." \
+        "Privateers had letters of marque. We have bug bounty scopes." \
+        "Passwords are like cod: never store them unsalted." \
+        "The garbage collector is a bilge pump. Pray it outpaces the leak." \
+        "A great white shark can't swim backward. Neither can your schema migration." \
+        "A Portuguese man o' war isn't one creature. It's a distributed monolith." \
+        "The blobfish looks normal under production pressure. It only falls apart when you run it locally." \
+        "Your dependency tree is a coral reef: a thin living layer built on dead skeletons." \
+        "Whale fall: a deprecated platform feeding an ecosystem of consultants for fifty years." \
+        "Marine biologists have never seen an eel spawn. Ops has never seen that service deploy."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
