@@ -161,6 +161,7 @@ AddPackage nodejs-lts-jod
 AddPackage npm
 AddPackage python-html5lib
 AddPackage python-psutil
+AddPackage python-pyqt6
 AddPackage rustup
 AddPackage shellcheck
 AddPackage taplo-cli
@@ -181,6 +182,7 @@ AddPackage opencode
 AddPackage --foreign antigravity-cli
 AddPackage --foreign claude-code
 AddPackage --foreign claude-desktop
+AddPackage --foreign stably-orca-bin
 
 # Browsers and communication.
 AddPackage bitwarden
@@ -209,6 +211,7 @@ AddPackage --foreign protonplus
 # Peripherals.
 AddPackage bluez
 AddPackage bluez-utils
+AddPackage --foreign libconcord
 AddPackage --foreign uhk-agent-appimage
 
 # Printing.
