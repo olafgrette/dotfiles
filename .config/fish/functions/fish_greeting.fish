@@ -198,7 +198,18 @@ function fish_greeting --description "Random ocean-themed greeting"
         "The blobfish looks normal under production pressure. It only falls apart when you run it locally." \
         "Your dependency tree is a coral reef: a thin living layer built on dead skeletons." \
         "Whale fall: a deprecated platform feeding an ecosystem of consultants for fifty years." \
-        "Marine biologists have never seen an eel spawn. Ops has never seen that service deploy."
+        "Marine biologists have never seen an eel spawn. Ops has never seen that service deploy." \
+        # === muse wonder 1.0 ===
+        "At crush depth, every abstraction leaks." \
+        "The tide doesn't paginate. Neither do your logs." \
+        "Ballast is just technical debt you chose to keep." \
+        "Every hull breach starts as a TODO." \
+        "The ocean is eventually consistent. So is your cache." \
+        "You don't rise to the occasion. You sink to your runbook." \
+        "Dead reckoning: how most postmortems get written." \
+        "Current drift: also how configs diverge." \
+        #   "Neptune called. He wants his fork back." \
+        #   "Seas the SLA."
 
     set -l pick (random choice $quotes)
     echo "$fish  $pick"
