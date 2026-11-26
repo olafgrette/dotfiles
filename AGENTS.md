@@ -198,9 +198,9 @@ never writes shared preferences back to the repository.
 ## Agent skills
 
 `skills/` is the tool-neutral source for user-level agent skills. `skill-sync` links
-each skill individually into `~/.claude/skills/` and `~/.codex/skills/`, leaving room
-for tool-managed or local-only skills. It runs from `install.sh`, including when
-background convergence detects changed skills.
+each skill individually into `~/.claude/skills/`, `~/.codex/skills/`, and
+`~/.gemini/config/skills/`, leaving room for tool-managed or local-only skills. It runs
+from `install.sh`, including when background convergence detects changed skills.
 
 ## Validation
 

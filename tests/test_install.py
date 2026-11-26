@@ -92,10 +92,19 @@ esac''')
         return result
 
     def test_background_applies_files_without_network_or_linger(self):
+        local_skill = self.home / ".gemini/config/skills/local-only"
+        local_skill.mkdir(parents=True)
+        (local_skill / "SKILL.md").write_text("---\nname: local-only\n---\n")
+        self.install("--background")
         self.install("--background")
         self.assertTrue((self.home / ".config/fish").is_symlink())
         self.assertTrue((self.home / ".codex/AGENTS.md").is_file())
-        self.assertTrue((self.home / ".codex/skills/investigation").is_symlink())
+        for root in (".claude/skills", ".codex/skills", ".gemini/config/skills"):
+            target = self.home / root / "investigation"
+            self.assertTrue(target.is_symlink())
+            self.assertTrue((target / "SKILL.md").is_file())
+            self.assertFalse((target / "investigation").exists())
+        self.assertTrue((local_skill / "SKILL.md").is_file())
         self.assertFalse((self.root / "setup.log").exists())
 
     def test_default_retains_network_setup_and_linger(self):
