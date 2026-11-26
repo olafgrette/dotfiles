@@ -11,7 +11,7 @@
     "starship-x86_64-unknown-linux-musl": "starship-x86_64-unknown-linux-musl-v1.27.0",
     "choose-tree": "choose-tree-v0.4.2",
     "cursor-frozen": "cursor-frozen-7295ebf717f236f114912ec5de0d8ce91661448f",
-    "openai-arch": "openai-arch-fa51a6ac83a122d56740523f702a8dac6ed0c6b5953b3787e196e18d16b27a62",
+    "openai-arch": "openai-arch-c84da4428b58a381225c3e5b94996783e3aad2e57dadff2c7df7793c7c082f91",
     "broodwar-cursors": "broodwar-cursors-multisize-3f39bcef0d51023674bd34ce49010949ce95a5ee22fbb0b7c093844d9029d6a5"
   },
   "files": {
@@ -74,6 +74,11 @@
       "path": "assets/openai/fa51a6ac83a122d56740523f702a8dac6ed0c6b5953b3787e196e18d16b27a62/install-arch.sh",
       "source": "https://persistent.oaistatic.com/codex-app-prod/linux/install-arch.sh",
       "sha256": "fa51a6ac83a122d56740523f702a8dac6ed0c6b5953b3787e196e18d16b27a62"
+    },
+    "openai-arch-c84da4428b58a381225c3e5b94996783e3aad2e57dadff2c7df7793c7c082f91": {
+      "path": "assets/openai/c84da4428b58a381225c3e5b94996783e3aad2e57dadff2c7df7793c7c082f91/install-arch.sh",
+      "source": "https://persistent.oaistatic.com/codex-app-prod/linux/install-arch.sh",
+      "sha256": "c84da4428b58a381225c3e5b94996783e3aad2e57dadff2c7df7793c7c082f91"
     },
     "starship-license-v1.27.0": {
       "path": "assets/starship/v1.27.0/LICENSE",
