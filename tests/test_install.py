@@ -143,6 +143,24 @@ esac''')
         self.assertEqual(target.read_bytes(), before)
         self.assertEqual(list(target.parent.glob("CLAUDE.md.*")), [])
 
+    def test_skill_cleanup_only_removes_broken_repository_links(self):
+        for directory in (".claude/skills", ".codex/skills", ".gemini/config/skills"):
+            destination = self.home / directory
+            destination.mkdir(parents=True)
+            (destination / "removed").symlink_to(str(self.repo.resolve() / "skills/removed") + "/")
+            (destination / "local-broken").symlink_to(self.root / "private/missing")
+            (destination / "relative-broken").symlink_to("../missing")
+            (destination / "similar-prefix").symlink_to(self.repo.resolve() / "skills-other/missing")
+            (destination / "local-directory").mkdir()
+        self.install("--background")
+        for directory in (".claude/skills", ".codex/skills", ".gemini/config/skills"):
+            destination = self.home / directory
+            self.assertFalse((destination / "removed").is_symlink())
+            for name in ("local-broken", "relative-broken", "similar-prefix"):
+                self.assertTrue((destination / name).is_symlink())
+            self.assertTrue((destination / "local-directory").is_dir())
+            self.assertTrue((destination / "investigation/SKILL.md").is_file())
+
     def test_default_retains_network_setup_and_linger(self):
         self.install()
         log = (self.root / "setup.log").read_text()
