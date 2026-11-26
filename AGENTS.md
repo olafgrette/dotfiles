@@ -153,6 +153,10 @@ machine fields. `.config/dms/settings.patch.json` holds captured portable intent
 - `dms-settings capture` reads the effective native settings and offers to commit
   each changed patch. Keys owned by local overrides or other drop-ins stay out
   of shared capture; existing shared values hidden by them are retained.
+- `dms-settings diff` previews those shared settings changes without writing or
+  inspecting plugin revisions. It prints a unified diff, stays quiet when equal,
+  and exits zero on a successful comparison. Pending local-override migrations
+  must be completed with capture or apply first.
 - Display identifiers, histories, GPU selection, and migration state are excluded
   from capture. Apply preserves nested bar, dock, and desktop-widget machine
   fields by instance ID in the writable shared drop-in. A local array override

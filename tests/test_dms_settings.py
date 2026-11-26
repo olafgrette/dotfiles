@@ -1,5 +1,6 @@
 import importlib.util
 from importlib.machinery import SourceFileLoader
+import io
 import json
 import subprocess
 from pathlib import Path
@@ -19,6 +20,51 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DmsSettingsTest(unittest.TestCase):
+    def test_diff_previews_capture_without_writes_or_plugins(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.plugin_args(Path(directory))
+            MODULE.atomic_json(args.patch, {"preference": "old", "hidden": "shared"})
+            MODULE.atomic_json(args.live, {
+                "preference": "new", "hidden": "private", "configVersion": 42,
+                "barConfigs": [{"id": "main", "screenPreferences": ["private-display"]}],
+            })
+            MODULE.atomic_json(args.local_patch, {"hidden": "private"})
+            MODULE.atomic_json(args.live.with_name("clsettings.json"), {"maxHistory": 10})
+            args.patch.with_name("plugins.lock.json").write_text("not inspected")
+            before = {path: path.read_bytes() for path in Path(directory).rglob("*") if path.is_file()}
+            output = io.StringIO()
+            with patch.object(MODULE.sys, "stdout", output), \
+                    patch.object(MODULE, "atomic_json") as write, \
+                    patch.object(MODULE.subprocess, "run") as run:
+                self.assertEqual(MODULE.diff(args), 0)
+                write.assert_not_called()
+                run.assert_not_called()
+            self.assertIn('-  "preference": "old"', output.getvalue())
+            self.assertIn('+  "preference": "new"', output.getvalue())
+            self.assertIn("clsettings.patch.json (capture)", output.getvalue())
+            self.assertNotIn("private", output.getvalue())
+            self.assertNotIn("configVersion", output.getvalue())
+            self.assertEqual(before, {path: path.read_bytes() for path in Path(directory).rglob("*")
+                                      if path.is_file()})
+            for path, value in MODULE.settings_captures(args):
+                MODULE.atomic_json(path, value)
+            with patch.object(MODULE.sys, "stdout", io.StringIO()) as output:
+                MODULE.diff(args)
+                self.assertEqual(output.getvalue(), "")
+
+    def test_diff_refuses_pending_override_migration_without_moving_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            source = repo / ".config/DankMaterialShell/settings.local.json"
+            MODULE.atomic_json(source, {"private": True})
+            with patch.object(MODULE, "__file__", str(repo / ".local/bin/dms-settings")), \
+                    patch.object(MODULE.sys, "argv", ["dms-settings", "diff"]), \
+                    patch.object(MODULE.sys, "stderr", io.StringIO()) as error:
+                self.assertEqual(MODULE.main(), 1)
+                self.assertIn("need migration", error.getvalue())
+            self.assertTrue(source.exists())
+            self.assertFalse((repo / ".config/dms").exists())
+
     def test_legacy_local_overrides_move_without_overwriting_conflicts(self):
         with tempfile.TemporaryDirectory() as directory:
             repo = Path(directory)

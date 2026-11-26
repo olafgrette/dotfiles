@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import os
 from pathlib import Path
@@ -275,7 +276,7 @@ def local_settings_keys(args: argparse.Namespace) -> set[str]:
     return keys
 
 
-def capture(args: argparse.Namespace) -> int:
+def settings_captures(args: argparse.Namespace) -> list[tuple[Path, dict]]:
     captures = []
     for paths, primary in settings_files(args):
         if not primary and not paths.live.exists():
@@ -299,6 +300,23 @@ def capture(args: argparse.Namespace) -> int:
         # This machine cannot capture shared values hidden by local overrides.
         patch.update({key: value for key, value in shared.items() if key in local_keys})
         captures.append((paths.patch, patch))
+    return captures
+
+
+def diff(args: argparse.Namespace) -> int:
+    # Preview shared settings only: no plugin export, writes, or commit prompts.
+    for path, captured in settings_captures(args):
+        before = json.dumps(load_json(path, missing={}), indent=2, sort_keys=True) + "\n"
+        after = json.dumps(captured, indent=2, sort_keys=True) + "\n"
+        sys.stdout.writelines(difflib.unified_diff(
+            before.splitlines(keepends=True), after.splitlines(keepends=True),
+            fromfile=str(path), tofile=f"{path} (capture)",
+        ))
+    return 0
+
+
+def capture(args: argparse.Namespace) -> int:
+    captures = settings_captures(args)
 
     if not args.settings_only:
         captures.append(capture_plugins(args))
@@ -369,7 +387,8 @@ def parser() -> argparse.ArgumentParser:
         epilog="Apply publishes native config.d drop-ins from shared settings and local overrides. "
                "Capture writes current portable settings back to the patches. Also handles sibling "
                "clsettings, plugin_settings and plugins.lock files. Plugin restore may use the "
-               "network and retains extra installed plugins. Restart DMS once after creating config.d.",
+               "network and retains extra installed plugins. Diff previews shared settings capture "
+               "without writes or plugin inspection. Restart DMS once after creating config.d.",
     )
     result.add_argument("--live", type=Path, default=config / "settings.json")
     result.add_argument("--patch", type=Path, default=repo / ".config/dms/settings.patch.json")
@@ -378,11 +397,11 @@ def parser() -> argparse.ArgumentParser:
                         help="skip plugin lock capture/restore (used by background installation)")
     result.add_argument("--no-migrate", action="store_true",
                         help="refuse initial native drop-in migration (background installation)")
-    result.add_argument("command", choices=("apply", "capture"))
+    result.add_argument("command", choices=("apply", "capture", "diff"))
     return result
 
 
-def migrate_local_overrides(repo: Path) -> None:
+def migrate_local_overrides(repo: Path, *, check_only: bool = False) -> None:
     # Git moves the shared patches, but ignored overrides stay at the old path
     # on other checkouts. Validate all destinations before moving any override.
     moves = []
@@ -394,6 +413,8 @@ def migrate_local_overrides(repo: Path) -> None:
         if target.exists() or target.is_symlink():
             raise ValueError(f"local override migration conflict: {source} and {target}; both preserved")
         moves.append((source, target))
+    if moves and check_only:
+        raise ValueError("local overrides need migration; run dms-settings capture or apply first")
     for source, target in moves:
         target.parent.mkdir(parents=True, exist_ok=True)
         source.rename(target)
@@ -404,7 +425,9 @@ def main() -> int:
     try:
         repo = Path(__file__).resolve().parents[2]
         if args.local_patch == repo / ".config/dms/settings.local.json":
-            migrate_local_overrides(repo)
+            migrate_local_overrides(repo, check_only=args.command == "diff")
+        if args.command == "diff":
+            return diff(args)
         return capture(args) if args.command == "capture" else apply(args, allow_migration=not args.no_migrate)
     except (OSError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as error:
         print(f"dms-settings: {error}", file=sys.stderr)
