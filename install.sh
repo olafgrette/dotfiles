@@ -53,7 +53,7 @@ is_personal() {
 }
 
 # Render UNIVERSAL_AGENT_DIRECTIVES.md into the agent directives shared by all
-# three tools, filtering <!-- scope:personal/work --> blocks by hostname and
+# four tools, filtering <!-- scope:personal/work --> blocks by hostname and
 # appending the gitignored local override (work-only content that must
 # never enter git history).
 render_agent_directives() {
@@ -70,23 +70,33 @@ render_agent_directives() {
         }
         /^<!-- \/scope:[a-z]+ -->$/ { skip = 0; next }
         !skip
-    ' "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.md")"
+    ' "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.md")" || return 1
 
-    if [ -f "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.local.md" ]; then
-        rendered="$rendered"$'\n\n'"$(cat "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.local.md")"
+    if [ -e "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.local.md" ] || [ -L "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.local.md" ]; then
+        rendered="$rendered"$'\n\n'"$(cat "$DOTFILES/UNIVERSAL_AGENT_DIRECTIVES.local.md")" || return 1
     fi
 
     printf '%s\n' "$rendered"
 }
 
-generate_file() {
+generate_file() (
     local dst="$HOME/$1"
     local content="$2"
+    local temporary
     mkdir -p "$(dirname "$dst")"
-    rm -f "$dst"
-    printf '%s\n' "$content" > "$dst"
+    temporary=$(mktemp "${dst}.XXXXXX")
+    trap 'rm -f "$temporary"' EXIT
+    printf '%s\n' "$content" > "$temporary"
+    if [ ! -L "$dst" ] && cmp -s "$temporary" "$dst"; then
+        return 0
+    fi
+    mv -f "$temporary" "$dst"
     echo "Generated $dst"
-}
+)
+
+# Check both sources before replacing any installed directives. Bash does not
+# reliably inherit errexit inside command substitutions, hence explicit checks.
+AGENT_DIRECTIVES="$(render_agent_directives)" || exit 1
 
 symlink .config/fish
 symlink .config/ghostty
@@ -168,7 +178,6 @@ if ! jq -e '.statusLine' "$CLAUDE_SETTINGS" > /dev/null 2>&1; then
     mv "$tmp" "$CLAUDE_SETTINGS"
     echo "Added statusLine to $CLAUDE_SETTINGS"
 fi
-AGENT_DIRECTIVES="$(render_agent_directives)"
 generate_file .claude/CLAUDE.md "$AGENT_DIRECTIVES"
 generate_file .gemini/GEMINI.md "$AGENT_DIRECTIVES"
 generate_file .opencode/AGENTS.md "$AGENT_DIRECTIVES"

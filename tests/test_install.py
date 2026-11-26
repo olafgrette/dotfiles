@@ -107,6 +107,42 @@ esac''')
         self.assertTrue((local_skill / "SKILL.md").is_file())
         self.assertFalse((self.root / "setup.log").exists())
 
+    def test_directive_read_failures_preserve_all_installed_files(self):
+        self.install("--background")
+        targets = [self.home / name for name in (
+            ".claude/CLAUDE.md", ".codex/AGENTS.md", ".gemini/GEMINI.md", ".opencode/AGENTS.md",
+        )]
+        before = [path.read_bytes() for path in targets]
+        source = self.repo / "UNIVERSAL_AGENT_DIRECTIVES.md"
+        original = source.read_bytes()
+        source.unlink()
+        for failure in ("shared", "local"):
+            with self.subTest(failure=failure):
+                if failure == "local":
+                    source.write_bytes(original)
+                    (self.repo / "UNIVERSAL_AGENT_DIRECTIVES.local.md").symlink_to("missing")
+                result = subprocess.run(["bash", str(self.repo / "install.sh"), "--background"],
+                                        env=self.env, text=True, capture_output=True, timeout=15)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual([path.read_bytes() for path in targets], before)
+
+    def test_directive_replacement_preserves_old_file_on_failure_and_skips_equal_content(self):
+        self.install("--background")
+        target = self.home / ".claude/CLAUDE.md"
+        before = target.read_bytes()
+        inode = target.stat().st_ino
+        self.install("--background")
+        self.assertEqual(target.stat().st_ino, inode)
+        (self.repo / "UNIVERSAL_AGENT_DIRECTIVES.local.md").write_text("Local fixture\n")
+        (self.bin / "mv").unlink()
+        self.stub("mv", 'echo "fixture: replacement failed" >&2; exit 1')
+        result = subprocess.run(["bash", str(self.repo / "install.sh"), "--background"],
+                                env=self.env, text=True, capture_output=True, timeout=15)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("replacement failed", result.stderr)
+        self.assertEqual(target.read_bytes(), before)
+        self.assertEqual(list(target.parent.glob("CLAUDE.md.*")), [])
+
     def test_default_retains_network_setup_and_linger(self):
         self.install()
         log = (self.root / "setup.log").read_text()
