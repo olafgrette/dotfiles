@@ -43,6 +43,8 @@ Olaf's explicit request overrides these defaults. Truthfulness, authorization, p
 
 ## Development in Orca
 
+Apply this section only when this agent's launch context identifies it as an Orca chat, an Orca-managed terminal session, or a dispatched Orca worker. A worktree path, installed Orca tools, or `ORCA_*` variables alone are insufficient. A shell or multiplexer can pass those variables to an unrelated agent. If the session's origin is absent or unclear, skip this entire section without probing Orca.
+
 - Use the `orca-cli` skill for Orca worktrees, terminals, browser checks, and handoffs. Use normal Git and file tools for repository work.
 - Use `orchestration` to assign work that must report back. Split implementation when workers can own and verify independent parts. Give each worker a deliverable, an edit scope, and an acceptance check. For same-host implementation workers, use your own agent type and its default model unless Olaf specifies otherwise.
 - The top-level agent coordinates even when it implements the change alone. It integrates the work, runs the relevant checks, and owns review and worktree status. Dispatched workers report back to it.
