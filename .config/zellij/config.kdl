@@ -30,6 +30,13 @@ keybinds clear-defaults=true {
         bind "x" { CloseFocus; SwitchToMode "locked"; }
         bind "z" { TogglePaneFrames; SwitchToMode "locked"; }
         bind "tab" { SwitchFocus; }
+        bind ";" { FocusLastPane; }
+        bind "a" { NewFloatingPane; SwitchToMode "locked"; }
+        bind "g" { IgnorePaneOutput; SwitchToMode "locked"; }
+        bind "Shift s" { ToggleStackListOrientation; SwitchToMode "locked"; }
+        bind "u" { MutePane; SwitchToMode "locked"; }
+        bind "v" { WatchPane; SwitchToMode "locked"; }
+        bind "Shift z" { ToggleBars; SwitchToMode "locked"; }
     }
     tab {
         bind "left" { GoToPreviousTab; }
@@ -58,6 +65,9 @@ keybinds clear-defaults=true {
         bind "t" { SwitchToMode "normal"; }
         bind "x" { CloseTab; SwitchToMode "locked"; }
         bind "tab" { ToggleTab; }
+        bind "space" { NextSwapLayout; }
+        bind "Shift space" { PreviousSwapLayout; }
+        bind "u" { MuteTab; SwitchToMode "locked"; }
     }
     resize {
         bind "left" { Resize "Increase left"; }
@@ -99,6 +109,10 @@ keybinds clear-defaults=true {
         bind "e" { EditScrollback; SwitchToMode "locked"; }
         bind "f" { SwitchToMode "entersearch"; SearchInput 0; }
         bind "s" { SwitchToMode "normal"; }
+        bind "[" { ScrollToPreviousPrompt; }
+        bind "]" { ScrollToNextPrompt; }
+        bind "c" { CopyLastCommandOutput; SwitchToMode "locked"; }
+        bind "m" { SelectCommandAtScrollPosition; }
     }
     search {
         bind "c" { SearchToggleOption "CaseSensitivity"; }
@@ -152,6 +166,16 @@ keybinds clear-defaults=true {
             }
             SwitchToMode "locked"
         }
+        bind "left" { GoToPreviousSession; SwitchToMode "locked"; }
+        bind "right" { GoToNextSession; SwitchToMode "locked"; }
+        bind "[" { FocusGuestSession; SwitchToMode "locked"; }
+        bind "]" { FocusHostSession; SwitchToMode "locked"; }
+        bind "f" { ToggleHostFullscreen; SwitchToMode "locked"; }
+        bind "i" { ToggleSessionCard; SwitchToMode "locked"; }
+        bind "n" { GoToNextAttention; SwitchToMode "locked"; }
+        bind "r" { SwitchToMode "renamesession"; SessionNameInput 0; }
+        bind "u" { MuteSession; SwitchToMode "locked"; }
+        bind "tab" { ToggleSession; SwitchToMode "locked"; }
     }
     shared_among "normal" "locked" {
         // Focus: Alt+arrows only (Alt+h/j/k/l removed — clashes with helix Alt motions)
@@ -240,6 +264,10 @@ keybinds clear-defaults=true {
     }
     renamepane {
         bind "esc" { UndoRenamePane; SwitchToMode "pane"; }
+    }
+    renamesession {
+        bind "Ctrl c" { SwitchToMode "locked"; }
+        bind "esc" { UndoRenameSession; SwitchToMode "session"; }
     }
 }
 
