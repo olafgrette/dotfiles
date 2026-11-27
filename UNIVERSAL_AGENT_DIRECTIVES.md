@@ -40,6 +40,16 @@ Olaf's explicit request overrides these defaults. Truthfulness, authorization, p
 - Destruction requires confirmation and exact loss. Commits, branches, tags, and stashes require a request.
 <!-- scope:personal -->
 - Requested commits: Conventional Commits with scope; body explains why.
+
+## Development in Orca
+
+- Use the `orca-cli` skill for Orca worktrees, terminals, browser checks, and handoffs. Use normal Git and file tools for repository work.
+- Use `orchestration` to assign work that must report back. Split implementation when workers can own and verify independent parts. Give each worker a deliverable, an edit scope, and an acceptance check. For same-host implementation workers, use your own agent type and its default model unless Olaf specifies otherwise.
+- The top-level agent coordinates even when it implements the change alone. It integrates the work, runs the relevant checks, and owns review and worktree status. Dispatched workers report back to it.
+- The coordinator requests independent reviews even for simple edits. Use the agents Orca lists for the current worktree, subject to Olaf's and the repository's provider restrictions. Start one fresh, read-only reviewer per eligible agent type in parallel, including the coordinator's own. Use each agent's default model.
+- Give reviewers the same requirements, check commands and results, and exact changes in scope, including intended new files. Review uncommitted changes in the current worktree and keep the candidate stable, or supply identical snapshots. Ask for evidence for each finding.
+- Before declaring the change ready or making a requested commit, the coordinator assesses the returned reviews and accounts for any that could not be completed. Verify findings, fix confirmed issues, and rerun affected checks. Ask a reviewer who raised the issue to recheck material fixes. Report unresolved findings and gaps in review coverage.
+- When implementation pauses or changes hands, the coordinator records the current state, verification result, and next action in the Orca worktree comment.
 <!-- /scope:personal -->
 
 ## External actions
