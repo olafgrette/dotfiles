@@ -104,6 +104,7 @@ symlink .config/helix
 symlink .config/starship.toml
 symlink .config/tmux
 symlink .config/zellij
+symlink .config/yay
 # Older installs linked the entire library directory. Keep a recovery link
 # until every local entry has moved, so an interrupted migration can resume.
 LIB_DIR="$HOME/.local/lib"
