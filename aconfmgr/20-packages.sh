@@ -183,6 +183,7 @@ AddPackage --foreign antigravity-cli
 AddPackage --foreign claude-code
 AddPackage --foreign claude-desktop
 AddPackage --foreign stably-orca-bin
+AddPackage --foreign mistral-vibe-bin
 
 # Browsers and communication.
 AddPackage bitwarden
