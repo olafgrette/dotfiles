@@ -141,6 +141,7 @@ This will do normal dotfile things such as:
 * configure Gemini
 * configure OpenCode
 * configure Codex
+* configure Mistral Vibe
 * apply desktop settings
 * synchronize agent skills
 
@@ -261,9 +262,10 @@ Claude
 Gemini
 OpenCode
 Codex
+Mistral Vibe
 ```
 
-This prevents the exciting possibility of four different artificial intelligences independently deciding how I want them to behave.
+This prevents the exciting possibility of five different artificial intelligences independently deciding how I want them to behave.
 
 There are also shared skills and scope-specific agent configuration.
 

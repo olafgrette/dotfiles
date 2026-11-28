@@ -111,8 +111,10 @@ esac''')
         self.install("--background")
         targets = [self.home / name for name in (
             ".claude/CLAUDE.md", ".codex/AGENTS.md", ".gemini/GEMINI.md", ".opencode/AGENTS.md",
+            ".vibe/AGENTS.md",
         )]
         before = [path.read_bytes() for path in targets]
+        self.assertEqual(len(set(before)), 1)
         source = self.repo / "UNIVERSAL_AGENT_DIRECTIVES.md"
         original = source.read_bytes()
         source.unlink()

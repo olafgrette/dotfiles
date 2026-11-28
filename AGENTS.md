@@ -36,6 +36,9 @@ dotfile manager.
   Starship, fetches the Ghostty shader and zellij plugins, installs the Brood War
   cursor theme on Linux GUI hosts without selecting it, and enables Linux linger.
   `install.sh --background` skips network setup and linger changes.
+- For a requested live install on an existing setup, resolve an installer-managed
+  HOME symlink to find the checkout in use. Verify its HEAD and tracked
+  installation inputs match the intended commit, then run `install.sh` there.
 - Generated files, caches, histories, downloaded third-party assets, and runtime
   state do not belong in Git. Check `.gitignore` and the owning tool before adding
   files from a symlinked directory.
@@ -119,10 +122,11 @@ in tracked examples.
 ## Agent directives
 
 `UNIVERSAL_AGENT_DIRECTIVES.md` is the single source for the agent directive files
-installed at `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`, and `~/.opencode/AGENTS.md`.
-It is tool-neutral on purpose: none of the four destinations is the "real" file that the
-others alias, so the source is not named after any of them. `install.sh` generates all
-four per-machine rather than symlinking — the repo holds no copy under a vendor path:
+installed at `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`,
+`~/.opencode/AGENTS.md`, and `~/.vibe/AGENTS.md`. The installer manages Vibe's
+default home. A custom `VIBE_HOME` uses its own `AGENTS.md`.
+`install.sh` generates each file from the same tool-neutral source. Only the
+source belongs in Git.
 
 - **Scope blocks**: wrap lines in `<!-- scope:personal -->` / `<!-- /scope:personal -->`
   or `<!-- scope:work -->` / `<!-- /scope:work -->` to include them only on the matching

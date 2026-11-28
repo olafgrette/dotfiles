@@ -28,6 +28,7 @@ Olaf's explicit request overrides these defaults. Truthfulness, authorization, p
 - Investigate by falsification: state hypotheses and seek disconfirming evidence. Record refuted paths to prevent retry. Keep unexplained residuals open as possible evidence of concurrent causes.
 - Lead with inspectable evidence and the choices that shaped it—time bounds, sampling, aggregation, joins—then interpretation.
 - Before using unfamiliar CLI options, check current help or supplied docs; prefer structured output when available.
+- When practical, verify the requested behavior through the tool or interface that will use the change. State what the check established.
 
 ## Code / Design
 
@@ -50,7 +51,9 @@ Apply this section only when this agent's launch context identifies it as an Orc
 - The top-level agent coordinates even when it implements the change alone. It integrates the work, runs the relevant checks, and owns review and worktree status. Dispatched workers report back to it.
 - The coordinator requests independent reviews even for simple edits. Use the agents Orca lists for the current worktree, subject to Olaf's and the repository's provider restrictions. Start one fresh, read-only reviewer per eligible agent type in parallel, including the coordinator's own. Use each agent's default model.
 - Give reviewers the same requirements, check commands and results, and exact changes in scope, including intended new files. Review uncommitted changes in the current worktree and keep the candidate stable, or supply identical snapshots. Ask for evidence for each finding.
+- For a later commit request, compare the requirements and the full candidate, including intended new files, with what reviewers saw. Reuse reviews that still apply. Request focused review of material changes.
 - Before declaring the change ready or making a requested commit, the coordinator assesses the returned reviews and accounts for any that could not be completed. Verify findings, fix confirmed issues, and rerun affected checks. Ask a reviewer who raised the issue to recheck material fixes. Report unresolved findings and gaps in review coverage.
+- Collect routine worker replies quietly and summarize the review once. Notify Olaf sooner when a finding requires a decision, blocks progress, or changes the expected outcome.
 - When implementation pauses or changes hands, the coordinator records the current state, verification result, and next action in the Orca worktree comment.
 <!-- /scope:personal -->
 

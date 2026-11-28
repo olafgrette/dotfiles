@@ -52,8 +52,8 @@ is_personal() {
     [ -f "$DOTFILES/personal-hosts" ] && grep -qxF "$(short_host)" "$DOTFILES/personal-hosts"
 }
 
-# Render UNIVERSAL_AGENT_DIRECTIVES.md into the agent directives shared by all
-# four tools, filtering <!-- scope:personal/work --> blocks by hostname and
+# Render UNIVERSAL_AGENT_DIRECTIVES.md once for all destinations,
+# filtering <!-- scope:personal/work --> blocks by hostname and
 # appending the gitignored local override (work-only content that must
 # never enter git history).
 render_agent_directives() {
@@ -182,6 +182,7 @@ generate_file .claude/CLAUDE.md "$AGENT_DIRECTIVES"
 generate_file .gemini/GEMINI.md "$AGENT_DIRECTIVES"
 generate_file .opencode/AGENTS.md "$AGENT_DIRECTIVES"
 generate_file .codex/AGENTS.md "$AGENT_DIRECTIVES"
+generate_file .vibe/AGENTS.md "$AGENT_DIRECTIVES"
 
 # Linux: let user processes (tmux/zellij sessions) survive SSH logout.
 # systemd-logind otherwise reaps them on disconnect. enable-linger is the
